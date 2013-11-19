@@ -36,7 +36,7 @@ def make_epub(filename, html_files, meta):
     package = etree.Element('package', {
         'version': "2.0",
         'xmlns': "http://www.idpf.org/2007/opf",
-        'unique-identifier': unique_id,  # could plausibly be based on the name
+        'unique-identifier': 'book_identifier',  # could plausibly be based on the name
     })
 
     # build the metadata
@@ -44,7 +44,7 @@ def make_epub(filename, html_files, meta):
         'xmlns:dc': "http://purl.org/dc/elements/1.1/",
         'xmlns:opf': "http://www.idpf.org/2007/opf",
     })
-    identifier = etree.SubElement(metadata, 'dc:identifier', id=unique_id)
+    identifier = etree.SubElement(metadata, 'dc:identifier', id='book_identifier')
     if unique_id.find('://') != -1:
         identifier.set('opf:scheme', "URI")
     identifier.text = unique_id
@@ -83,8 +83,12 @@ def make_epub(filename, html_files, meta):
         })
         etree.SubElement(etree.SubElement(point, 'navLabel'), 'text').text = html[0]
         etree.SubElement(point, 'content', src=basename)
+
         # and add the actual html to the zip
-        epub.write(html[1], 'OEBPS/'+basename)
+        if html[2]:
+            epub.writestr('OEBPS/'+basename, html[2])
+        else:
+            epub.write(html[1], 'OEBPS/'+basename)
 
     # ...and add the ncx to the manifest
     etree.SubElement(manifest, 'item', {
