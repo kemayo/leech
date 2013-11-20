@@ -81,10 +81,12 @@ def _extract_chapter(url, title):
     # clean up some invalid xhtml attributes
     # TODO: be more thorough about this somehow
     for tag in text.find_all('hr'):
-        del(tag.attrs['size'])
-        del(tag.attrs['noshade'])
+        if 'size' in tag.attrs:
+            del(tag.attrs['size'])
+        if 'noshade' in tag.attrs:
+            del(tag.attrs['noshade'])
 
     return (title, text.prettify())
 
 if __name__ == '__main__':
-    leech('https://www.fanfiction.net/s/9380249/1/Rationalising-Death')
+    leech('https://www.fanfiction.net/s/4510497/1/Neon-Genesis-Evangelion-Redux')
