@@ -29,6 +29,8 @@ def leech(url, filename=None):
         return
 
     story = site.extract(url, fetch)
+    if not story:
+        return
 
     metadata = {
         'title': story['title'],
@@ -42,6 +44,8 @@ def leech(url, filename=None):
     filename = filename or story['title'] + '.epub'
 
     epub.make_epub(filename, html, metadata)
+
+    return filename
 
 _sites = []
 
@@ -66,5 +70,8 @@ if __name__ == '__main__':
     parser.add_argument('--filename', help="output filename (the title is used if this isn't provided)")
     args = parser.parse_args()
 
-    leech(args.url, filename=args.filename)
-    pass
+    filename = leech(args.url, filename=args.filename)
+    if filename:
+        print("File created:", filename)
+    else:
+        print("A problem occurred.")
