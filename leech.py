@@ -79,12 +79,9 @@ def _extract_chapter(url, title):
     text = content.find(id="storytext")
 
     # clean up some invalid xhtml attributes
-    # TODO: be more thorough about this somehow
-    for tag in text.find_all('hr'):
-        if 'size' in tag.attrs:
-            del(tag.attrs['size'])
-        if 'noshade' in tag.attrs:
-            del(tag.attrs['noshade'])
+    # TODO: be more selective about this somehow
+    for tag in text.find_all(True):
+        tag.attrs = None
 
     return (title, text.prettify())
 
