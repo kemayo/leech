@@ -9,7 +9,7 @@ def match(url):
 
 def extract(url, fetch):
     page = fetch(url)
-    soup = BeautifulSoup(page)
+    soup = BeautifulSoup(page, 'html5lib')
     content = soup.find(id="content_wrapper_inner")
     if not content:
         return
@@ -51,7 +51,10 @@ def _extract_chapter(url, title, fetch):
 
     # clean up some invalid xhtml attributes
     # TODO: be more selective about this somehow
-    for tag in text.find_all(True):
-        tag.attrs = None
+    try:
+        for tag in text.find_all(True):
+            tag.attrs = None
+    except Exception as e:
+        print("Trouble cleaning attributes", e)
 
     return (title, text.prettify())
