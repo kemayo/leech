@@ -40,6 +40,7 @@ def extract(url, fetch):
     return story
 
 def _extract_chapter(url, title, fetch):
+    print("Extracting chapter from", url)
     page = fetch(url)
     soup = BeautifulSoup(page, 'html5lib')
 
