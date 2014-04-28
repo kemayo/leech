@@ -27,11 +27,11 @@ def leech(url, filename=None):
     # check a bunch of things which are completely ff.n specific, to get text from it
     site = _get_site(url)
     if not site:
-        return
+        raise Exception("No site handler found")
 
     story = site.extract(url, fetch)
     if not story:
-        return
+        raise Exception("Couldn't extract story")
 
     metadata = {
         'title': story['title'],
@@ -74,7 +74,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     filename = leech(args.url, filename=args.filename)
-    if filename:
-        print("File created:", filename)
-    else:
-        print("A problem occurred.")
+    print("File created:", filename)
+
