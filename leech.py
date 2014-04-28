@@ -21,6 +21,7 @@ html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 </html>
 '''
 
+
 def leech(url, filename=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
     # check a bunch of things which are completely ff.n specific, to get text from it
@@ -39,7 +40,7 @@ def leech(url, filename=None):
     }
     html = []
     for i, chapter in enumerate(story['chapters']):
-        html.append((chapter[0], 'chapter%d.html' % (i+1), html_template.format(title=chapter[0], text=chapter[1])))
+        html.append((chapter[0], 'chapter%d.html' % (i + 1), html_template.format(title=chapter[0], text=chapter[1])))
 
     filename = filename or story['title'] + '.epub'
 
@@ -49,10 +50,12 @@ def leech(url, filename=None):
 
 _sites = []
 
+
 def _get_site(url):
     for site in _sites:
         if site.match(url):
             return site
+
 
 def _load_sites():
     dirname = os.path.join(os.path.dirname(__file__), 'sites')

@@ -9,10 +9,11 @@ from urllib.request import Request, urlopen
 __version__ = 1
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
+
 class Fetch:
     """A store for values by date, sqlite-backed"""
 
-    def __init__(self, storepath, cachetime = "+1 day"):
+    def __init__(self, storepath, cachetime="+1 day"):
         """Initializes the store; creates tables if required
 
         storepath is the path to a sqlite database, and will be created
@@ -57,6 +58,7 @@ class Fetch:
         c.execute("""REPLACE INTO cache VALUES (?, ?, CURRENT_TIMESTAMP)""", (url, value,))
         self.store.commit()
         c.close()
+
 
 def _fetch(url, data=None, ungzip=True):
     """A generic URL-fetcher, which handles gzipped content, returns a string"""

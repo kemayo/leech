@@ -3,9 +3,11 @@
 import re
 from bs4 import BeautifulSoup
 
+
 def match(url):
     ## e.g. https://www.fanfiction.net/s/4109686/3/Taking-Sights
     return re.match(r'^https?://www\.fanfiction\.net/s/\d+/?.*', url)
+
 
 def extract(url, fetch):
     page = fetch(url)
@@ -38,6 +40,7 @@ def extract(url, fetch):
     story['chapters'] = chapters
 
     return story
+
 
 def _extract_chapter(url, title, fetch):
     print("Extracting chapter from", url)

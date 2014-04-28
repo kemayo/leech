@@ -12,6 +12,7 @@ a bit of metadata thrown in for good measure.
 This totally started from http://www.manuel-strehl.de/dev/simple_epub_ebooks_with_python.en.html
 """
 
+
 def make_epub(filename, html_files, meta):
     unique_id = meta.get('unique_id', False)
     if not unique_id:
@@ -25,13 +26,13 @@ def make_epub(filename, html_files, meta):
     # We need an index file, that lists all other HTML files
     # This index file itself is referenced in the META_INF/container.xml
     # file
-    container = etree.Element('container', version = "1.0", xmlns="urn:oasis:names:tc:opendocument:xmlns:container")
+    container = etree.Element('container', version="1.0", xmlns="urn:oasis:names:tc:opendocument:xmlns:container")
     rootfiles = etree.SubElement(container, 'rootfiles')
     etree.SubElement(rootfiles, 'rootfile', {
         'full-path': "OEBPS/Content.opf",
         'media-type': "application/oebps-package+xml",
     })
-    epub.writestr("META-INF/container.xml", etree.tostring(container));
+    epub.writestr("META-INF/container.xml", etree.tostring(container))
 
     package = etree.Element('package', {
         'version': "2.0",
@@ -70,7 +71,7 @@ def make_epub(filename, html_files, meta):
     # Write each HTML file to the ebook, collect information for the index
     for i, html in enumerate(html_files):
         basename = os.path.basename(html[1])
-        file_id = 'file_%d' % (i+1)
+        file_id = 'file_%d' % (i + 1)
         etree.SubElement(manifest, 'item', {
             'id': file_id,
             'href': basename,
@@ -86,9 +87,9 @@ def make_epub(filename, html_files, meta):
 
         # and add the actual html to the zip
         if html[2]:
-            epub.writestr('OEBPS/'+basename, html[2])
+            epub.writestr('OEBPS/' + basename, html[2])
         else:
-            epub.write(html[1], 'OEBPS/'+basename)
+            epub.write(html[1], 'OEBPS/' + basename)
 
     # ...and add the ncx to the manifest
     etree.SubElement(manifest, 'item', {
