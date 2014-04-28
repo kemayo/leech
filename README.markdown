@@ -3,10 +3,15 @@ Leech
 
 Let's say you want to read some sort of fiction. You're a fan of it, perhaps. But mobile websites are kind of non-ideal, so you'd like a proper ebook made from whatever you're reading.
 
-Usage
+Setup
 ---
 
-You'll need python3 and BeautifulSoup.
+You'll need python3, BeautifulSoup, and html5lib. If you don't have them, this will make them show up:
+
+    $ pip install -r requirements.txt
+
+Usage
+---
 
     $ python3 leech.py [[URL]]
 
@@ -18,6 +23,7 @@ Supports
 ---
 
  * Fanfiction.net
+ * Sta.sh
 
 Contributing
 ---
