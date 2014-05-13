@@ -24,8 +24,11 @@ Supports
 
  * Fanfiction.net
  * Sta.sh
+ * DeviantArt galleries/collections
 
 Contributing
 ---
 
 If you submit a pull request to add support for another site, I will nigh-certainly accept it.
+
+Run [EpubCheck](https://github.com/IDPF/epubcheck) on epubs you generate to make sure they're not breaking.
