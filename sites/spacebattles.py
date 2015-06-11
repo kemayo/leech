@@ -39,12 +39,13 @@ def extract(url, fetch):
             print("Unparseable threadmark href", href)
             return
         postid = match.group(1)
-        chapter_page = fetch(base + mark.a.get('href'))
+        chapter_page = fetch(base + href)
         chapter_soup = BeautifulSoup(chapter_page, 'html5lib')
 
-        post = chapter_soup.find('li', id='post-'+postid)
+        post = chapter_soup.find('li', id='post-'+postid).find('blockquote', class_='messageText')
+        post.name = 'div'
 
-        chapters.append((str(mark.a.string), post.find('blockquote', class_='messageText').prettify()))
+        chapters.append((str(mark.a.string), post.prettify()))
 
     story['chapters'] = chapters
 
