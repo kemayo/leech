@@ -11,6 +11,8 @@ def extract(url, fetch):
     page = fetch(url)
     soup = BeautifulSoup(page, 'html5lib')
 
+    base = soup.head.base.get('href')
+
     match = re.match(r'.+/posts/(\d+)/?', url)
     if not match:
         print("Unparseable post URL", url)
@@ -32,6 +34,8 @@ def extract(url, fetch):
         if '/members/' in href:
             # skip links to users
             continue
+        if not href.startswith('http'):
+            href = base + href
         print("Extracting chapter from", href)
         match = re.match(r'.+#post-(\d+)$', href)
         if not match:
