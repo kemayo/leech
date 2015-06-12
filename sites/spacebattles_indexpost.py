@@ -42,12 +42,16 @@ def extract(url, fetch):
             match = re.match(r'.+/posts/(\d+)/?$', href)
             if not match:
                 print("Unparseable index link href", href)
-                return
-        chapter_postid = match.group(1)
+        chapter_postid = match and match.group(1)
         chapter_page = fetch(href)
         chapter_soup = BeautifulSoup(chapter_page, 'html5lib')
 
-        post = chapter_soup.find('li', id='post-'+chapter_postid).find('blockquote', class_='messageText')
+        if chapter_postid:
+            post = chapter_soup.find('li', id='post-'+chapter_postid)
+        else:
+            # just the first one in the thread, then
+            post = chapter_soup.find('li', class_='message')
+        post = post.find('blockquote', class_='messageText')
         post.name = 'div'
 
         chapters.append((str(link.string), post.prettify()))
