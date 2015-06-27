@@ -4,6 +4,7 @@ import os.path
 import zipfile
 import xml.etree.ElementTree as etree
 import uuid
+import string
 
 """
 So, an epub is approximately a zipfile of HTML files, with
@@ -12,12 +13,28 @@ a bit of metadata thrown in for good measure.
 This totally started from http://www.manuel-strehl.de/dev/simple_epub_ebooks_with_python.en.html
 """
 
+def sanitize_filename(s):
+    """Take a string and return a valid filename constructed from the string.
+    Uses a whitelist approach: any characters not present in valid_chars are
+    removed. Also spaces are replaced with underscores.
+     
+    Note: this method may produce invalid filenames such as ``, `.` or `..`
+    When I use this method I prepend a date string like '2009_01_15_19_46_32_'
+    and append a file extension like '.txt', so I avoid the potential of using
+    an invalid filename.
+     
+    """
+    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+    filename = ''.join(c for c in s if c in valid_chars)
+    filename = filename.replace(' ','_') # I don't like spaces in filenames.
+    return filename
 
 def make_epub(filename, html_files, meta):
     unique_id = meta.get('unique_id', False)
     if not unique_id:
         unique_id = 'leech_book_' + str(uuid.uuid4())
 
+    filename = sanitize_filename(filename)
     epub = zipfile.ZipFile(filename, 'w')
 
     # The first file must be named "mimetype"
