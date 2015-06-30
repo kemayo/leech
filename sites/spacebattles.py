@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 
 def match(url):
-    return re.match(r'^https?://forums.spacebattles.com/threads/.*\d+/?.*', url)
+    return re.match(r'^https?://forums.(?:spacebattles|sufficientvelocity).com/threads/.*\d+/?.*', url)
 
 def extract(url, fetch):
     page = fetch(url)
