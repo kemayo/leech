@@ -36,13 +36,19 @@ def extract(url, fetch):
         print("Extracting chapter from", href)
         match = re.match(r'posts/(\d+)/?', href)
         if not match:
-            print("Unparseable threadmark href", href)
-            return
-        postid = match.group(1)
+            match = re.match(r'.+#post-(\d+)$', href)
+            if not match:
+                print("Unparseable threadmark href", href)
+        chapter_postid = match and match.group(1)
         chapter_page = fetch(base + href)
         chapter_soup = BeautifulSoup(chapter_page, 'html5lib')
 
-        post = chapter_soup.find('li', id='post-'+postid).find('blockquote', class_='messageText')
+        if chapter_postid:
+            post = chapter_soup.find('li', id='post-'+chapter_postid)
+        else:
+            # just the first one in the thread, then
+            post = chapter_soup.find('li', class_='message')
+        post = post.find('blockquote', class_='messageText')
         post.name = 'div'
 
         chapters.append((str(mark.a.string), post.prettify()))
