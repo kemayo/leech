@@ -25,7 +25,7 @@ def extract(url, fetch):
     page = fetch(base + threadmarks_link.get('href'))
     soup = BeautifulSoup(page, 'html5lib')
 
-    marks = soup.find_all('li', class_='primaryContent memberListItem')
+    marks = soup.select('li.primaryContent.memberListItem')
     if not marks:
         print("No marks on threadmarks page")
         return
