@@ -4,6 +4,7 @@ import argparse
 import importlib
 import os
 
+import sites
 import epub
 from fetch import Fetch
 
@@ -25,11 +26,12 @@ html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 def leech(url, filename=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
     # check a bunch of things which are completely ff.n specific, to get text from it
-    site = _get_site(url)
+    site = sites.get(url)
     if not site:
         raise Exception("No site handler found")
 
-    story = site.extract(url, fetch)
+    handler = site(fetch)
+    story = handler.extract(url)
     if not story:
         raise Exception("Couldn't extract story")
 
@@ -48,26 +50,7 @@ def leech(url, filename=None):
 
     return filename
 
-_sites = []
-
-
-def _get_site(url):
-    for site in _sites:
-        if site.match(url):
-            return site
-
-
-def _load_sites():
-    dirname = os.path.join(os.path.dirname(__file__), 'sites')
-    for f in os.listdir(dirname):
-        if not f.endswith('.py'):
-            continue
-        mod = importlib.import_module('sites.' + f.replace('.py', ''))
-        _sites.append(mod)
-
-
 if __name__ == '__main__':
-    _load_sites()
     parser = argparse.ArgumentParser()
     parser.add_argument('url', help="url of a story to fetch")
     parser.add_argument('--filename', help="output filename (the title is used if this isn't provided)")
@@ -75,4 +58,3 @@ if __name__ == '__main__':
 
     filename = leech(args.url, filename=args.filename)
     print("File created:", filename)
-
