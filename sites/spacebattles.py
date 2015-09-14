@@ -83,13 +83,17 @@ class SpaceBattles(Site):
 class SpaceBattlesIndex(SpaceBattles):
     """A spacebattles thread with an index post"""
     @staticmethod
-    def match(url):
+    def matches(url):
         return re.match(r'^https?://forums.(?:spacebattles|sufficientvelocity).com/posts/\d+/?.*', url)
 
     def _chapter_list(self, url):
         soup = self._soup(url)
 
-        post = post = soup.find('li', id='post-'+postid)
+        match = re.match(r'.+/posts/(\d+)/?', url)
+        if not match:
+            raise SiteException("Unparseable post URL", url)
+
+        post = post = soup.find('li', id='post-' + match.group(1))
         links = post.find('blockquote', class_='messageText').find_all('a', class_='internalLink')
         if not links:
             raise SiteException("No links in index?")
