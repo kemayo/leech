@@ -37,6 +37,13 @@ class SpaceBattles(Site):
         return story
 
     def _chapter_list(self, url):
+        try:
+            return self._chapter_list_threadmarks(url)
+        except SiteException as e:
+            print("Tried threadmarks", e.msg)
+            return self._chapter_list_index(url)
+
+    def _chapter_list_threadmarks(self, url):
         soup = self._soup(url)
 
         threadmarks_link = soup.find(class_="threadmarksTrigger")
@@ -52,23 +59,38 @@ class SpaceBattles(Site):
 
         return marks
 
+    def _chapter_list_index(self, url):
+        post = self._post_from_url(url)
+        if not post:
+            raise SiteException("Unparseable post URL", url)
+
+        links = post.find('blockquote', class_='messageText').find_all('a', class_='internalLink')
+        if not links:
+            raise SiteException("No links in index?")
+
+        return links
+
     def _chapter(self, url):
         print("Extracting chapter from", url)
+        post = self._post_from_url(url)
+
+        return self._clean_chapter(post)
+
+    def _post_from_url(self, url):
+        # URLs refer to specific posts, so get just that one
+        # if no specific post referred to, get the first one
         match = re.match(r'posts/(\d+)/?', url)
         if not match:
             match = re.match(r'.+#post-(\d+)$', url)
-            if not match:
-                print("Unparseable threadmark href", url)
-        chapter_postid = match and match.group(1)
-        chapter_soup = self._soup(url, 'html5lib')
+            # could still be nothing here
+        postid = match and match.group(1)
+        soup = self._soup(url, 'html5lib')
 
-        if chapter_postid:
-            post = chapter_soup.find('li', id='post-'+chapter_postid)
-        else:
-            # just the first one in the thread, then
-            post = chapter_soup.find('li', class_='message')
+        if postid:
+            return soup.find('li', id='post-'+postid)
 
-        return self._clean_chapter(post)
+        # just the first one in the thread, then
+        return soup.find('li', class_='message')
 
     def _clean_chapter(self, post):
         post = post.find('blockquote', class_='messageText')
@@ -87,15 +109,4 @@ class SpaceBattlesIndex(SpaceBattles):
         return re.match(r'^https?://forums.(?:spacebattles|sufficientvelocity).com/posts/\d+/?.*', url)
 
     def _chapter_list(self, url):
-        soup = self._soup(url)
-
-        match = re.match(r'.+/posts/(\d+)/?', url)
-        if not match:
-            raise SiteException("Unparseable post URL", url)
-
-        post = post = soup.find('li', id='post-' + match.group(1))
-        links = post.find('blockquote', class_='messageText').find_all('a', class_='internalLink')
-        if not links:
-            raise SiteException("No links in index?")
-
-        return links
+        return self._chapter_list_index(url)
