@@ -4,13 +4,14 @@ import re
 from . import register, Site, SiteException
 
 
-@register
-class SpaceBattles(Site):
-    """SpaceBattles is a forum..."""
+class XenForo(Site):
+    """XenForo is forum software that powers a number of fiction-related forums."""
 
-    @staticmethod
-    def matches(url):
-        return re.match(r'^https?://forums.(?:spacebattles|sufficientvelocity).com/threads/.*\d+/?.*', url)
+    domain = False
+
+    @classmethod
+    def matches(cls, url):
+        return re.match(r'^https?://%s/threads/.*\d+/?.*' % cls.domain, url)
 
     def extract(self, url):
         soup = self._soup(url)
@@ -101,12 +102,35 @@ class SpaceBattles(Site):
         return post.prettify()
 
 
-@register
-class SpaceBattlesIndex(SpaceBattles):
-    """A spacebattles thread with an index post"""
-    @staticmethod
-    def matches(url):
-        return re.match(r'^https?://forums.(?:spacebattles|sufficientvelocity).com/posts/\d+/?.*', url)
+class XenForoIndex(XenForo):
+    @classmethod
+    def matches(cls, url):
+        return re.match(r'^https?://%s/posts/\d+/?.*' % cls.domain, url)
 
     def _chapter_list(self, url):
         return self._chapter_list_index(url)
+
+
+@register
+class SpaceBattles(XenForo):
+    domain = 'forums.spacebattles.com'
+
+
+@register
+class SpaceBattlesIndex(XenForoIndex):
+    domain = 'forums.spacebattles.com'
+
+
+@register
+class SufficientVelocity(XenForo):
+    domain = 'forums.sufficientvelocity.com'
+
+
+@register
+class QuestionableQuesting(XenForo):
+    domain = 'forum.questionablequesting.com'
+
+
+@register
+class QuestionableQuestingIndex(QuestionableQuesting, XenForoIndex):
+    pass

@@ -20,6 +20,8 @@ class Site:
 
     def _soup(self, url, method='html5lib'):
         page = self.fetch(url)
+        if not page:
+            raise SiteException("Couldn't fetch", url)
         return BeautifulSoup(page, method)
 
 class SiteException(Exception):
@@ -35,4 +37,4 @@ def get(url):
             return site_class
 
 # And now, the things that will use this:
-from . import spacebattles, fanfictionnet, deviantart, stash
+from . import xenforo, fanfictionnet, deviantart, stash
