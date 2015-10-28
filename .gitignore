@@ -1,6 +1,8 @@
 *.epub
 *.mobi
 leech.db
+leech.cookies
+leech.json
 venv/
 
 # Byte-compiled / optimized / DLL files

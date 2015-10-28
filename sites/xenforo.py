@@ -13,14 +13,23 @@ class XenForo(Site):
     def matches(cls, url):
         return re.match(r'^https?://%s/threads/.*\d+/?.*' % cls.domain, url)
 
+    def login(self, login_details):
+        # Todo: handle non-https?
+        post = {
+            'login': login_details[0],
+            'password': login_details[1],
+        }
+        self.fetch.session.post('https://%s/login/login' % self.domain, data=post)
+        print("Logged in as", login_details[0])
+
     def extract(self, url):
         soup = self._soup(url)
 
         base = soup.head.base.get('href')
 
         story = {}
-        story['title'] = str(soup.find('h1').string)
-        story['author'] = str(soup.find('p', id='pageDescription').find('a', class_='username').string)
+        story['title'] = soup.find('h1').get_text()
+        story['author'] = soup.find('p', id='pageDescription').find('a', class_='username').get_text()
 
         marks = self._chapter_list(url)
 

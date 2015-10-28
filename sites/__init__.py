@@ -7,9 +7,10 @@ class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    def __init__(self, fetch):
+    def __init__(self, fetch, cache=True):
         super().__init__()
         self.fetch = fetch
+        self.cache = cache
 
     @staticmethod
     def matches(url):
@@ -18,8 +19,11 @@ class Site:
     def extract(self, url):
         raise NotImplementedError()
 
-    def _soup(self, url, method='html5lib'):
-        page = self.fetch(url)
+    def login(self, login_details):
+        raise NotImplementedError()
+
+    def _soup(self, url, method='html5lib', **kw):
+        page = self.fetch(url, cached=self.cache, **kw)
         if not page:
             raise SiteException("Couldn't fetch", url)
         return BeautifulSoup(page, method)
