@@ -30,6 +30,7 @@ class SpaceBattles(Site):
                 continue
             if not href.startswith('http'):
                 href = base + href
+            print("Fetching chapter", mark.string, href)
             chapters.append((str(mark.string), self._chapter(href)))
 
         story['chapters'] = chapters
@@ -71,7 +72,6 @@ class SpaceBattles(Site):
         return links
 
     def _chapter(self, url):
-        print("Extracting chapter from", url)
         post = self._post_from_url(url)
 
         return self._clean_chapter(post)
@@ -79,7 +79,7 @@ class SpaceBattles(Site):
     def _post_from_url(self, url):
         # URLs refer to specific posts, so get just that one
         # if no specific post referred to, get the first one
-        match = re.match(r'posts/(\d+)/?', url)
+        match = re.search(r'posts/(\d+)/?', url)
         if not match:
             match = re.match(r'.+#post-(\d+)$', url)
             # could still be nothing here
