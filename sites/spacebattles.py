@@ -40,7 +40,7 @@ class SpaceBattles(Site):
         try:
             return self._chapter_list_threadmarks(url)
         except SiteException as e:
-            print("Tried threadmarks", e.msg)
+            print("Tried threadmarks", e.args)
             return self._chapter_list_index(url)
 
     def _chapter_list_threadmarks(self, url):
