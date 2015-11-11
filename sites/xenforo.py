@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import datetime
 import re
 from . import register, Site, SiteException
 
@@ -41,7 +42,7 @@ class XenForo(Site):
             if not href.startswith('http'):
                 href = base + href
             print("Fetching chapter", mark.string, href)
-            chapters.append((str(mark.string), self._chapter(href)))
+            chapters.append((str(mark.string),) + self._chapter(href))
 
         story['chapters'] = chapters
 
@@ -84,7 +85,7 @@ class XenForo(Site):
     def _chapter(self, url):
         post = self._post_from_url(url)
 
-        return self._clean_chapter(post)
+        return self._clean_chapter(post), self._post_date(post)
 
     def _post_from_url(self, url):
         # URLs refer to specific posts, so get just that one
@@ -109,6 +110,15 @@ class XenForo(Site):
         for tag in post.find_all(style=True):
             del(tag['style'])
         return post.prettify()
+
+    def _post_date(self, post):
+        maybe_date = post.find(class_='DateTime')
+        if 'data-time' in maybe_date.attrs:
+            return datetime.datetime.fromtimestamp(int(maybe_date['data-time']))
+        if 'title' in maybe_date.attrs:
+            # title="Feb 24, 2015 at 1:17 PM"
+            return datetime.datetime.strptime(maybe_date['title'], "%b %d, %Y at %I:%M %p")
+        raise SiteException("No date", maybe_date)
 
 
 class XenForoIndex(XenForo):

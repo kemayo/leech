@@ -29,7 +29,7 @@ def sanitize_filename(s):
     filename = filename.replace(' ','_') # I don't like spaces in filenames.
     return filename
 
-def make_epub(filename, html_files, meta):
+def make_epub(filename, html_files, meta, extra_files = False):
     unique_id = meta.get('unique_id', False)
     if not unique_id:
         unique_id = 'leech_book_' + str(uuid.uuid4())
@@ -73,6 +73,7 @@ def make_epub(filename, html_files, meta):
     # we'll need a manifest and spine
     manifest = etree.SubElement(package, 'manifest')
     spine = etree.SubElement(package, 'spine', toc="ncx")
+    guide = etree.SubElement(package, 'guide')
 
     # ...and the ncx index
     ncx = etree.Element('ncx', {
@@ -94,7 +95,7 @@ def make_epub(filename, html_files, meta):
             'href': basename,
             'media-type': "application/xhtml+xml",
         })
-        etree.SubElement(spine, 'itemref', idref=file_id)
+        itemref = etree.SubElement(spine, 'itemref', idref=file_id)
         point = etree.SubElement(navmap, 'navPoint', {
             'class': "h1",
             'id': file_id,
@@ -102,11 +103,34 @@ def make_epub(filename, html_files, meta):
         etree.SubElement(etree.SubElement(point, 'navLabel'), 'text').text = html[0]
         etree.SubElement(point, 'content', src=basename)
 
+        if 'cover.html' == basename:
+            etree.SubElement(guide, 'reference', {
+                'type': 'cover',
+                'title': 'Cover',
+                'href': basename,
+            })
+            itemref.set('linear', 'no')
+
         # and add the actual html to the zip
         if html[2]:
             epub.writestr('OEBPS/' + basename, html[2])
         else:
             epub.write(html[1], 'OEBPS/' + basename)
+
+    if extra_files:
+        for i, data in enumerate(extra_files):
+            file_id = 'extrafile_%d' % (i + 1)
+            etree.SubElement(manifest, 'item', {
+                'id': file_id,
+                'href': data[0],
+                'media-type': data[2],
+            })
+            if 'images/cover.png' == data[0]:
+                etree.SubElement(metadata, 'meta', {
+                    'name': 'cover',
+                    'content': file_id,
+                })
+            epub.writestr('OEBPS/' + data[0], data[1])
 
     # ...and add the ncx to the manifest
     etree.SubElement(manifest, 'item', {

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import datetime
 import re
 from . import register, Site, SiteException
 
@@ -58,4 +59,8 @@ class Stash(Site):
         except Exception as e:
             raise SiteException("Trouble cleaning attributes", e)
 
-        return (title, text.prettify())
+        return (title, text.prettify(), self._date(soup))
+
+    def _date(self, soup):
+        maybe_date = soup.find('div', class_="dev-metainfo-details").find('span', ts=True)
+        return datetime.datetime.fromtimestamp(int(maybe_date['ts']))

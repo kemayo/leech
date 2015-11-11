@@ -2,15 +2,17 @@
 
 import re
 
+from . import register, Site, SiteException
 from .stash import Stash
 
+@register
 class DeviantArt(Stash):
     @staticmethod
     def matches(url):
         # Need a collection page
         return re.match(r'^https?://[^.]+\.deviantart\.com/(?:gallery|favourites)/\d+/?', url)
 
-    def extract(url, fetch):
+    def extract(self, url):
         soup = self._soup(url)
         content = soup.find(id="output")
         if not content:

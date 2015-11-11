@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import datetime
 import re
 from . import register, Site, SiteException
 
@@ -25,6 +26,15 @@ class FanFictionNet(Site):
         story['title'] = str(metadata.find('b', class_="xcontrast_txt").string)
         story['author'] = str(metadata.find('a', class_="xcontrast_txt").string)
 
+        dates = content.find_all('span', attrs={'data-xutime': True})
+        published = False
+        updated = False
+        if len(dates) == 1:
+            published = datetime.datetime.fromtimestamp(int(dates[0]['data-xutime']))
+        elif len(dates) == 2:
+            updated = datetime.datetime.fromtimestamp(int(dates[0]['data-xutime']))
+            published = datetime.datetime.fromtimestamp(int(dates[1]['data-xutime']))
+
         chapter_select = content.find(id="chap_select")
         if chapter_select:
             base_url = re.search(r'(https?://[^/]+/s/\d+/?)', url)
@@ -35,9 +45,11 @@ class FanFictionNet(Site):
             # beautiful soup doesn't handle ffn's unclosed option tags at all well here
             options = re.findall(r'<option.+?value="?(\d+)"?[^>]*>([^<]+)', str(chapter_select))
             for option in options:
-                chapters.append((option[1], self._chapter(base_url + option[0])))
+                chapters.append((option[1], self._chapter(base_url + option[0]), False))
+            chapters[-1] = (chapters[-1][0], chapters[-1][1], updated)
+            chapters[0] = (chapters[0][0], chapters[0][1], published)
         else:
-            chapters.append((story['title'], self._extract_chapter(url)))
+            chapters.append((story['title'], self._extract_chapter(url), published))
 
         story['chapters'] = chapters
 
