@@ -28,6 +28,10 @@ class Site:
             raise SiteException("Couldn't fetch", url)
         return BeautifulSoup(page, method)
 
+    def _new_tag(self, *args, **kw):
+        soup = BeautifulSoup("", 'html5lib')
+        return soup.new_tag(*args, **kw)
+
 class SiteException(Exception):
     pass
 

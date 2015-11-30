@@ -98,7 +98,7 @@ class XenForo(Site):
         soup = self._soup(url, 'html5lib')
 
         if postid:
-            return soup.find('li', id='post-'+postid)
+            return soup.find('li', id='post-' + postid)
 
         # just the first one in the thread, then
         return soup.find('li', class_='message')
@@ -109,6 +109,32 @@ class XenForo(Site):
         # mostly, we want to remove colors because the Kindle is terrible at them
         for tag in post.find_all(style=True):
             del(tag['style'])
+        # spoilers don't work well, so turn them into epub footnotes
+        spoiler_holder = False
+        for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
+            if not spoiler_holder:
+                spoiler_holder = self._new_tag('section')
+                post.append(spoiler_holder)
+            contents = spoiler.find(class_='SpoilerTarget')
+            contents.name = 'aside'
+            contents.attrs['id'] = "spoiler%d" % idx
+            contents.attrs['epub:type'] = 'footnote'
+            backlink = self._new_tag('a', href="#spoiler%dx" % idx)
+            backlink.string = '^'
+            contents.insert(0, backlink)
+            spoiler_holder.append(contents)
+
+            new_spoiler = self._new_tag('div')
+            spoiler_link = self._new_tag('a')
+            spoiler_link.attrs = {
+                'id': 'spoiler%dx' % idx,
+                'href': "#spoiler%d" % idx,
+                'epub:type': 'noteref',
+            }
+            spoiler_link.string = spoiler.find(class_='SpoilerTitle').get_text()
+            new_spoiler.append(spoiler_link)
+
+            spoiler.replace_with(new_spoiler)
         return post.prettify()
 
     def _post_date(self, post):
