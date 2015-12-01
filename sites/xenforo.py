@@ -35,16 +35,18 @@ class XenForo(Site):
         marks = self._chapter_list(url)
 
         chapters = []
-        for mark in marks:
+        for idx, mark in enumerate(marks, 1):
             href = mark.get('href')
             if '/members' in href:
                 continue
             if not href.startswith('http'):
                 href = base + href
             print("Fetching chapter", mark.string, href)
-            chapters.append((str(mark.string),) + self._chapter(href))
+            chapters.append((str(mark.string),) + self._chapter(href, idx))
 
         story['chapters'] = chapters
+        story['footnotes'] = '\n\n'.join(self.footnotes)
+        self.footnotes = []
 
         return story
 
@@ -82,10 +84,10 @@ class XenForo(Site):
 
         return links
 
-    def _chapter(self, url):
+    def _chapter(self, url, chapter_number):
         post = self._post_from_url(url)
 
-        return self._clean_chapter(post), self._post_date(post)
+        return self._clean_chapter(post, chapter_number), self._post_date(post)
 
     def _post_from_url(self, url):
         # URLs refer to specific posts, so get just that one
@@ -103,37 +105,18 @@ class XenForo(Site):
         # just the first one in the thread, then
         return soup.find('li', class_='message')
 
-    def _clean_chapter(self, post):
+    def _clean_chapter(self, post, chapter_number):
         post = post.find('blockquote', class_='messageText')
         post.name = 'div'
         # mostly, we want to remove colors because the Kindle is terrible at them
         for tag in post.find_all(style=True):
             del(tag['style'])
         # spoilers don't work well, so turn them into epub footnotes
-        spoiler_holder = False
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
-            if not spoiler_holder:
-                spoiler_holder = self._new_tag('section')
-                post.append(spoiler_holder)
-            contents = spoiler.find(class_='SpoilerTarget')
-            contents.name = 'aside'
-            contents.attrs['id'] = "spoiler%d" % idx
-            contents.attrs['epub:type'] = 'footnote'
-            backlink = self._new_tag('a', href="#spoiler%dx" % idx)
-            backlink.string = '^'
-            contents.insert(0, backlink)
-            spoiler_holder.append(contents)
-
+            link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), 'chapter%d.html' % chapter_number)
+            link.string = spoiler.find(class_='SpoilerTitle').get_text()
             new_spoiler = self._new_tag('div')
-            spoiler_link = self._new_tag('a')
-            spoiler_link.attrs = {
-                'id': 'spoiler%dx' % idx,
-                'href': "#spoiler%d" % idx,
-                'epub:type': 'noteref',
-            }
-            spoiler_link.string = spoiler.find(class_='SpoilerTitle').get_text()
-            new_spoiler.append(spoiler_link)
-
+            new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
         return post.prettify()
 

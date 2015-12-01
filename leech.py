@@ -74,6 +74,9 @@ def leech(url, filename=None, cache=True):
     for i, chapter in enumerate(story['chapters']):
         html.append((chapter[0], 'chapter%d.html' % (i + 1), html_template.format(title=chapter[0], text=chapter[1])))
 
+    if 'footnotes' in story and story['footnotes']:
+        html.append(("Footnotes", 'footnotes.html', html_template.format(title="Footnotes", text=story['footnotes'])))
+
     css = ('Styles/base.css', fetch('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css'), 'text/css')
     cover_image = ('images/cover.png', cover.make_cover(story['title'], story['author']).read(), 'image/png')
 
