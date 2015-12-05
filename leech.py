@@ -43,14 +43,14 @@ cover_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 '''
 
 
-def leech(url, filename=None, cache=True):
+def leech(url, filename=None, cache=True, args=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
     # check a bunch of things which are completely ff.n specific, to get text from it
     site = sites.get(url)
     if not site:
         raise Exception("No site handler found")
 
-    handler = site(fetch, cache=cache)
+    handler = site(fetch, cache=cache, args=args)
 
     with open('leech.json') as store_file:
         store = json.load(store_file)
@@ -82,7 +82,7 @@ def leech(url, filename=None, cache=True):
 
     filename = filename or story['title'] + '.epub'
 
-    filename = epub.make_epub(filename, html, metadata, extra_files = (css, cover_image))
+    filename = epub.make_epub(filename, html, metadata, extra_files=(css, cover_image))
 
     return filename
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     parser.add_argument('--filename', help="output filename (the title is used if this isn't provided)")
     parser.add_argument('--no-cache', dest='cache', action='store_false')
     parser.set_defaults(cache=True)
-    args = parser.parse_args()
+    args, extra_args = parser.parse_known_args()
 
-    filename = leech(args.url, filename=args.filename, cache=args.cache)
+    filename = leech(args.url, filename=args.filename, cache=args.cache, args=extra_args)
     print("File created:", filename)

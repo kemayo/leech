@@ -1,4 +1,5 @@
 
+import argparse
 from bs4 import BeautifulSoup
 
 _sites = []
@@ -8,11 +9,12 @@ class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    def __init__(self, fetch, cache=True):
+    def __init__(self, fetch, cache=True, args=None):
         super().__init__()
         self.fetch = fetch
         self.cache = cache
         self.footnotes = []
+        self.options = self._parse_args(args)
 
     @staticmethod
     def matches(url):
@@ -23,6 +25,14 @@ class Site:
 
     def login(self, login_details):
         raise NotImplementedError()
+
+    def _parse_args(self, args):
+        parser = argparse.ArgumentParser()
+        self._add_arguments(parser)
+        return parser.parse_args(args)
+
+    def _add_arguments(self, parser):
+        pass
 
     def _soup(self, url, method='html5lib', **kw):
         page = self.fetch(url, cached=self.cache, **kw)

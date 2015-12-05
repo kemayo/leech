@@ -82,6 +82,11 @@ class XenForo(Site):
         if not links:
             raise SiteException("No links in index?")
 
+        if self.options.include_index:
+            fake_link = self._new_tag('a', href=url)
+            fake_link.string = "Index"
+            links.insert(0, fake_link)
+
         return links
 
     def _chapter(self, url, chapter_number):
@@ -128,6 +133,9 @@ class XenForo(Site):
             # title="Feb 24, 2015 at 1:17 PM"
             return datetime.datetime.strptime(maybe_date['title'], "%b %d, %Y at %I:%M %p")
         raise SiteException("No date", maybe_date)
+
+    def _add_arguments(self, parser):
+        parser.add_argument('--include-index', dest='include_index', action='store_true', default=False)
 
 
 class XenForoIndex(XenForo):
