@@ -102,6 +102,10 @@ class XenForo(Site):
             match = re.match(r'.+#post-(\d+)$', url)
             # could still be nothing here
         postid = match and match.group(1)
+        if postid:
+            # create a proper post-url, because threadmarks can sometimes
+            # mess up page-wise with anchors
+            url = 'https://%s/posts/%s/' % (self.domain, postid)
         soup = self._soup(url, 'html5lib')
 
         if postid:
