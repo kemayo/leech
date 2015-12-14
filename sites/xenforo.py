@@ -32,13 +32,13 @@ class XenForo(Site):
         story['title'] = soup.find('h1').get_text()
         story['author'] = soup.find('p', id='pageDescription').find('a', class_='username').get_text()
 
-        marks = self._chapter_list(url)
+        marks = [mark for mark in self._chapter_list(url) if '/members' not in mark.get('href')]
+        if self.options.stop_after:
+            marks = marks[:self.options.stop_after]
 
         chapters = []
         for idx, mark in enumerate(marks, 1):
             href = mark.get('href')
-            if '/members' in href:
-                continue
             if not href.startswith('http'):
                 href = base + href
             print("Fetching chapter", mark.string, href)
@@ -140,6 +140,7 @@ class XenForo(Site):
 
     def _add_arguments(self, parser):
         parser.add_argument('--include-index', dest='include_index', action='store_true', default=False)
+        parser.add_argument('--stop-after', dest='stop_after', type=int, default=None)
 
 
 class XenForoIndex(XenForo):
