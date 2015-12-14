@@ -33,8 +33,7 @@ class XenForo(Site):
         story['author'] = soup.find('p', id='pageDescription').find('a', class_='username').get_text()
 
         marks = [mark for mark in self._chapter_list(url) if '/members' not in mark.get('href')]
-        if self.options.stop_after:
-            marks = marks[:self.options.stop_after]
+        marks = marks[self.options.offset:self.options.limit]
 
         chapters = []
         for idx, mark in enumerate(marks, 1):
@@ -140,7 +139,8 @@ class XenForo(Site):
 
     def _add_arguments(self, parser):
         parser.add_argument('--include-index', dest='include_index', action='store_true', default=False)
-        parser.add_argument('--stop-after', dest='stop_after', type=int, default=None)
+        parser.add_argument('--offset', dest='offset', type=int, default=None)
+        parser.add_argument('--limit', dest='limit', type=int, default=None)
 
 
 class XenForoIndex(XenForo):
