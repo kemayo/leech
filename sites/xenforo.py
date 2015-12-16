@@ -122,7 +122,9 @@ class XenForo(Site):
         # spoilers don't work well, so turn them into epub footnotes
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
             link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), 'chapter%d.html' % chapter_number)
-            link.string = spoiler.find(class_='SpoilerTitle').get_text()
+            spoiler_title = spoiler.find(class_='SpoilerTitle')
+            if spoiler_title:
+                link.string = spoiler_title.get_text()
             new_spoiler = self._new_tag('div')
             new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
