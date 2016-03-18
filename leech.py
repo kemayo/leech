@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import importlib
-import os
+import sys
 import json
 
 import sites
@@ -88,11 +87,20 @@ def leech(url, filename=None, cache=True, args=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', help="url of a story to fetch")
+    parser.add_argument('url', help="url of a story to fetch", nargs='?')
     parser.add_argument('--filename', help="output filename (the title is used if this isn't provided)")
     parser.add_argument('--no-cache', dest='cache', action='store_false')
-    parser.set_defaults(cache=True)
+    parser.add_argument('--flush', dest='flush', action='store_true')
+    parser.set_defaults(cache=True, flush=False)
     args, extra_args = parser.parse_known_args()
+
+    if args.flush:
+        rows = fetch.flush()
+        print("Flushed cache of {} rows".format(rows))
+        sys.exit()
+
+    if not args.url:
+        sys.exit("URL is required")
 
     filename = leech(args.url, filename=args.filename, cache=args.cache, args=extra_args)
     print("File created:", filename)

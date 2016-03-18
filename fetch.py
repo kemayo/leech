@@ -69,3 +69,9 @@ class Fetch:
         c.execute("""REPLACE INTO cache VALUES (?, ?, CURRENT_TIMESTAMP)""", (url, value,))
         self.store.commit()
         c.close()
+
+    def flush(self, cachetime="-7 days"):
+        c = self.store.execute("""DELETE FROM cache WHERE time < datetime('now', ?)""", (cachetime,))
+        self.store.commit()
+        self.store.execute("""VACUUM""")
+        return c.rowcount
