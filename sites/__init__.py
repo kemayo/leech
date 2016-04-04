@@ -21,6 +21,16 @@ class Site:
         raise NotImplementedError()
 
     def extract(self, url):
+        """Download a story from a given URL
+
+        Args:
+            url (string): A valid URL for this Site
+        Returns:
+            story (dict) containing keys:
+                title (string)
+                author (string)
+                chapters (list): list of tuples, in form (title, HTML, datetime)
+        """
         raise NotImplementedError()
 
     def login(self, login_details):
