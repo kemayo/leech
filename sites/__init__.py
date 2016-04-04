@@ -93,4 +93,4 @@ def get(url):
             return site_class
 
 # And now, the things that will use this:
-from . import xenforo, fanfictionnet, deviantart, stash, ao3
+from . import xenforo, fanfictionnet, deviantart, stash, ao3  # noqa
