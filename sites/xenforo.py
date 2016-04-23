@@ -121,10 +121,16 @@ class XenForo(Site):
             del(tag['style'])
         # spoilers don't work well, so turn them into epub footnotes
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
-            link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), 'chapter%d.html' % chapter_number)
             spoiler_title = spoiler.find(class_='SpoilerTitle')
-            if spoiler_title:
-                link.string = spoiler_title.get_text()
+            if self.options.spoilers:
+                link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), 'chapter%d.html' % chapter_number)
+                if spoiler_title:
+                    link.string = spoiler_title.get_text()
+            else:
+                if spoiler_title:
+                    link = '[SPOILER: {}]'.format(spoiler_title.get_text())
+                else:
+                    link = '[SPOILER]'
             new_spoiler = self._new_tag('div')
             new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
@@ -143,6 +149,7 @@ class XenForo(Site):
         parser.add_argument('--include-index', dest='include_index', action='store_true', default=False)
         parser.add_argument('--offset', dest='offset', type=int, default=None)
         parser.add_argument('--limit', dest='limit', type=int, default=None)
+        parser.add_argument('--skip-spoilers', dest='spoilers', action='store_false', default=True)
 
 
 class XenForoIndex(XenForo):
