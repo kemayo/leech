@@ -3,6 +3,7 @@
 import argparse
 import sys
 import json
+import datetime
 
 import sites
 import epub
@@ -41,6 +42,30 @@ cover_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 </html>
 '''
 
+frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Front Matter</title>
+    <link rel="stylesheet" type="text/css" href="Styles/base.css" />
+</head>
+<body>
+<div class="cover title">
+    <h1>{title}<br />By {author}</h1>
+    <dl>
+        <dt>Source</dt>
+        <dd>{unique_id}</dd>
+        <dt>Started</dt>
+        <dd>{started:%Y-%m-%d}</dd>
+        <dt>Updated</dt>
+        <dd>{updated:%Y-%m-%d}</dd>
+        <dt>Downloaded on</dt>
+        <dd>{now:%Y-%m-%d}</dd>
+    </dl>
+</div>
+</body>
+</html>
+'''
+
 
 def leech(url, filename=None, cache=True, args=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
@@ -69,15 +94,24 @@ def leech(url, filename=None, cache=True, args=None):
         'started': min(dates),
         'updated': max(dates),
     }
+
+    # The cover is static, and the only change comes from the image which we generate
     html = [('Cover', 'cover.html', cover_template)]
-    for i, chapter in enumerate(story['chapters']):
-        html.append((chapter[0], 'chapter%d.html' % (i + 1), html_template.format(title=chapter[0], text=chapter[1])))
+    cover_image = ('images/cover.png', cover.make_cover(story['title'], story['author']).read(), 'image/png')
+
+    html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
+
+    for i, (chapter_title, chapter_html, chapter_date) in enumerate(story['chapters']):
+        html.append((
+            chapter_title,
+            'chapter%d.html' % (i + 1),
+            html_template.format(title=chapter_title, text=chapter_html)
+        ))
 
     if 'footnotes' in story and story['footnotes']:
         html.append(("Footnotes", 'footnotes.html', html_template.format(title="Footnotes", text=story['footnotes'])))
 
     css = ('Styles/base.css', fetch('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css'), 'text/css')
-    cover_image = ('images/cover.png', cover.make_cover(story['title'], story['author']).read(), 'image/png')
 
     filename = filename or story['title'] + '.epub'
 
