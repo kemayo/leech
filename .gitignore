@@ -1,6 +1,7 @@
 *.epub
 *.mobi
 leech.db
+leech.sqlite
 leech.cookies
 leech.json
 venv/

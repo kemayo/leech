@@ -20,7 +20,7 @@ class XenForo(Site):
             'login': login_details[0],
             'password': login_details[1],
         }
-        self.fetch.session.post('https://%s/login/login' % self.domain, data=post)
+        self.session.post('https://%s/login/login' % self.domain, data=post)
         print("Logged in as", login_details[0])
 
     def extract(self, url):

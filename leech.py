@@ -4,13 +4,17 @@ import argparse
 import sys
 import json
 import datetime
+import http.cookiejar
 
 import sites
 import epub
 import cover
-from fetch import Fetch
 
-fetch = Fetch("leech")
+import requests
+import requests_cache
+
+__version__ = 1
+USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
 html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -67,14 +71,14 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 '''
 
 
-def leech(url, filename=None, cache=True, args=None):
+def leech(url, session, filename=None, args=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
     # check a bunch of things which are completely ff.n specific, to get text from it
     site = sites.get(url)
     if not site:
         raise Exception("No site handler found")
 
-    handler = site(fetch, cache=cache, args=args)
+    handler = site(session, args=args)
 
     with open('leech.json') as store_file:
         store = json.load(store_file)
@@ -111,7 +115,7 @@ def leech(url, filename=None, cache=True, args=None):
     if 'footnotes' in story and story['footnotes']:
         html.append(("Footnotes", 'footnotes.html', html_template.format(title="Footnotes", text=story['footnotes'])))
 
-    css = ('Styles/base.css', fetch('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css'), 'text/css')
+    css = ('Styles/base.css', session.get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
 
     filename = filename or story['title'] + '.epub'
 
@@ -129,12 +133,28 @@ if __name__ == '__main__':
     args, extra_args = parser.parse_known_args()
 
     if args.flush:
-        rows = fetch.flush()
-        print("Flushed cache of {} rows".format(rows))
+        requests_cache.install_cache('leech')
+        requests_cache.clear()
+        print("Flushed cache")
         sys.exit()
 
     if not args.url:
         sys.exit("URL is required")
 
-    filename = leech(args.url, filename=args.filename, cache=args.cache, args=extra_args)
+    if args.cache:
+        session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
+    else:
+        session = requests.Session()
+
+    lwp_cookiejar = http.cookiejar.LWPCookieJar()
+    try:
+        lwp_cookiejar.load('leech.cookies', ignore_discard=True)
+    except Exception as e:
+        pass
+    session.cookies = lwp_cookiejar
+    session.headers.update({
+        'User-agent': USER_AGENT
+    })
+
+    filename = leech(args.url, filename=args.filename, session=session, args=extra_args)
     print("File created:", filename)

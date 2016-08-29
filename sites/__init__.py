@@ -9,10 +9,9 @@ class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    def __init__(self, fetch, cache=True, args=None):
+    def __init__(self, session, args=None):
         super().__init__()
-        self.fetch = fetch
-        self.cache = cache
+        self.session = session
         self.footnotes = []
         self.options = self._parse_args(args)
 
@@ -45,10 +44,10 @@ class Site:
         pass
 
     def _soup(self, url, method='html5lib', **kw):
-        page = self.fetch(url, cached=self.cache, **kw)
+        page = self.session.get(url, **kw)
         if not page:
             raise SiteException("Couldn't fetch", url)
-        return BeautifulSoup(page, method)
+        return BeautifulSoup(page.text, method)
 
     def _new_tag(self, *args, **kw):
         soup = BeautifulSoup("", 'html5lib')

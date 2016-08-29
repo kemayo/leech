@@ -1,5 +1,6 @@
 beautifulsoup4==4.4.1
 html5lib==0.999
 Pillow==3.0.0
-requests==2.8.1
+requests==2.11.1
+requests-cache==0.4.12
 six==1.6.1
