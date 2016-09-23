@@ -1,4 +1,6 @@
 
+import glob
+import os
 import argparse
 from bs4 import BeautifulSoup
 
@@ -101,5 +103,12 @@ def get(url):
         if site_class.matches(url):
             return site_class
 
-# And now, the things that will use this:
-from . import xenforo, fanfictionnet, deviantart, stash, ao3  # noqa
+
+# And now, a particularly hacky take on a plugin system:
+# Make an __all__ out of all the python files in this directory that don't start
+# with __. Then import * them.
+
+modules = glob.glob(os.path.join(os.path.dirname(__file__), "*.py"))
+__all__ = [os.path.basename(f)[:-3] for f in modules if not f.startswith("__")]
+
+from . import *  # noqa
