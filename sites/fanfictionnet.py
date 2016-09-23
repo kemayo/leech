@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException
+from . import register, Site, SiteException, Chapter
 
 
 @register
@@ -45,11 +45,11 @@ class FanFictionNet(Site):
             # beautiful soup doesn't handle ffn's unclosed option tags at all well here
             options = re.findall(r'<option.+?value="?(\d+)"?[^>]*>([^<]+)', str(chapter_select))
             for option in options:
-                chapters.append((option[1], self._chapter(base_url + option[0]), False))
-            chapters[-1] = (chapters[-1][0], chapters[-1][1], updated)
-            chapters[0] = (chapters[0][0], chapters[0][1], published)
+                chapters.append(Chapter(title=option[1], contents=self._chapter(base_url + option[0]), date=False))
+            chapters[-1] = Chapter(title=chapters[-1].title, contents=chapters[-1].contents, date=updated)
+            chapters[0] = Chapter(title=chapters[0].title, contents=chapters[0].contents, date=published)
         else:
-            chapters.append((story['title'], self._extract_chapter(url), published))
+            chapters.append(Chapter(title=story['title'], contents=self._extract_chapter(url), date=published))
 
         story['chapters'] = chapters
 

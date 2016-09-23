@@ -90,7 +90,7 @@ def leech(url, session, filename=None, args=None):
     if not story:
         raise Exception("Couldn't extract story")
 
-    dates = [c[2] for c in story['chapters'] if c[2]]
+    dates = [c.date for c in story['chapters'] if c.date]
     metadata = {
         'title': story['title'],
         'author': story['author'],
@@ -105,11 +105,11 @@ def leech(url, session, filename=None, args=None):
 
     html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 
-    for i, (chapter_title, chapter_html, chapter_date) in enumerate(story['chapters']):
+    for i, chapter in enumerate(story['chapters']):
         html.append((
-            chapter_title,
+            chapter.title,
             'chapter%d.html' % (i + 1),
-            html_template.format(title=chapter_title, text=chapter_html)
+            html_template.format(title=chapter.title, text=chapter.contents)
         ))
 
     if 'footnotes' in story and story['footnotes']:

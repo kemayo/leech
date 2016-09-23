@@ -2,8 +2,9 @@
 
 import re
 
-from . import register, Site, SiteException
+from . import register
 from .stash import Stash
+
 
 @register
 class DeviantArt(Stash):

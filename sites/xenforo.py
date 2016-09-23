@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException
+from . import register, Site, SiteException, Chapter
 
 
 class XenForo(Site):
@@ -41,7 +41,8 @@ class XenForo(Site):
             if not href.startswith('http'):
                 href = base + href
             print("Fetching chapter", mark.string, href)
-            chapters.append((str(mark.string),) + self._chapter(href, idx))
+            contents, post_date = self._chapter(href, idx)
+            chapters.append(Chapter(title=str(mark.string), contents=contents, date=post_date))
 
         story['chapters'] = chapters
         story['footnotes'] = '\n\n'.join(self.footnotes)

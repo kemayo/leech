@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException
+from . import register, Site, SiteException, Chapter
 
 
 @register
@@ -37,7 +37,7 @@ class ArchiveOfOurOwn(Site):
                 "(%Y-%m-%d)"
             )
 
-            chapters.append((link.string, self._chapter(chapter_url), updated))
+            chapters.append(Chapter(title=link.string, contents=self._chapter(chapter_url), date=updated))
 
         if not chapters:
             raise SiteException("No content")

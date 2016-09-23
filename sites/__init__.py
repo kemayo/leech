@@ -2,9 +2,13 @@
 import glob
 import os
 import argparse
+import collections
 from bs4 import BeautifulSoup
 
 _sites = []
+
+
+Chapter = collections.namedtuple('Chapter', ['title', 'contents', 'date'])
 
 
 class Site:
@@ -30,7 +34,7 @@ class Site:
             story (dict) containing keys:
                 title (string)
                 author (string)
-                chapters (list): list of tuples, in form (title, HTML, datetime)
+                chapters (list): list of Chapters (namedtuple, defined above)
         """
         raise NotImplementedError()
 

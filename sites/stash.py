@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException
+from . import register, Site, SiteException, Chapter
 
 
 @register
@@ -59,7 +59,7 @@ class Stash(Site):
         except Exception as e:
             raise SiteException("Trouble cleaning attributes", e)
 
-        return (title, text.prettify(), self._date(soup))
+        return Chapter(title=title, contents=text.prettify(), date=self._date(soup))
 
     def _date(self, soup):
         maybe_date = soup.find('div', class_="dev-metainfo-details").find('span', ts=True)
