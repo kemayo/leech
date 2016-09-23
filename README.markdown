@@ -6,9 +6,15 @@ Let's say you want to read some sort of fiction. You're a fan of it, perhaps. Bu
 Setup
 ---
 
-You'll need python3, BeautifulSoup, and html5lib. If you don't have them, this will make them show up:
+You need Python 3.
 
+My recommended setup process is:
+
+    $ pyvenv venv
+    $ source venv/bin/activate
     $ pip install -r requirements.txt
+
+...adjust as needed. Just make sure the dependencies from `requirements.txt` get installed somehow.
 
 Usage
 ---
@@ -23,12 +29,20 @@ Supports
 ---
 
  * Fanfiction.net
- * Sta.sh
+ * ArchiveOfOurOwn
+   * Yes, it has its own built-in EPUB export, but the formatting is horrible
+ * Various XenForo-based sites: SpaceBattles and SufficientVelocity, most notably
  * DeviantArt galleries/collections
+ * Sta.sh
+
+Extending
+---
+
+To add support for a new site, create a file in the `sites` directory that implements the `Site` interface. Take a look at `ao3.py` for a minimal example of what you have to do.
 
 Contributing
 ---
 
-If you submit a pull request to add support for another site, I will nigh-certainly accept it.
+If you submit a pull request to add support for another reasonably-general-purpose site, I will nigh-certainly accept it.
 
 Run [EpubCheck](https://github.com/IDPF/epubcheck) on epubs you generate to make sure they're not breaking.
