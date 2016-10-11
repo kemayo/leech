@@ -119,7 +119,12 @@ class XenForo(Site):
         post.name = 'div'
         # mostly, we want to remove colors because the Kindle is terrible at them
         for tag in post.find_all(style=True):
-            del(tag['style'])
+            if tag['style'] == 'color: transparent' and tag.text == 'TAB':
+                # Some stories fake paragraph indents like this. The output
+                # stylesheet will handle this just fine.
+                tag.extract()
+            else:
+                del(tag['style'])
         # spoilers don't work well, so turn them into epub footnotes
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
             spoiler_title = spoiler.find(class_='SpoilerTitle')
