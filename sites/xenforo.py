@@ -40,9 +40,10 @@ class XenForo(Site):
             href = mark.get('href')
             if not href.startswith('http'):
                 href = base + href
-            print("Fetching chapter", mark.string, href)
+            title = str(mark.string).strip()
+            print("Fetching chapter", title, href)
             contents, post_date = self._chapter(href, idx)
-            chapters.append(Chapter(title=str(mark.string), contents=contents, date=post_date))
+            chapters.append(Chapter(title=title, contents=contents, date=post_date))
 
         story['chapters'] = chapters
         story['footnotes'] = '\n\n'.join(self.footnotes)
