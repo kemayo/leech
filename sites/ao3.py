@@ -15,7 +15,9 @@ class ArchiveOfOurOwn(Site):
 
     def extract(self, url):
         workid = re.match(r'^https?://archiveofourown\.org/works/(\d+)/?.*', url).group(1)
+        return self._extract_work(workid)
 
+    def _extract_work(self, workid):
         soup = self._soup('http://archiveofourown.org/works/{}/navigate?view_adult=true'.format(workid))
 
         metadata = soup.select('#main h2.heading a')
@@ -55,3 +57,37 @@ class ArchiveOfOurOwn(Site):
             landmark.decompose()
 
         return content.prettify()
+
+
+@register
+class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
+    @staticmethod
+    def matches(url):
+        # e.g. http://archiveofourown.org/works/5683105/chapters/13092007
+        return re.match(r'^https?://archiveofourown\.org/series/\d+/?.*', url)
+
+    def extract(self, url):
+        seriesid = re.match(r'^https?://archiveofourown\.org/series/(\d+)/?.*', url).group(1)
+
+        soup = self._soup('http://archiveofourown.org/series/{}?view_adult=true'.format(seriesid))
+
+        story = {
+            'title': soup.select('#main h2.heading')[0].string,
+            'author': soup.select('#main dl.series.meta a[rel="author"]')[0].string,
+        }
+
+        chapters = []
+        for work in soup.select('#main ul.series li.work'):
+            workid = work.get('id').replace('work_', '')
+            substory = self._extract_work(workid)
+
+            # TODO: improve epub-writer to be able to generate a toc.ncx with nested headings
+            # In the meantime, append the story title to the chapter titles.
+            chapters.extend((
+                Chapter(title="{}: {}".format(substory['title'], c.title), contents=c.contents, date=c.date)
+                for c in substory['chapters']
+            ))
+
+        story['chapters'] = chapters
+
+        return story
