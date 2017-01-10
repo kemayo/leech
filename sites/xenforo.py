@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException, Chapter
+from . import register, Site, SiteException, Section, Chapter
 
 
 class XenForo(Site):
@@ -28,25 +28,27 @@ class XenForo(Site):
 
         base = soup.head.base.get('href')
 
-        story = {}
-        story['title'] = soup.find('h1').get_text()
-        story['author'] = soup.find('p', id='pageDescription').find('a', class_='username').get_text()
+        story = Section(
+            title=soup.find('h1').get_text(),
+            author=soup.find('p', id='pageDescription').find('a', class_='username').get_text()
+        )
 
         marks = [mark for mark in self._chapter_list(url) if '/members' not in mark.get('href')]
         marks = marks[self.options.offset:self.options.limit]
 
-        chapters = []
         for idx, mark in enumerate(marks, 1):
             href = mark.get('href')
             if not href.startswith('http'):
                 href = base + href
             title = str(mark.string).strip()
             print("Fetching chapter", title, href)
-            contents, post_date = self._chapter(href, idx)
-            chapters.append(Chapter(title=title, contents=contents, date=post_date))
+            chapter = Chapter(title=title, contents="")
+            contents, post_date = self._chapter(href, chapter.id)
+            chapter.contents = contents
+            chapter.date = post_date
+            story.add(chapter)
 
-        story['chapters'] = chapters
-        story['footnotes'] = '\n\n'.join(self.footnotes)
+        story.footnotes = self.footnotes
         self.footnotes = []
 
         return story
@@ -90,10 +92,10 @@ class XenForo(Site):
 
         return links
 
-    def _chapter(self, url, chapter_number):
+    def _chapter(self, url, chapterid):
         post = self._post_from_url(url)
 
-        return self._clean_chapter(post, chapter_number), self._post_date(post)
+        return self._clean_chapter(post, chapterid), self._post_date(post)
 
     def _post_from_url(self, url):
         # URLs refer to specific posts, so get just that one
@@ -115,7 +117,7 @@ class XenForo(Site):
         # just the first one in the thread, then
         return soup.find('li', class_='message')
 
-    def _clean_chapter(self, post, chapter_number):
+    def _clean_chapter(self, post, chapterid):
         post = post.find('blockquote', class_='messageText')
         post.name = 'div'
         # mostly, we want to remove colors because the Kindle is terrible at them
@@ -130,7 +132,7 @@ class XenForo(Site):
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
             spoiler_title = spoiler.find(class_='SpoilerTitle')
             if self.options.spoilers:
-                link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), 'chapter%d.html' % chapter_number)
+                link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), chapterid)
                 if spoiler_title:
                     link.string = spoiler_title.get_text()
             else:

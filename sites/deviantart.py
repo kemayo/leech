@@ -2,7 +2,7 @@
 
 import re
 
-from . import register
+from . import register, Section
 from .stash import Stash
 
 
@@ -19,16 +19,16 @@ class DeviantArt(Stash):
         if not content:
             return
 
-        story = {}
-        chapters = []
-
         if "gallery" in url:
-            story['author'] = str(content.select('h1 a.u')[0].string)
+            author = str(content.select('h1 a.u')[0].string)
         else:
             authors = set(str(author.string) for author in content.select('.stream .details a.u'))
-            story['author'] = ', '.join(authors)
+            author = ', '.join(authors)
 
-        story['title'] = str(content.find(class_="folder-title").string)
+        story = Section(
+            title=str(content.find(class_="folder-title").string),
+            author=author
+        )
 
         thumbs = content.select(".stream a.thumb")
         if not thumbs:
@@ -36,10 +36,8 @@ class DeviantArt(Stash):
         for thumb in thumbs:
             try:
                 if thumb['href'] is not '#':
-                    chapters.append(self._chapter(thumb['href']))
+                    story.add(self._chapter(thumb['href']))
             except Exception as e:
                 print(e)
-
-        story['chapters'] = chapters
 
         return story

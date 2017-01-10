@@ -2,13 +2,57 @@
 import glob
 import os
 import argparse
-import collections
+import uuid
 from bs4 import BeautifulSoup
 
 _sites = []
 
 
-Chapter = collections.namedtuple('Chapter', ['title', 'contents', 'date'])
+class Chapter:
+    def __init__(self, title, contents, date=False, chapterid=None):
+        if not chapterid:
+            chapterid = str(uuid.uuid4())
+        self.id = chapterid
+        self.title = title
+        self.contents = contents
+        self.date = date
+
+
+class Section:
+    def __init__(self, title, author, sectionid=None):
+        if not sectionid:
+            sectionid = str(uuid.uuid4())
+        self.id = sectionid
+        self.title = title
+        self.author = author
+        # Will contain a mix of Sections and Chapters
+        self.contents = []
+        self.footnotes = []
+
+    def __iter__(self):
+        return self.contents.__iter__()
+
+    def __getitem__(self, index):
+        return self.contents.__getitem__(index)
+
+    def __setitem__(self, index, value):
+        return self.contents.__setitem__(index, value)
+
+    def __len__(self):
+        return len(self.contents)
+
+    def add(self, value, index=None):
+        if index is not None:
+            self.contents.insert(index, value)
+        else:
+            self.contents.append(value)
+
+    def dates(self):
+        for chapter in self.contents:
+            if hasattr(chapter, '__iter__'):
+                yield from chapter.dates()
+            elif chapter.date:
+                yield chapter.date
 
 
 class Site:
@@ -59,22 +103,24 @@ class Site:
         soup = BeautifulSoup("", 'html5lib')
         return soup.new_tag(*args, **kw)
 
-    def _footnote(self, contents, backlink_href=''):
+    def _footnote(self, contents, chapterid):
         """Register a footnote and return a link to that footnote"""
+
+        # TODO: This embeds knowledge of what the generated filenames will be. Work out a better way.
 
         idx = len(self.footnotes) + 1
 
         # epub spec footnotes are all about epub:type on the footnote and the link
         # http://www.idpf.org/accessibility/guidelines/content/semantics/epub-type.php
         contents.name = 'div'
-        contents.attrs['id'] = "footnote%d" % idx
+        contents.attrs['id'] = "footnote{}".format(idx)
         contents.attrs['epub:type'] = 'rearnote'
 
         # a backlink is essential for Kindle to think of this as a footnote
         # otherwise it doesn't get the inline-popup treatment
         # http://kindlegen.s3.amazonaws.com/AmazonKindlePublishingGuidelines.pdf
         # section 3.9.10
-        backlink = self._new_tag('a', href="%s#noteback%d" % (backlink_href, idx))
+        backlink = self._new_tag('a', href="chapter{}.html#noteback{}".format(chapterid, idx))
         backlink.string = '^'
         contents.insert(0, backlink)
 
@@ -84,8 +130,8 @@ class Site:
         # epub annotations.
         spoiler_link = self._new_tag('a')
         spoiler_link.attrs = {
-            'id': 'noteback%d' % idx,
-            'href': "footnotes.html#footnote%d" % idx,
+            'id': 'noteback{}'.format(idx),
+            'href': "footnotes.html#footnote{}".format(idx),
             'epub:type': 'noteref',
         }
         spoiler_link.string = str(idx)

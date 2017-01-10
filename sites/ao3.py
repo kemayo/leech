@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException, Chapter
+from . import register, Site, SiteException, Section, Chapter
 
 
 @register
@@ -21,12 +21,11 @@ class ArchiveOfOurOwn(Site):
         soup = self._soup('http://archiveofourown.org/works/{}/navigate?view_adult=true'.format(workid))
 
         metadata = soup.select('#main h2.heading a')
-        story = {
-            'title': metadata[0].string,
-            'author': metadata[1].string,
-        }
+        story = Section(
+            title=metadata[0].string,
+            author=metadata[1].string
+        )
 
-        chapters = []
         for chapter in soup.select('#main ol[role="navigation"] li'):
             link = chapter.find('a')
             chapter_url = str(link.get('href'))
@@ -39,12 +38,7 @@ class ArchiveOfOurOwn(Site):
                 "(%Y-%m-%d)"
             )
 
-            chapters.append(Chapter(title=link.string, contents=self._chapter(chapter_url), date=updated))
-
-        if not chapters:
-            raise SiteException("No content")
-
-        story['chapters'] = chapters
+            story.add(Chapter(title=link.string, contents=self._chapter(chapter_url), date=updated))
 
         return story
 
@@ -63,7 +57,7 @@ class ArchiveOfOurOwn(Site):
 class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
     @staticmethod
     def matches(url):
-        # e.g. http://archiveofourown.org/works/5683105/chapters/13092007
+        # e.g. http://archiveofourown.org/series/5683105/
         return re.match(r'^https?://archiveofourown\.org/series/\d+/?.*', url)
 
     def extract(self, url):
@@ -71,23 +65,16 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
 
         soup = self._soup('http://archiveofourown.org/series/{}?view_adult=true'.format(seriesid))
 
-        story = {
-            'title': soup.select('#main h2.heading')[0].string,
-            'author': soup.select('#main dl.series.meta a[rel="author"]')[0].string,
-        }
+        story = Section(
+            title=soup.select('#main h2.heading')[0].string,
+            author=soup.select('#main dl.series.meta a[rel="author"]')[0].string
+        )
 
-        chapters = []
         for work in soup.select('#main ul.series li.work'):
             workid = work.get('id').replace('work_', '')
             substory = self._extract_work(workid)
 
             # TODO: improve epub-writer to be able to generate a toc.ncx with nested headings
-            # In the meantime, append the story title to the chapter titles.
-            chapters.extend((
-                Chapter(title="{}: {}".format(substory['title'], c.title), contents=c.contents, date=c.date)
-                for c in substory['chapters']
-            ))
-
-        story['chapters'] = chapters
+            story.add(substory)
 
         return story

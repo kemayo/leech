@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException, Chapter
+from . import register, Site, SiteException, Section, Chapter
 
 
 @register
@@ -18,12 +18,11 @@ class Stash(Site):
         if not content:
             return
 
-        story = {}
-        chapters = []
-
         # metadata = content.find(id='profile_top')
-        story['title'] = str(soup.find(class_="stash-folder-name").h2.string)
-        story['author'] = str(soup.find('span', class_="oh-stashlogo-name").string).rstrip("'s")
+        story = Section(
+            title=str(soup.find(class_="stash-folder-name").h2.string),
+            author=str(soup.find('span', class_="oh-stashlogo-name").string).rstrip("'s")
+        )
 
         thumbs = content.select(".stash-folder-stream .thumb")
         if not thumbs:
@@ -31,11 +30,9 @@ class Stash(Site):
         for thumb in thumbs:
             try:
                 if thumb['href'] is not '#':
-                    chapters.append(self._chapter(thumb['href']))
+                    story.add(self._chapter(thumb['href']))
             except Exception as e:
                 print(e)
-
-        story['chapters'] = chapters
 
         return story
 

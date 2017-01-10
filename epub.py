@@ -90,11 +90,10 @@ def make_epub(filename, html_files, meta, extra_files=False):
 
     # Write each HTML file to the ebook, collect information for the index
     for i, html in enumerate(html_files):
-        basename = os.path.basename(html[1])
         file_id = 'file_%d' % (i + 1)
         etree.SubElement(manifest, 'item', {
             'id': file_id,
-            'href': basename,
+            'href': html[1],
             'media-type': "application/xhtml+xml",
         })
         itemref = etree.SubElement(spine, 'itemref', idref=file_id)
@@ -103,21 +102,21 @@ def make_epub(filename, html_files, meta, extra_files=False):
             'id': file_id,
         })
         etree.SubElement(etree.SubElement(point, 'navLabel'), 'text').text = html[0]
-        etree.SubElement(point, 'content', src=basename)
+        etree.SubElement(point, 'content', src=html[1])
 
-        if 'cover.html' == basename:
+        if 'cover.html' == os.path.basename(html[1]):
             etree.SubElement(guide, 'reference', {
                 'type': 'cover',
                 'title': 'Cover',
-                'href': basename,
+                'href': html[1],
             })
             itemref.set('linear', 'no')
 
         # and add the actual html to the zip
         if html[2]:
-            epub.writestr('OEBPS/' + basename, html[2])
+            epub.writestr('OEBPS/' + html[1], html[2])
         else:
-            epub.write(html[1], 'OEBPS/' + basename)
+            epub.write(html[1], 'OEBPS/' + html[1])
 
     if extra_files:
         for i, data in enumerate(extra_files):

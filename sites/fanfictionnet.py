@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException, Chapter
+from . import register, Site, SiteException, Section, Chapter
 
 
 @register
@@ -19,12 +19,12 @@ class FanFictionNet(Site):
         if not content:
             raise SiteException("No content")
 
-        story = {}
-        chapters = []
-
         metadata = content.find(id='profile_top')
-        story['title'] = str(metadata.find('b', class_="xcontrast_txt").string)
-        story['author'] = str(metadata.find('a', class_="xcontrast_txt").string)
+
+        story = Section(
+            title=str(metadata.find('b', class_="xcontrast_txt").string),
+            author=str(metadata.find('a', class_="xcontrast_txt").string)
+        )
 
         dates = content.find_all('span', attrs={'data-xutime': True})
         published = False
@@ -45,13 +45,13 @@ class FanFictionNet(Site):
             # beautiful soup doesn't handle ffn's unclosed option tags at all well here
             options = re.findall(r'<option.+?value="?(\d+)"?[^>]*>([^<]+)', str(chapter_select))
             for option in options:
-                chapters.append(Chapter(title=option[1], contents=self._chapter(base_url + option[0]), date=False))
-            chapters[-1] = Chapter(title=chapters[-1].title, contents=chapters[-1].contents, date=updated)
-            chapters[0] = Chapter(title=chapters[0].title, contents=chapters[0].contents, date=published)
-        else:
-            chapters.append(Chapter(title=story['title'], contents=self._extract_chapter(url), date=published))
+                story.add(Chapter(title=option[1], contents=self._chapter(base_url + option[0]), date=False))
 
-        story['chapters'] = chapters
+            # fix up the dates
+            story[-1].date = updated
+            story[0].date = published
+        else:
+            story.add(Chapter(title=story['title'], contents=self._extract_chapter(url), date=published))
 
         return story
 

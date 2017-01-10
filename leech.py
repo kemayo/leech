@@ -5,6 +5,7 @@ import sys
 import json
 import datetime
 import http.cookiejar
+import collections
 
 import sites
 import epub
@@ -90,10 +91,10 @@ def leech(url, session, filename=None, args=None):
     if not story:
         raise Exception("Couldn't extract story")
 
-    dates = [c.date for c in story['chapters'] if c.date]
+    dates = list(story.dates())
     metadata = {
-        'title': story['title'],
-        'author': story['author'],
+        'title': story.title,
+        'author': story.author,
         'unique_id': url,
         'started': min(dates),
         'updated': max(dates),
@@ -101,27 +102,39 @@ def leech(url, session, filename=None, args=None):
 
     # The cover is static, and the only change comes from the image which we generate
     html = [('Cover', 'cover.html', cover_template)]
-    cover_image = ('images/cover.png', cover.make_cover(story['title'], story['author']).read(), 'image/png')
+    cover_image = ('images/cover.png', cover.make_cover(story.title, story.author).read(), 'image/png')
 
     html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 
-    for i, chapter in enumerate(story['chapters']):
-        html.append((
-            chapter.title,
-            'chapter%d.html' % (i + 1),
-            html_template.format(title=chapter.title, text=chapter.contents)
-        ))
-
-    if 'footnotes' in story and story['footnotes']:
-        html.append(("Footnotes", 'footnotes.html', html_template.format(title="Footnotes", text=story['footnotes'])))
+    html.extend(chapter_html(story))
 
     css = ('Styles/base.css', session.get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
 
-    filename = filename or story['title'] + '.epub'
+    filename = filename or story.title + '.epub'
 
+    # print([c[0:-1] for c in html])
     filename = epub.make_epub(filename, html, metadata, extra_files=(css, cover_image))
 
     return filename
+
+
+def chapter_html(story, titleprefix=None):
+    chapters = []
+    for i, chapter in enumerate(story):
+        if hasattr(chapter, '__iter__'):
+            # This is a Section
+            chapters.extend(chapter_html(chapter, titleprefix=chapter.title))
+        else:
+            title = titleprefix and '{}: {}'.format(titleprefix, chapter.title) or chapter.title
+            chapters.append((
+                title,
+                '{}/chapter{}.html'.format(story.id, i + 1),
+                html_template.format(title=title, text=chapter.contents)
+            ))
+    if story.footnotes:
+        chapters.append(("Footnotes", '{}/footnotes.html'.format(story.id), html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
+    return chapters
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
