@@ -74,3 +74,10 @@ class FanFictionNet(Site):
             print("Trouble cleaning attributes", e)
 
         return text.prettify()
+
+@register
+class FictionPress(FanFictionNet):
+    @staticmethod
+    def matches(url):
+        # e.g. https://www.fanfiction.net/s/4109686/3/Taking-Sights
+        return re.match(r'^https?://www\.fictionpress\.com/s/\d+/?.*', url)

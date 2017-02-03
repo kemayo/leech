@@ -29,6 +29,7 @@ Supports
 ---
 
  * Fanfiction.net
+ * FictionPress
  * ArchiveOfOurOwn
    * Yes, it has its own built-in EPUB export, but the formatting is horrible
  * Various XenForo-based sites: SpaceBattles and SufficientVelocity, most notably
