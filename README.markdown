@@ -35,6 +35,21 @@ Supports
  * DeviantArt galleries/collections
  * Sta.sh
 
+Configuration
+---
+
+A very small amount of configuration is possible by creating a file called `leech.json` in the project directory. Currently you can define login information for sites that support it.
+
+Example:
+
+```
+{
+    "logins": {
+        "QuestionableQuesting": ["username", "password"]
+    }
+}
+```
+
 Extending
 ---
 
