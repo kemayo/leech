@@ -3,31 +3,31 @@ import glob
 import os
 import argparse
 import uuid
+import attr
 from bs4 import BeautifulSoup
 
 _sites = []
 
 
+def _default_uuid_string(*args):
+    return str(uuid.uuid4())
+
+
+@attr.s
 class Chapter:
-    def __init__(self, title, contents, date=False, chapterid=None):
-        if not chapterid:
-            chapterid = str(uuid.uuid4())
-        self.id = chapterid
-        self.title = title
-        self.contents = contents
-        self.date = date
+    title = attr.ib()
+    contents = attr.ib()
+    date = attr.ib(default=False)
+    id = attr.ib(default=attr.Factory(_default_uuid_string), convert=str)
 
 
+@attr.s
 class Section:
-    def __init__(self, title, author, sectionid=None):
-        if not sectionid:
-            sectionid = str(uuid.uuid4())
-        self.id = sectionid
-        self.title = title
-        self.author = author
-        # Will contain a mix of Sections and Chapters
-        self.contents = []
-        self.footnotes = []
+    title = attr.ib()
+    author = attr.ib()
+    id = attr.ib(default=attr.Factory(_default_uuid_string), convert=str)
+    contents = attr.ib(default=attr.Factory(list))
+    footnotes = attr.ib(default=attr.Factory(list))
 
     def __iter__(self):
         return self.contents.__iter__()
@@ -55,15 +55,17 @@ class Section:
                 yield chapter.date
 
 
+@attr.s
 class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    def __init__(self, session, args=None):
-        super().__init__()
-        self.session = session
-        self.footnotes = []
-        self.options = self._parse_args(args)
+    session = attr.ib()
+    args = attr.ib()
+    footnotes = attr.ib(default=attr.Factory(list), init=False)
+
+    def __attrs_post_init__(self):
+        self.options = self._parse_args(self.args)
 
     @staticmethod
     def matches(url):
