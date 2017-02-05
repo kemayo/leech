@@ -31,13 +31,13 @@ def sanitize_filename(s):
     return filename
 
 
-def make_epub(filename, html_files, meta, extra_files=False):
+def make_epub(filename, html_files, meta, extra_files=False, compress=True):
     unique_id = meta.get('unique_id', False)
     if not unique_id:
         unique_id = 'leech_book_' + str(uuid.uuid4())
 
     filename = sanitize_filename(filename)
-    epub = zipfile.ZipFile(filename, 'w')
+    epub = zipfile.ZipFile(filename, 'w', compression=compress and zipfile.ZIP_DEFLATED or zipfile.ZIP_STORED)
 
     # The first file must be named "mimetype"
     epub.writestr("mimetype", "application/epub+zip")
