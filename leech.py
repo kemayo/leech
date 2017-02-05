@@ -21,7 +21,7 @@ html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head>
     <title>{title}</title>
-    <link rel="stylesheet" type="text/css" href="Styles/base.css" />
+    <link rel="stylesheet" type="text/css" href="../Styles/base.css" />
 </head>
 <body>
 <h1>{title}</h1>

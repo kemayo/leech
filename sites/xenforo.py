@@ -43,7 +43,7 @@ class XenForo(Site):
             title = str(mark.string).strip()
             print("Fetching chapter", title, href)
             chapter = Chapter(title=title, contents="")
-            contents, post_date = self._chapter(href, chapter.id)
+            contents, post_date = self._chapter(href, idx)
             chapter.contents = contents
             chapter.date = post_date
             story.add(chapter)
