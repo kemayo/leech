@@ -1,0 +1,12 @@
+language: python
+python:
+  - "3.3"
+
+install:
+  - pip install -r requirements.txt
+  - pip install flake8
+  - npm install eclint
+
+script:
+  - flake8 .
+  - eclint check .

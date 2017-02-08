@@ -75,6 +75,7 @@ class FanFictionNet(Site):
 
         return text.prettify()
 
+
 @register
 class FictionPress(FanFictionNet):
     @staticmethod

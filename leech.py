@@ -5,7 +5,6 @@ import sys
 import json
 import datetime
 import http.cookiejar
-import collections
 
 import sites
 import epub

@@ -148,5 +148,6 @@ def make_epub(filename, html_files, meta, extra_files=False, compress=True):
 
     return filename
 
+
 if __name__ == '__main__':
     make_epub('test.epub', [('Chapter 1', 'test/a.html'), ('Chapter 2', 'test/b.html')], {})

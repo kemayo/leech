@@ -2,7 +2,7 @@
 
 import datetime
 import re
-from . import register, Site, SiteException, Section, Chapter
+from . import register, Site, Section, Chapter
 
 
 @register

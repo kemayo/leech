@@ -28,6 +28,7 @@ def make_cover(title, author, width=600, height=800, fontname="Helvetica", fonts
     output.seek(0)
     return output
 
+
 if __name__ == '__main__':
     f = make_cover('Test of a Title which is quite long and will require multiple lines', 'Some Dude')
     with open('output.png', 'wb') as out:
