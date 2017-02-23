@@ -125,9 +125,11 @@ class XenForo(Site):
             if tag['style'] == 'color: transparent' and tag.text == 'TAB':
                 # Some stories fake paragraph indents like this. The output
                 # stylesheet will handle this just fine.
-                tag.extract()
+                tag.decompose()
             else:
                 del(tag['style'])
+        for tag in post.find_all(class_='quoteExpand'):
+            tag.decompose()
         # spoilers don't work well, so turn them into epub footnotes
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
             spoiler_title = spoiler.find(class_='SpoilerTitle')
