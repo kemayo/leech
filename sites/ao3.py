@@ -11,7 +11,9 @@ class ArchiveOfOurOwn(Site):
     @staticmethod
     def matches(url):
         # e.g. http://archiveofourown.org/works/5683105/chapters/13092007
-        return re.match(r'^https?://archiveofourown\.org/works/\d+/?.*', url)
+        match = re.match(r'^(https?://archiveofourown\.org/works/\d+)/?.*', url)
+        if match:
+            return match.group(1) + '/'
 
     def extract(self, url):
         workid = re.match(r'^https?://archiveofourown\.org/works/(\d+)/?.*', url).group(1)
@@ -58,7 +60,9 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
     @staticmethod
     def matches(url):
         # e.g. http://archiveofourown.org/series/5683105/
-        return re.match(r'^https?://archiveofourown\.org/series/\d+/?.*', url)
+        match = re.match(r'^(https?://archiveofourown\.org/series/\d+)/?.*', url)
+        if match:
+            return match.group(1) + '/'
 
     def extract(self, url):
         seriesid = re.match(r'^https?://archiveofourown\.org/series/(\d+)/?.*', url).group(1)

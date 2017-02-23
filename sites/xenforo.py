@@ -12,7 +12,9 @@ class XenForo(Site):
 
     @classmethod
     def matches(cls, url):
-        return re.match(r'^https?://%s/threads/.*\d+/?.*' % cls.domain, url)
+        match = re.match(r'^(https?://%s/threads/[^/]*\d+)/?.*' % cls.domain, url)
+        if match:
+            return match.group(1) + '/'
 
     def login(self, login_details):
         # Todo: handle non-https?
@@ -166,7 +168,9 @@ class XenForo(Site):
 class XenForoIndex(XenForo):
     @classmethod
     def matches(cls, url):
-        return re.match(r'^https?://%s/posts/\d+/?.*' % cls.domain, url)
+        match = re.match(r'^(https?://%s/posts/\d+)/?.*' % cls.domain, url)
+        if match:
+            return match.group(1) + '/'
 
     def _chapter_list(self, url):
         return self._chapter_list_index(url)

@@ -11,7 +11,9 @@ class FanFictionNet(Site):
     @staticmethod
     def matches(url):
         # e.g. https://www.fanfiction.net/s/4109686/3/Taking-Sights
-        return re.match(r'^https?://www\.fanfiction\.net/s/\d+/?.*', url)
+        match = re.match(r'^(https?://www\.fanfiction\.net/s/\d+)/?.*', url)
+        if match:
+            return match.group(1) + '/'
 
     def extract(self, url):
         soup = self._soup(url)

@@ -11,7 +11,9 @@ class DeviantArt(Stash):
     @staticmethod
     def matches(url):
         # Need a collection page
-        return re.match(r'^https?://[^.]+\.deviantart\.com/(?:gallery|favourites)/\d+/?', url)
+        match = re.match(r'^https?://[^.]+\.deviantart\.com/(?:gallery|favourites)/\d+/?', url)
+        if match:
+            return match.group(0) + '/'
 
     def extract(self, url):
         soup = self._soup(url)

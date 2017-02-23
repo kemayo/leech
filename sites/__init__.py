@@ -152,8 +152,9 @@ def register(site_class):
 
 def get(url):
     for site_class in _sites:
-        if site_class.matches(url):
-            return site_class
+        match = site_class.matches(url)
+        if match:
+            return site_class, match
 
 
 # And now, a particularly hacky take on a plugin system:

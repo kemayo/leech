@@ -10,7 +10,9 @@ class Stash(Site):
     @staticmethod
     def matches(url):
         # Need a stack page
-        return re.match(r'^https?://sta\.sh/2.+/?.*', url)
+        match = re.match(r'^(https?://sta\.sh/2.+)/?.*', url)
+        if match:
+            return match.group(1) + '/'
 
     def extract(self, url):
         soup = self._soup(url)

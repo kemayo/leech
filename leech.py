@@ -74,9 +74,11 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 def leech(url, session, filename=None, args=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
     # check a bunch of things which are completely ff.n specific, to get text from it
-    site = sites.get(url)
+    site, url = sites.get(url)
     if not site:
         raise Exception("No site handler found")
+
+    print("Handler", site, url)
 
     handler = site(session, args=args)
 
