@@ -35,7 +35,10 @@ class XenForo(Site):
             author=soup.find('p', id='pageDescription').find('a', class_='username').get_text()
         )
 
-        marks = [mark for mark in self._chapter_list(url) if '/members' not in mark.get('href')]
+        marks = [
+            mark for mark in self._chapter_list(url)
+            if '/members' not in mark.get('href') and '/threadmarks' not in mark.get('href')
+        ]
         marks = marks[self.options.offset:self.options.limit]
 
         for idx, mark in enumerate(marks, 1):
