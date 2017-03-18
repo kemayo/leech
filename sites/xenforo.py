@@ -31,7 +31,7 @@ class XenForo(Site):
         base = soup.head.base.get('href')
 
         story = Section(
-            title=soup.find('h1').get_text(),
+            title=soup.select('div.titleBar > h1')[0].get_text(),
             author=soup.find('p', id='pageDescription').find('a', class_='username').get_text()
         )
 
