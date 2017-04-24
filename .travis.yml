@@ -5,6 +5,9 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install flake8
+  - . $HOME/.nvm/nvm.sh
+  - nvm install stable
+  - nvm use stable
   - npm install -g eclint
 
 script:
