@@ -5,8 +5,8 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install flake8
-  - npm install eclint
+  - npm install -g eclint
 
 script:
   - flake8 .
-  - eclint check .
+  - eclint check *.py sites/*.py
