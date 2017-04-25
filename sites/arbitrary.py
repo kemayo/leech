@@ -1,67 +1,68 @@
 #!/usr/bin/python
 
 import datetime
-import re
+import json
+import os.path
 from . import register, Site, Section, Chapter
 
+"""
+Example JSON:
+{
+    "url": "https://practicalguidetoevil.wordpress.com/table-of-contents/",
+    "title": "A Practical Guide To Evil: Book 1",
+    "author": "erraticerrata",
+    "chapter_selector": "#main .entry-content > ul > li > a",
+    "content_selector": "#main .entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style"
+}
 
-# TODO: implement a plain "Arbitrary" class, which only fetches a single
-# page's content. This is mainly held up on needing to refactor `matches`
-# slightly, so it can check whether arguments are present. (The noticeable
-# difference would be whether a `--toc` arg was given.)
+TODO: implement a plain "Arbitrary" class, which only fetches a single
+page's content. This is mainly held up on needing to refactor `matches`
+slightly, so it can check whether arguments are present. (The noticeable
+difference would be whether a `--toc` arg was given.)
 
-# TODO: let this be specified in some sort of JSON file, for works I'll want
-# to repeatedly leech.
-
-# Example command lines:
-# ./leech.py arbitrary:https://practicalguidetoevil.wordpress.com/table-of-contents/ --author=erraticerrata --title="A Practical Guide To Evil: Book 1" --toc="#main .entry-content > ul > li > a" --content="#main .entry-content"
-# ./leech.py arbitrary:https:./leech.py arbitrary:https://practicalguidetoevil.wordpress.com/table-of-contents/ --author=erraticerrata --title="A Practical Guide To Evil: Book 2" --toc="#main .entry-content > ul > ul > li > a" --content="#main .entry-content"
+"""
 
 
 @register
 class ArbitraryIndex(Site):
     """A way to describe an arbitrary side for a one-off fetch
-
-    The assumption is that you will provide the URL for a table of contents, and
-    separate required arguments for selectors for (a) the links to pages, and (b)
-    the content on those pages.
     """
     @staticmethod
     def matches(url):
-        # e.g. arbitrary:http://foo.bar/works/5683105/chapters/13092007
-        match = re.match(r'^arbitrary:(https?://.+)', url)
-        if match:
-            return match.group(1)
-
-    def _add_arguments(self, parser):
-        parser.add_argument('--title', dest='title', required=True)
-        parser.add_argument('--author', dest='author', required=True)
-        parser.add_argument('--toc', dest='toc_selector', required=True)
-        parser.add_argument('--content', dest='content_selector', required=True)
+        # e.g. practical1.json
+        if url.endswith('.json') and os.path.isfile(url):
+            return url
 
     def extract(self, url):
-        soup = self._soup(url)
+        with open(url) as definition_file:
+            definition = json.load(definition_file)
+
+        soup = self._soup(definition['url'])
 
         story = Section(
-            title=self.options.title,
-            author=self.options.author
+            title=definition['title'],
+            author=definition['author']
         )
 
-        for chapter in soup.select(self.options.toc_selector):
+        for chapter in soup.select(definition['chapter_selector']):
             chapter_url = str(chapter.get('href'))
             story.add(Chapter(
                 title=chapter.string,
-                contents=self._chapter(chapter_url),
+                contents=self._chapter(chapter_url, definition),
+                # TODO: better date detection
                 date=datetime.datetime.now()
             ))
 
         return story
 
-    def _chapter(self, url):
+    def _chapter(self, url, definition):
         print("Extracting chapter from", url)
         soup = self._soup(url)
-        content = soup.select(self.options.content_selector)[0]
+        content = soup.select(definition['content_selector'])[0]
 
-        # TODO: cleanup content here, via options?
+        if 'filter_selector' in definition:
+            for filtered in content.select(definition['filter_selector']):
+                filtered.decompose()
 
         return content.prettify()
