@@ -52,7 +52,14 @@ class ArchiveOfOurOwn(Site):
         for landmark in content.find_all(class_='landmark'):
             landmark.decompose()
 
-        return content.prettify()
+        # TODO: Maybe these should be footnotes instead?
+        notes = soup.select('#chapters .end.notes')
+        if notes:
+            notes = notes[0]
+            for landmark in notes.find_all(class_='landmark'):
+                landmark.decompose()
+
+        return content.prettify() + (notes and notes.prettify() or '')
 
 
 @register
