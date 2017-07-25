@@ -75,7 +75,7 @@ class XenForo(Site):
         base = soup.head.base.get('href')
         soup = self._soup(base + threadmarks_link.get('href'))
 
-        marks = soup.select('li.primaryContent.memberListItem a')
+        marks = soup.select('.threadmarks li.primaryContent.threadmarkListItem a, .threadmarks li.primaryContent.threadmarkItem a')
         if not marks:
             raise SiteException("No marks on threadmarks page")
 
