@@ -68,12 +68,16 @@ class XenForo(Site):
     def _chapter_list_threadmarks(self, url):
         soup = self._soup(url)
 
-        threadmarks_link = soup.find(class_="threadmarksTrigger")
+        threadmarks_link = soup.find(class_="threadmarksTrigger", href=True)
+        if not threadmarks_link:
+            threadmarks_link = soup.select('.threadmarkMenus a.OverlayTrigger')[0]
+
         if not threadmarks_link:
             raise SiteException("No threadmarks")
 
+        href = threadmarks_link.get('href')
         base = soup.head.base.get('href')
-        soup = self._soup(base + threadmarks_link.get('href'))
+        soup = self._soup(base + href)
 
         marks = soup.select('.threadmarks li.primaryContent.threadmarkListItem a, .threadmarks li.primaryContent.threadmarkItem a')
         if not marks:
