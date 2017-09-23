@@ -53,7 +53,7 @@ class FanFictionNet(Site):
             story[-1].date = updated
             story[0].date = published
         else:
-            story.add(Chapter(title=story['title'], contents=self._extract_chapter(url), date=published))
+            story.add(Chapter(title=story.title, contents=self._chapter(url), date=published))
 
         return story
 
