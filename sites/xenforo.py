@@ -130,13 +130,21 @@ class XenForo(Site):
         post = post.find('blockquote', class_='messageText')
         post.name = 'div'
         # mostly, we want to remove colors because the Kindle is terrible at them
+        # TODO: find a way to denote colors, because it can be relevant
+        # TODO: at least invisitext, because outside of silly DC Lantern stuff, it's the most common
         for tag in post.find_all(style=True):
             if tag['style'] == 'color: transparent' and tag.text == 'TAB':
                 # Some stories fake paragraph indents like this. The output
                 # stylesheet will handle this just fine.
                 tag.decompose()
             else:
-                del(tag['style'])
+                # There's a few things which xenforo does as styles, despite there being perfectly good tags
+                # TODO: more robust CSS parsing? This is very whitespace dependent, if nothing else.
+                if "font-family: 'Courier New'" in tag['style']:
+                    tag.wrap(self._new_tag('code'))
+                if "text-decoration: strikethrough" in tag['style']:
+                    tag.wrap(self._new_tag('strike'))
+                tag.unwrap()
         for tag in post.find_all(class_='quoteExpand'):
             tag.decompose()
         # spoilers don't work well, so turn them into epub footnotes
