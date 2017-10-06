@@ -82,5 +82,7 @@ class FanFictionNet(Site):
 class FictionPress(FanFictionNet):
     @staticmethod
     def matches(url):
-        # e.g. https://www.fanfiction.net/s/4109686/3/Taking-Sights
-        return re.match(r'^https?://www\.fictionpress\.com/s/\d+/?.*', url)
+        # e.g. https://www.fictionpress.com/s/2961893/1/Mother-of-Learning
+        match = re.match(r'^(https?://www\.fictionpress\.com/s/\d+)/?.*', url)
+        if match:
+            return match.group(1) + '/'
