@@ -16,12 +16,6 @@ Example JSON:
     "content_selector": "#main .entry-content",
     "filter_selector": ".sharedaddy, .wpcnt, style"
 }
-
-TODO: implement a plain "Arbitrary" class, which only fetches a single
-page's content. This is mainly held up on needing to refactor `matches`
-slightly, so it can check whether arguments are present. (The noticeable
-difference would be whether a `--toc` arg was given.)
-
 """
 
 
