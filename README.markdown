@@ -55,7 +55,7 @@ Example:
 Arbitrary Sites
 ---
 
-If you want to just download a one-off story from a site, you can create a definition file to describe it. This requires more investigation and understanding of things like CSS selectors than
+If you want to just download a one-off story from a site, you can create a definition file to describe it. This requires investigation and understanding of things like CSS selectors, which may take some trial and error.
 
 Example `practical.json`:
 
@@ -78,7 +78,7 @@ This tells leech to load `url`, follow the links described by `chapter_selector`
 
 If `chapter_selector` isn't given, it'll create a single-chapter book by applying `content_selector` to `url`.
 
-This is a fairly viable way to extract a story from, say, a random Wordpress installation. It's relatively likely to get you at least *most* of the way to the ebook you want, which maybe some manual editing needed.
+This is a fairly viable way to extract a story from, say, a random Wordpress installation. It's relatively likely to get you at least *most* of the way to the ebook you want, with maybe some manual editing needed.
 
 If you need more advanced behavior, consider looking at...
 
