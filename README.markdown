@@ -35,6 +35,7 @@ Supports
  * Various XenForo-based sites: SpaceBattles and SufficientVelocity, most notably
  * DeviantArt galleries/collections
  * Sta.sh
+ * Completely arbitrary sites, with a bit more work (see below)
 
 Configuration
 ---
@@ -51,7 +52,37 @@ Example:
 }
 ```
 
-Extending
+Arbitrary Sites
+---
+
+If you want to just download a one-off story from a site, you can create a definition file to describe it. This requires more investigation and understanding of things like CSS selectors than
+
+Example `practical.json`:
+
+```
+{
+    "url": "https://practicalguidetoevil.wordpress.com/table-of-contents/",
+    "title": "A Practical Guide To Evil: Book 1",
+    "author": "erraticerrata",
+    "chapter_selector": "#main .entry-content > ul > li > a",
+    "content_selector": "#main .entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style"
+}
+```
+
+Run as:
+
+    $ ./leech.py practical.json
+
+This tells leech to load `url`, follow the links described by `chapter_selector`, extract the content from those pages as described by `content_selector`, and remove any content from *that* which matches `filter_selector`.
+
+If `chapter_selector` isn't given, it'll create a single-chapter book by applying `content_selector` to `url`.
+
+This is a fairly viable way to extract a story from, say, a random Wordpress installation. It's relatively likely to get you at least *most* of the way to the ebook you want, which maybe some manual editing needed.
+
+If you need more advanced behavior, consider looking at...
+
+Adding new site handers
 ---
 
 To add support for a new site, create a file in the `sites` directory that implements the `Site` interface. Take a look at `ao3.py` for a minimal example of what you have to do.
