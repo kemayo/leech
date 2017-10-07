@@ -40,7 +40,7 @@ class XenForo(Site):
             mark for mark in self._chapter_list(url)
             if '/members' not in mark.get('href') and '/threadmarks' not in mark.get('href')
         ]
-        marks = marks[self.options.offset:self.options.limit]
+        marks = marks[self.options['offset']:self.options['limit']]
 
         for idx, mark in enumerate(marks, 1):
             href = mark.get('href')
@@ -95,7 +95,7 @@ class XenForo(Site):
         if not links:
             raise SiteException("No links in index?")
 
-        if self.options.include_index:
+        if self.options['include_index']:
             fake_link = self._new_tag('a', href=url)
             fake_link.string = "Index"
             links.insert(0, fake_link)
@@ -151,7 +151,7 @@ class XenForo(Site):
         # spoilers don't work well, so turn them into epub footnotes
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
             spoiler_title = spoiler.find(class_='SpoilerTitle')
-            if self.options.spoilers:
+            if self.options['skip_spoilers']:
                 link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), chapterid)
                 if spoiler_title:
                     link.string = spoiler_title.get_text()
@@ -174,12 +174,6 @@ class XenForo(Site):
             return datetime.datetime.strptime(maybe_date['title'], "%b %d, %Y at %I:%M %p")
         raise SiteException("No date", maybe_date)
 
-    def _add_arguments(self, parser):
-        parser.add_argument('--include-index', dest='include_index', action='store_true', default=False)
-        parser.add_argument('--offset', dest='offset', type=int, default=None)
-        parser.add_argument('--limit', dest='limit', type=int, default=None)
-        parser.add_argument('--skip-spoilers', dest='spoilers', action='store_false', default=True)
-
 
 class XenForoIndex(XenForo):
     @classmethod
@@ -198,8 +192,8 @@ class SpaceBattles(XenForo):
 
 
 @register
-class SpaceBattlesIndex(XenForoIndex):
-    domain = 'forums.spacebattles.com'
+class SpaceBattlesIndex(SpaceBattles, XenForoIndex):
+    pass
 
 
 @register

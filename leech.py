@@ -1,79 +1,99 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import argparse
-import sys
-import json
+import click
+from click_default_group import DefaultGroup
+
+import requests
+import requests_cache
 import http.cookiejar
+import json
 
 import sites
 import ebook
 
-import requests
-import requests_cache
-
-__version__ = 1
+__version__ = 2
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
 
-def leech(url, session, filename=None, args=None):
-    # we have: a page, which could be absolutely any part of a story, or not a story at all
-    # check a bunch of things which are completely ff.n specific, to get text from it
-    site, url = sites.get(url)
-    if not site:
-        raise Exception("No site handler found")
+def uses_session(command):
+    """Decorator for click commands that need a session."""
+    @click.option('--cache/--no-cache', default=True)
+    def wrapper(cache, **kwargs):
+        if cache:
+            session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
+        else:
+            session = requests.Session()
 
-    print("Handler", site, url)
+        lwp_cookiejar = http.cookiejar.LWPCookieJar()
+        try:
+            lwp_cookiejar.load('leech.cookies', ignore_discard=True)
+        except Exception as e:
+            pass
+        session.cookies = lwp_cookiejar
+        session.headers.update({
+            'User-agent': USER_AGENT
+        })
+        return command(session=session, **kwargs)
+    wrapper.__name__ = command.__name__
+    return wrapper
 
-    handler = site(session, args=args)
 
-    with open('leech.json') as config_file:
-        config = json.load(config_file)
+def uses_story(command):
+    """Decorator for click commands that need a story."""
+    @click.argument('url')
+    @click.option('--include-index', default=False, help='[Xenforo only] Should the chapter marked as an index be included?')
+    @click.option('--offset', type=int, default=None, help='[Xenforo only] The chapter to start from.')
+    @click.option('--limit', type=int, default=None, help='[Xenforo only] The chapter to end with.')
+    @click.option('--skip-spoilers/--include-spoilers', default=True, help='[Xenforo only] If the story should include content enclosed in spoiler tags.')
+    @uses_session
+    def wrapper(url, session, include_index, offset, limit, skip_spoilers, **kwargs):
+        site, url = sites.get(url)
+        if not site:
+            raise Exception("No site handler found")
 
-        login = config.get('logins', {}).get(site.__name__, False)
-        if login:
-            handler.login(login)
+        handler = site(session, options={
+            'offset': offset,
+            'limit': limit,
+            'skip_spoilers': skip_spoilers,
+            'include_index': include_index,
+        })
 
-        cover_options = config.get('cover', {})
+        with open('leech.json') as store_file:
+            store = json.load(store_file)
+            login = store.get('logins', {}).get(site.__name__, False)
+            if login:
+                handler.login(login)
 
-    story = handler.extract(url)
-    if not story:
-        raise Exception("Couldn't extract story")
+        story = handler.extract(url)
+        if not story:
+            raise Exception("Couldn't extract story")
 
-    return ebook.generate_epub(story, filename, cover_options=cover_options)
+        command(story=story, **kwargs)
+    wrapper.__name__ = command.__name__
+    return wrapper
+
+
+@click.group(cls=DefaultGroup, default='download', default_if_no_args=True)
+def cli():
+    """Top level click group. Uses click-default-group to preserve most behavior from leech v1."""
+    pass
+
+
+@cli.command()
+def flush():
+    """"Flushes the contents of the cache."""
+    requests_cache.install_cache('leech')
+    requests_cache.clear()
+    print("Flushed cache")
+
+
+@cli.command()
+@uses_story
+def download(story):
+    """Downloads a story and saves it on disk as a ebpub ebook."""
+    filename = ebook.generate_epub(story)
+    print("File created:", filename)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('url', help="url of a story to fetch", nargs='?')
-    parser.add_argument('--filename', help="output filename (the title is used if this isn't provided)")
-    parser.add_argument('--no-cache', dest='cache', action='store_false')
-    parser.add_argument('--flush', dest='flush', action='store_true')
-    parser.set_defaults(cache=True, flush=False)
-    args, extra_args = parser.parse_known_args()
-
-    if args.flush:
-        requests_cache.install_cache('leech')
-        requests_cache.clear()
-        print("Flushed cache")
-        sys.exit()
-
-    if not args.url:
-        sys.exit("URL is required")
-
-    if args.cache:
-        session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
-    else:
-        session = requests.Session()
-
-    lwp_cookiejar = http.cookiejar.LWPCookieJar()
-    try:
-        lwp_cookiejar.load('leech.cookies', ignore_discard=True)
-    except Exception as e:
-        pass
-    session.cookies = lwp_cookiejar
-    session.headers.update({
-        'User-agent': USER_AGENT
-    })
-
-    filename = leech(args.url, filename=args.filename, session=session, args=extra_args)
-    print("File created:", filename)
+    cli()

@@ -1,7 +1,6 @@
 
 import glob
 import os
-import argparse
 import uuid
 import attr
 from bs4 import BeautifulSoup
@@ -62,11 +61,8 @@ class Site:
     extracting the content of a story from said site.
     """
     session = attr.ib()
-    args = attr.ib()
     footnotes = attr.ib(default=attr.Factory(list), init=False)
-
-    def __attrs_post_init__(self):
-        self.options = self._parse_args(self.args)
+    options = attr.ib(default=attr.Factory(dict))
 
     @staticmethod
     def matches(url):
@@ -87,14 +83,6 @@ class Site:
 
     def login(self, login_details):
         raise NotImplementedError()
-
-    def _parse_args(self, args):
-        parser = argparse.ArgumentParser()
-        self._add_arguments(parser)
-        return parser.parse_args(args)
-
-    def _add_arguments(self, parser):
-        pass
 
     def _soup(self, url, method='html5lib', **kw):
         page = self.session.get(url, **kw)
