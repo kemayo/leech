@@ -25,6 +25,7 @@ class Chapter:
 class Section:
     title = attr.ib()
     author = attr.ib()
+    url = attr.ib()
     id = attr.ib(default=attr.Factory(_default_uuid_string), convert=str)
     contents = attr.ib(default=attr.Factory(list))
     footnotes = attr.ib(default=attr.Factory(list))
@@ -155,6 +156,7 @@ def get(url):
         match = site_class.matches(url)
         if match:
             return site_class, match
+    raise NotImplementedError("Could not find a handler for " + url)
 
 
 # And now, a particularly hacky take on a plugin system:

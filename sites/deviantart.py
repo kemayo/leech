@@ -29,7 +29,8 @@ class DeviantArt(Stash):
 
         story = Section(
             title=str(content.find(class_="folder-title").string),
-            author=author
+            author=author,
+            url=url
         )
 
         thumbs = content.select(".stream a.thumb")

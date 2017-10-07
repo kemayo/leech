@@ -3,72 +3,16 @@
 import argparse
 import sys
 import json
-import datetime
 import http.cookiejar
 
 import sites
-import epub
-import cover
+import ebook
 
 import requests
 import requests_cache
 
 __version__ = 1
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
-
-html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-<head>
-    <title>{title}</title>
-    <link rel="stylesheet" type="text/css" href="../Styles/base.css" />
-</head>
-<body>
-<h1>{title}</h1>
-{text}
-</body>
-</html>
-'''
-
-cover_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Cover</title>
-    <link rel="stylesheet" type="text/css" href="Styles/base.css" />
-</head>
-<body>
-<div class="cover">
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-    width="100%" height="100%" viewBox="0 0 573 800" preserveAspectRatio="xMidYMid meet">
-<image width="600" height="800" xlink:href="images/cover.png" />
-</svg>
-</div>
-</body>
-</html>
-'''
-
-frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Front Matter</title>
-    <link rel="stylesheet" type="text/css" href="Styles/base.css" />
-</head>
-<body>
-<div class="cover title">
-    <h1>{title}<br />By {author}</h1>
-    <dl>
-        <dt>Source</dt>
-        <dd>{unique_id}</dd>
-        <dt>Started</dt>
-        <dd>{started:%Y-%m-%d}</dd>
-        <dt>Updated</dt>
-        <dd>{updated:%Y-%m-%d}</dd>
-        <dt>Downloaded on</dt>
-        <dd>{now:%Y-%m-%d}</dd>
-    </dl>
-</div>
-</body>
-</html>
-'''
 
 
 def leech(url, session, filename=None, args=None):
@@ -92,49 +36,7 @@ def leech(url, session, filename=None, args=None):
     if not story:
         raise Exception("Couldn't extract story")
 
-    dates = list(story.dates())
-    metadata = {
-        'title': story.title,
-        'author': story.author,
-        'unique_id': url,
-        'started': min(dates),
-        'updated': max(dates),
-    }
-
-    # The cover is static, and the only change comes from the image which we generate
-    html = [('Cover', 'cover.html', cover_template)]
-    cover_image = ('images/cover.png', cover.make_cover(story.title, story.author).read(), 'image/png')
-
-    html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
-
-    html.extend(chapter_html(story))
-
-    css = ('Styles/base.css', session.get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
-
-    filename = filename or story.title + '.epub'
-
-    # print([c[0:-1] for c in html])
-    filename = epub.make_epub(filename, html, metadata, extra_files=(css, cover_image))
-
-    return filename
-
-
-def chapter_html(story, titleprefix=None):
-    chapters = []
-    for i, chapter in enumerate(story):
-        if hasattr(chapter, '__iter__'):
-            # This is a Section
-            chapters.extend(chapter_html(chapter, titleprefix=chapter.title))
-        else:
-            title = titleprefix and '{}: {}'.format(titleprefix, chapter.title) or chapter.title
-            chapters.append((
-                title,
-                '{}/chapter{}.html'.format(story.id, i + 1),
-                html_template.format(title=title, text=chapter.contents)
-            ))
-    if story.footnotes:
-        chapters.append(("Footnotes", '{}/footnotes.html'.format(story.id), html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
-    return chapters
+    return ebook.generate_epub(story, filename)
 
 
 if __name__ == '__main__':

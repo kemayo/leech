@@ -25,7 +25,8 @@ class FanFictionNet(Site):
 
         story = Section(
             title=str(metadata.find('b', class_="xcontrast_txt").string),
-            author=str(metadata.find('a', class_="xcontrast_txt").string)
+            author=str(metadata.find('a', class_="xcontrast_txt").string),
+            url=url
         )
 
         dates = content.find_all('span', attrs={'data-xutime': True})

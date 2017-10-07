@@ -4,7 +4,7 @@ from io import BytesIO
 import textwrap
 
 
-def make_cover(title, author, width=600, height=800, fontname="Helvetica", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
+def make_cover(title, author, width=600, height=800, fontname="FreeSans", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
     img = Image.new("RGBA", (width, height), bgcolor)
     draw = ImageDraw.Draw(img)
 

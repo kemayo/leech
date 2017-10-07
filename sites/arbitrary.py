@@ -58,7 +58,8 @@ class Arbitrary(Site):
                     title=chapter.string,
                     contents=self._chapter(chapter_url, definition),
                     # TODO: better date detection
-                    date=datetime.datetime.now()
+                    date=datetime.datetime.now(),
+                    url=url
                 ))
         else:
             story.add(Chapter(
