@@ -8,7 +8,7 @@ from . import register, Site, Section, Chapter
 
 @register
 class FictionLive(Site):
-    """Archive of Our Own: it has its own epub export, but the formatting is awful"""
+    """fiction.live: it's... mostly smut, I think? Terrible smut. But, hey, I had a rec to follow."""
     @staticmethod
     def matches(url):
         # e.g. https://fiction.live/stories/Descendant-of-a-Demon-Lord/SBBA49fQavNQMWxFT
@@ -18,19 +18,19 @@ class FictionLive(Site):
 
     def extract(self, url):
         workid = re.match(r'^https?://fiction\.live/stories/[^\/]+/([0-9a-zA-Z]+)/?.*', url).group(1)
-        return self._extract_work(workid)
 
-    def _extract_work(self, workid):
         response = self.session.get('https://fiction.live/api/node/{}'.format(workid)).json()
 
         story = Section(
             title=response['t'],
             author=response['u'][0]['n'],
-            url='https://fiction.live/stories/{}/{}'.format(response['t'].replace(' ', '-'), workid)
+            # Could normalize the URL here from the returns, but I'd have to
+            # go look up how they handle special characters in titles...
+            url=url
         )
+        # There's a summary (or similar) in `d` and `b`, if I want to use that later.
 
-        # There's a summary in `d` and `b`.
-
+        # TODO: extract these #special ones and send them off to an endnotes section?
         chapters = ({'ct': 0},) + tuple(c for c in response['bm'] if not c['title'].startswith('#special')) + ({'ct': 9999999999999999},)
 
         for prevc, currc, nextc in contextiterate(chapters):
@@ -47,6 +47,8 @@ class FictionLive(Site):
             updated = currc['ct']
             for segment in (d for d in data if not d.get('t', '').startswith('#special')):
                 updated = max(updated, segment['ct'])
+                # TODO: work out if this is actually enough types handled
+                # There's at least also a reader post type, which mostly seems to be used for die rolls.
                 if segment['nt'] == 'chapter':
                     html.extend(('<div>', segment['b'].replace('<br>', '<br/>'), '</div>'))
                 elif segment['nt'] == 'choice':
