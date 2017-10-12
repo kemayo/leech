@@ -3,6 +3,7 @@ from .cover import make_cover
 
 import datetime
 import requests
+import attr
 
 html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -59,6 +60,17 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 '''
 
 
+@attr.s
+class CoverOptions:
+    fontname = attr.ib(default=None, convert=attr.converters.optional(str))
+    fontsize = attr.ib(default=None, convert=attr.converters.optional(int))
+    width = attr.ib(default=None, convert=attr.converters.optional(int))
+    height = attr.ib(default=None, convert=attr.converters.optional(int))
+    wrapat = attr.ib(default=None, convert=attr.converters.optional(int))
+    bgcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
+    textcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
+
+
 def chapter_html(story, titleprefix=None):
     chapters = []
     for i, chapter in enumerate(story):
@@ -77,7 +89,7 @@ def chapter_html(story, titleprefix=None):
     return chapters
 
 
-def generate_epub(story, output_filename=None):
+def generate_epub(story, output_filename=None, cover_options={}):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -87,10 +99,13 @@ def generate_epub(story, output_filename=None):
         'updated': max(dates),
     }
 
+    cover_options = CoverOptions(**cover_options)
+    cover_options = attr.asdict(cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
+
     # The cover is static, and the only change comes from the image which we generate
     html = [('Cover', 'cover.html', cover_template)]
 
-    cover_image = ('images/cover.png', make_cover(story.title, story.author).read(), 'image/png')
+    cover_image = ('images/cover.png', make_cover(story.title, story.author, **cover_options).read(), 'image/png')
 
     html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 

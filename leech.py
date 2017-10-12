@@ -26,17 +26,20 @@ def leech(url, session, filename=None, args=None):
 
     handler = site(session, args=args)
 
-    with open('leech.json') as store_file:
-        store = json.load(store_file)
-        login = store.get('logins', {}).get(site.__name__, False)
+    with open('leech.json') as config_file:
+        config = json.load(config_file)
+
+        login = config.get('logins', {}).get(site.__name__, False)
         if login:
             handler.login(login)
+
+        cover_options = config.get('cover', {})
 
     story = handler.extract(url)
     if not story:
         raise Exception("Couldn't extract story")
 
-    return ebook.generate_epub(story, filename)
+    return ebook.generate_epub(story, filename, cover_options=cover_options)
 
 
 if __name__ == '__main__':

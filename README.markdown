@@ -40,7 +40,7 @@ Supports
 Configuration
 ---
 
-A very small amount of configuration is possible by creating a file called `leech.json` in the project directory. Currently you can define login information for sites that support it.
+A very small amount of configuration is possible by creating a file called `leech.json` in the project directory. Currently you can define login information for sites that support it, and some options for book covers.
 
 Example:
 
@@ -48,6 +48,12 @@ Example:
 {
     "logins": {
         "QuestionableQuesting": ["username", "password"]
+    },
+    "cover": {
+        "fontname": "Comic Sans MS",
+        "fontsize": 30,
+        "bgcolor": [20, 120, 20],
+        "textcolor": [180, 20, 180],
     }
 }
 ```
