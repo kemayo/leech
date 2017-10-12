@@ -32,7 +32,8 @@ class XenForo(Site):
 
         story = Section(
             title=soup.select('div.titleBar > h1')[0].get_text(),
-            author=soup.find('p', id='pageDescription').find('a', class_='username').get_text()
+            author=soup.find('p', id='pageDescription').find('a', class_='username').get_text(),
+            url=url
         )
 
         marks = [

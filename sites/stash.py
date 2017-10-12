@@ -23,7 +23,8 @@ class Stash(Site):
         # metadata = content.find(id='profile_top')
         story = Section(
             title=str(soup.find(class_="stash-folder-name").h2.string),
-            author=str(soup.find('span', class_="oh-stashlogo-name").string).rstrip("'s")
+            author=str(soup.find('span', class_="oh-stashlogo-name").string).rstrip("'s"),
+            url=url
         )
 
         thumbs = content.select(".stash-folder-stream .thumb")

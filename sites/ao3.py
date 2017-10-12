@@ -25,7 +25,8 @@ class ArchiveOfOurOwn(Site):
         metadata = soup.select('#main h2.heading a')
         story = Section(
             title=metadata[0].string,
-            author=metadata[1].string
+            author=metadata[1].string,
+            url='http://archiveofourown.org/works/{}'.format(workid)
         )
 
         for chapter in soup.select('#main ol[role="navigation"] li'):
