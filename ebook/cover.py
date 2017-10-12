@@ -4,19 +4,19 @@ from io import BytesIO
 import textwrap
 
 
-def make_cover(title, author, width=600, height=800, fontname="FreeSans", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
+def make_cover(title, author, width=600, height=800, fontname="Helvetica", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
     img = Image.new("RGBA", (width, height), bgcolor)
     draw = ImageDraw.Draw(img)
 
     title = textwrap.fill(title, wrapat)
     author = textwrap.fill(author, wrapat)
 
-    font = ImageFont.truetype(font=fontname, size=fontsize)
+    font = _safe_font(fontname, size=fontsize)
     title_size = draw.textsize(title, font=font)
     draw_text_outlined(draw, ((width - title_size[0]) / 2, 100), title, textcolor, font=font)
     # draw.text(((width - title_size[0]) / 2, 100), title, textcolor, font=font)
 
-    font = ImageFont.truetype(font=fontname, size=fontsize - 2)
+    font = _safe_font(fontname, size=fontsize - 2)
     author_size = draw.textsize(author, font=font)
     draw_text_outlined(draw, ((width - author_size[0]) / 2, 100 + title_size[1] + 70), author, textcolor, font=font)
 
@@ -26,6 +26,18 @@ def make_cover(title, author, width=600, height=800, fontname="FreeSans", fontsi
     # writing left the cursor at the end of the file, so reset it
     output.seek(0)
     return output
+
+
+def _safe_font(preferred, *args, **kwargs):
+    for font in (preferred, "Helvetica", "FreeSans", "Arial"):
+        try:
+            return ImageFont.truetype(*args, font=font, **kwargs)
+        except IOError:
+            pass
+
+    # This is pretty terrible, but it'll work regardless of what fonts the
+    # system has. Worst issue: can't set the size.
+    return ImageFont.load_default()
 
 
 def draw_text_outlined(draw, xy, text, fill=None, font=None, anchor=None):
