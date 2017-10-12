@@ -1,7 +1,6 @@
-from .epub import *
-from .cover import *
+from .epub import make_epub
+from .cover import make_cover
 
-import os
 import datetime
 import requests
 
@@ -78,29 +77,29 @@ def chapter_html(story, titleprefix=None):
     return chapters
 
 
-def generate_epub(story, output_filename = None):
-  dates = list(story.dates())
-  metadata = {
-    'title': story.title,
-    'author': story.author,
-    'unique_id': story.url,
-    'started': min(dates),
-    'updated': max(dates),
-  }
+def generate_epub(story, output_filename=None):
+    dates = list(story.dates())
+    metadata = {
+        'title': story.title,
+        'author': story.author,
+        'unique_id': story.url,
+        'started': min(dates),
+        'updated': max(dates),
+    }
 
-  # The cover is static, and the only change comes from the image which we generate
-  html = [('Cover', 'cover.html', cover_template)]
+    # The cover is static, and the only change comes from the image which we generate
+    html = [('Cover', 'cover.html', cover_template)]
 
-  cover_image = ('images/cover.png', cover.make_cover(story.title, story.author).read(), 'image/png')
+    cover_image = ('images/cover.png', make_cover(story.title, story.author).read(), 'image/png')
 
-  html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
+    html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 
-  html.extend(chapter_html(story))
+    html.extend(chapter_html(story))
 
-  css = ('Styles/base.css', requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
+    css = ('Styles/base.css', requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
 
-  output_filename = output_filename or story.title + '.epub'
+    output_filename = output_filename or story.title + '.epub'
 
-  output_filename = epub.make_epub(output_filename, html, metadata, extra_files=(css, cover_image))
+    output_filename = make_epub(output_filename, html, metadata, extra_files=(css, cover_image))
 
-  return output_filename
+    return output_filename
