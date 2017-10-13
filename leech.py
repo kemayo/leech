@@ -41,28 +41,41 @@ def uses_session(command):
 def uses_story(command):
     """Decorator for click commands that need a story."""
     @click.argument('url')
-    @click.option('--include-index', default=False, help='[Xenforo only] Should the chapter marked as an index be included?')
-    @click.option('--offset', type=int, default=None, help='[Xenforo only] The chapter to start from.')
-    @click.option('--limit', type=int, default=None, help='[Xenforo only] The chapter to end with.')
-    @click.option('--skip-spoilers/--include-spoilers', default=True, help='[Xenforo only] If the story should include content enclosed in spoiler tags.')
+    @click.option(
+        '--site-options',
+        default='{}',
+        help='JSON object encoding any site specific option.'
+    )
     @uses_session
-    def wrapper(url, session, include_index, offset, limit, skip_spoilers, **kwargs):
+    def wrapper(url, session, site_options, **kwargs):
         site, url = sites.get(url)
         if not site:
             raise Exception("No site handler found")
 
-        handler = site(session, options={
-            'offset': offset,
-            'limit': limit,
-            'skip_spoilers': skip_spoilers,
-            'include_index': include_index,
-        })
+        default_site_options = site.get_default_options()
 
         with open('leech.json') as store_file:
             store = json.load(store_file)
             login = store.get('logins', {}).get(site.__name__, False)
-            if login:
-                handler.login(login)
+            configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+
+        overridden_site_options = json.loads(site_options)
+
+        # The final options dictionary is computed by layering the default, configured,
+        # and overridden options together in that order.
+        options = dict(
+            list(default_site_options.items()) +
+            list(configured_site_options.items()) +
+            list(overridden_site_options.items())
+        )
+
+        handler = site(
+            session,
+            options=options
+        )
+
+        if login:
+            handler.login(login)
 
         story = handler.extract(url)
         if not story:

@@ -65,6 +65,10 @@ class Site:
     options = attr.ib(default=attr.Factory(dict))
 
     @staticmethod
+    def get_default_options():
+        return {}
+
+    @staticmethod
     def matches(url):
         raise NotImplementedError()
 

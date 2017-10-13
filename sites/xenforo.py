@@ -10,6 +10,15 @@ class XenForo(Site):
 
     domain = False
 
+    @staticmethod
+    def get_default_options():
+        return {
+            'offset': None,
+            'limit': None,
+            'skip_spoilers': True,
+            'include_index': False,
+        }
+
     @classmethod
     def matches(cls, url):
         match = re.match(r'^(https?://%s/threads/[^/]*\d+)/?.*' % cls.domain, url)
