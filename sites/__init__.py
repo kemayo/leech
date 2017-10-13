@@ -62,7 +62,10 @@ class Site:
     """
     session = attr.ib()
     footnotes = attr.ib(default=attr.Factory(list), init=False)
-    options = attr.ib(default=attr.Factory(dict))
+    options = attr.ib(default=attr.Factory(
+        lambda site: site.get_default_options(),
+        True
+    ))
 
     @staticmethod
     def get_default_options():
