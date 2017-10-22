@@ -47,7 +47,8 @@ class Arbitrary(Site):
 
         story = Section(
             title=definition.title,
-            author=definition.author
+            author=definition.author,
+            url=url
         )
 
         if definition.chapter_selector:
@@ -58,8 +59,7 @@ class Arbitrary(Site):
                     title=chapter.string,
                     contents=self._chapter(chapter_url, definition),
                     # TODO: better date detection
-                    date=datetime.datetime.now(),
-                    url=url
+                    date=datetime.datetime.now()
                 ))
         else:
             story.add(Chapter(
