@@ -4,6 +4,7 @@ import attr
 import datetime
 import json
 import os.path
+import urllib
 from . import register, Site, Section, Chapter
 
 """
@@ -54,7 +55,7 @@ class Arbitrary(Site):
         if definition.chapter_selector:
             soup = self._soup(definition.url)
             for chapter in soup.select(definition.chapter_selector):
-                chapter_url = str(chapter.get('href'))
+                chapter_url = urllib.parse.urljoin(definition.url, str(chapter.get('href')))
                 story.add(Chapter(
                     title=chapter.string,
                     contents=self._chapter(chapter_url, definition),
