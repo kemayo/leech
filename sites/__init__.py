@@ -3,6 +3,7 @@ import glob
 import os
 import argparse
 import uuid
+import time
 import attr
 from bs4 import BeautifulSoup
 
@@ -96,9 +97,16 @@ class Site:
     def _add_arguments(self, parser):
         pass
 
-    def _soup(self, url, method='html5lib', **kw):
+    def _soup(self, url, method='html5lib', retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
         if not page:
+            if retry and retry > 0:
+                delay = retry_delay
+                if page.headers['Retry-After']:
+                    delay = int(page.headers['Retry-After'])
+                print("Load failed: waiting {}s to retry ({})".format(delay, page))
+                time.sleep(delay)
+                return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
             raise SiteException("Couldn't fetch", url)
         return BeautifulSoup(page.text, method)
 
