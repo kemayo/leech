@@ -1,0 +1,8 @@
+{
+    "url": "https://practicalguidetoevil.wordpress.com/table-of-contents/",
+    "title": "A Practical Guide To Evil: Book 3",
+    "author": "erraticerrata",
+    "chapter_selector": "#main .entry-content > ul:nth-of-type(3) > li > a",
+    "content_selector": "#main .entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style"
+}

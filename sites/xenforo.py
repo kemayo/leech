@@ -80,7 +80,10 @@ class XenForo(Site):
 
         threadmarks_link = soup.find(class_="threadmarksTrigger", href=True)
         if not threadmarks_link:
-            threadmarks_link = soup.select('.threadmarkMenus a.OverlayTrigger')[0]
+            try:
+                threadmarks_link = soup.select('.threadmarkMenus a.OverlayTrigger')[0]
+            except IndexError:
+                pass
 
         if not threadmarks_link:
             raise SiteException("No threadmarks")
