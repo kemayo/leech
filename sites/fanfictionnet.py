@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
+import logging
 import datetime
 import re
 from . import register, Site, SiteException, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 
 @register
@@ -59,7 +62,7 @@ class FanFictionNet(Site):
         return story
 
     def _chapter(self, url):
-        print("Extracting chapter from", url)
+        logger.info("Fetching chapter @ %s", url)
         soup = self._soup(url)
 
         content = soup.find(id="content_wrapper_inner")
@@ -74,7 +77,7 @@ class FanFictionNet(Site):
             for tag in text.find_all(True):
                 tag.attrs = None
         except Exception as e:
-            print("Trouble cleaning attributes", e)
+            logger.exception("Trouble cleaning attributes")
 
         return text.prettify()
 

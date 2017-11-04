@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
+import logging
 import re
 
 from . import register, Section
 from .stash import Stash
+
+logger = logging.getLogger(__name__)
 
 
 @register
@@ -41,6 +44,6 @@ class DeviantArt(Stash):
                 if thumb['href'] is not '#':
                     story.add(self._chapter(thumb['href']))
             except Exception as e:
-                print(e)
+                logger.exception("Couldn't extract chapters from thumbs")
 
         return story

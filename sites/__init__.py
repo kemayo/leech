@@ -4,9 +4,12 @@ import os
 import argparse
 import uuid
 import time
+import logging
 import attr
 from bs4 import BeautifulSoup
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 _sites = []
 
 
@@ -104,7 +107,7 @@ class Site:
                 delay = retry_delay
                 if page.headers['Retry-After']:
                     delay = int(page.headers['Retry-After'])
-                print("Load failed: waiting {}s to retry ({})".format(delay, page))
+                logger.warning("Load failed: waiting %s to retry (%s)", delay, page)
                 time.sleep(delay)
                 return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
             raise SiteException("Couldn't fetch", url)

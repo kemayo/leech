@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
+import logging
 import datetime
 import re
 from . import register, Site, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 
 @register
@@ -46,7 +49,7 @@ class ArchiveOfOurOwn(Site):
         return story
 
     def _chapter(self, url):
-        print("Extracting chapter from", url)
+        logger.info("Extracting chapter @ %s", url)
         soup = self._soup(url)
         content = soup.find('div', role='article')
 

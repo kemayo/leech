@@ -2,7 +2,10 @@
 
 import datetime
 import re
+import logging
 from . import register, Site, SiteException, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 
 class XenForo(Site):
@@ -23,7 +26,7 @@ class XenForo(Site):
             'password': login_details[1],
         }
         self.session.post('https://%s/login/login' % self.domain, data=post)
-        print("Logged in as", login_details[0])
+        logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
         soup = self._soup(url)
@@ -47,7 +50,7 @@ class XenForo(Site):
             if not href.startswith('http'):
                 href = base + href
             title = str(mark.string).strip()
-            print("Fetching chapter", title, href)
+            logger.info("Fetching chapter \"%s\" @ %s", title, href)
             chapter = Chapter(title=title, contents="")
             contents, post_date = self._chapter(href, idx)
             chapter.contents = contents
@@ -63,7 +66,7 @@ class XenForo(Site):
         try:
             return self._chapter_list_threadmarks(url)
         except SiteException as e:
-            print("Tried threadmarks", e.args)
+            logger.debug("Tried threadmarks (%r)", e.args)
             return self._chapter_list_index(url)
 
     def _chapter_list_threadmarks(self, url):
