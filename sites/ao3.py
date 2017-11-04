@@ -82,7 +82,8 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
 
         story = Section(
             title=soup.select('#main h2.heading')[0].string,
-            author=soup.select('#main dl.series.meta a[rel="author"]')[0].string
+            author=soup.select('#main dl.series.meta a[rel="author"]')[0].string,
+            url='http://archiveofourown.org/series/{}'.format(seriesid)
         )
 
         for work in soup.select('#main ul.series li.work'):
