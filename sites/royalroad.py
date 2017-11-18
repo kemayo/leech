@@ -28,7 +28,6 @@ class RoyalRoad(Site):
         original_maxheaders = http.client._MAXHEADERS
         http.client._MAXHEADERS = 1000
 
-        metadata = soup.select('#main h2.heading a')
         story = Section(
             title=soup.find('h1', property='name').string.strip(),
             author=soup.find('meta', property='books:author').get('content').strip(),
