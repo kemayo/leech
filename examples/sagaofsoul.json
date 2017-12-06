@@ -1,0 +1,8 @@
+{
+    "url": "http://www.sagaofsoul.com/story.html",
+    "title": "Saga of Soul",
+    "author": "Ouri Maler",
+    "chapter_selector": "#mainbody li a",
+    "content_selector": "#mainbody",
+    "filter_selector": "script, noscript"
+}
