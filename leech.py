@@ -5,6 +5,7 @@ import sys
 import json
 import http.cookiejar
 import logging
+import sqlite3
 
 import sites
 import ebook
@@ -66,6 +67,11 @@ if __name__ == '__main__':
     if args.flush:
         requests_cache.install_cache('leech')
         requests_cache.clear()
+
+        conn = sqlite3.connect('leech.sqlite')
+        conn.execute("VACUUM")
+        conn.close()
+
         logger.info("Flushed cache")
         sys.exit()
 
