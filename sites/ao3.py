@@ -3,6 +3,7 @@
 import logging
 import datetime
 import re
+import urllib
 from . import register, Site, Section, Chapter
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,8 @@ class ArchiveOfOurOwn(Site):
         return self._extract_work(workid)
 
     def _extract_work(self, workid):
-        soup = self._soup('http://archiveofourown.org/works/{}/navigate?view_adult=true'.format(workid))
+        nav_url = 'http://archiveofourown.org/works/{}/navigate?view_adult=true'.format(workid)
+        soup = self._soup(nav_url)
 
         metadata = soup.select('#main h2.heading a')
         story = Section(
@@ -34,9 +36,7 @@ class ArchiveOfOurOwn(Site):
 
         for chapter in soup.select('#main ol[role="navigation"] li'):
             link = chapter.find('a')
-            chapter_url = str(link.get('href'))
-            if chapter_url.startswith('/works/'):
-                chapter_url = 'http://archiveofourown.org' + chapter_url
+            chapter_url = urllib.parse.urljoin(nav_url, str(link.get('href')))
             chapter_url += '?view_adult=true'
 
             updated = datetime.datetime.strptime(
