@@ -4,6 +4,8 @@ import logging
 import datetime
 import re
 import urllib
+import requests_cache
+from bs4 import BeautifulSoup
 from . import register, Site, Section, Chapter
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,25 @@ class ArchiveOfOurOwn(Site):
         match = re.match(r'^(https?://archiveofourown\.org/works/\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
+
+    def login(self, login_details):
+        with requests_cache.disabled():
+            login = self.session.get('http://archiveofourown.org/login')
+            soup = BeautifulSoup(login.text, 'html5lib')
+            form = soup.find(id='new_user_session')
+            post = {
+                'user_session[login]': login_details[0],
+                'user_session[password]': login_details[1],
+                # standard fields:
+                'user_session[remember_me]': '1',
+                'utf8': form.find(attrs={'name': 'utf8'})['value'],
+                'authenticity_token': form.find(attrs={'name': 'authenticity_token'})['value'],
+                'commit': 'Log In',
+            }
+            # I feel the session *should* handle this cookies bit for me. But
+            # it doesn't. And I don't know why.
+            self.session.post('https://archiveofourown.org/user_sessions', data=post, cookies=login.cookies)
+            logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
         workid = re.match(r'^https?://archiveofourown\.org/works/(\d+)/?.*', url).group(1)
