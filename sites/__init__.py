@@ -105,7 +105,7 @@ class Site:
         if not page:
             if retry and retry > 0:
                 delay = retry_delay
-                if page.headers['Retry-After']:
+                if 'Retry-After' in page.headers:
                     delay = int(page.headers['Retry-After'])
                 logger.warning("Load failed: waiting %s to retry (%s)", delay, page)
                 time.sleep(delay)
