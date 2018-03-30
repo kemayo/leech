@@ -14,9 +14,9 @@ class FanFictionNet(Site):
     @staticmethod
     def matches(url):
         # e.g. https://www.fanfiction.net/s/4109686/3/Taking-Sights
-        match = re.match(r'^(https?://www\.fanfiction\.net/s/\d+)/?.*', url)
+        match = re.match(r'^https?://(?:www|m)\.fanfiction\.net/s/(\d+)/?.*', url)
         if match:
-            return match.group(1) + '/'
+            return 'https://www.fanfiction.net/s/' + match.group(1) + '/'
 
     def extract(self, url):
         soup = self._soup(url)
@@ -87,6 +87,6 @@ class FictionPress(FanFictionNet):
     @staticmethod
     def matches(url):
         # e.g. https://www.fictionpress.com/s/2961893/1/Mother-of-Learning
-        match = re.match(r'^(https?://www\.fictionpress\.com/s/\d+)/?.*', url)
+        match = re.match(r'^https?://(?:www|m)\.fictionpress\.com/s/(\d+)/?.*', url)
         if match:
-            return match.group(1) + '/'
+            return 'https://www.fictionpress.com/s/' + match.group(1) + '/'
