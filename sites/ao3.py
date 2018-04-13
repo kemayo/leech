@@ -1,8 +1,14 @@
 #!/usr/bin/python
 
+import logging
 import datetime
 import re
+import urllib
+import requests_cache
+from bs4 import BeautifulSoup
 from . import register, Site, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 
 @register
@@ -15,12 +21,32 @@ class ArchiveOfOurOwn(Site):
         if match:
             return match.group(1) + '/'
 
+    def login(self, login_details):
+        with requests_cache.disabled():
+            login = self.session.get('http://archiveofourown.org/login')
+            soup = BeautifulSoup(login.text, 'html5lib')
+            form = soup.find(id='new_user_session')
+            post = {
+                'user_session[login]': login_details[0],
+                'user_session[password]': login_details[1],
+                # standard fields:
+                'user_session[remember_me]': '1',
+                'utf8': form.find(attrs={'name': 'utf8'})['value'],
+                'authenticity_token': form.find(attrs={'name': 'authenticity_token'})['value'],
+                'commit': 'Log In',
+            }
+            # I feel the session *should* handle this cookies bit for me. But
+            # it doesn't. And I don't know why.
+            self.session.post('https://archiveofourown.org/user_sessions', data=post, cookies=login.cookies)
+            logger.info("Logged in as %s", login_details[0])
+
     def extract(self, url):
         workid = re.match(r'^https?://archiveofourown\.org/works/(\d+)/?.*', url).group(1)
         return self._extract_work(workid)
 
     def _extract_work(self, workid):
-        soup = self._soup('http://archiveofourown.org/works/{}/navigate?view_adult=true'.format(workid))
+        nav_url = 'http://archiveofourown.org/works/{}/navigate?view_adult=true'.format(workid)
+        soup = self._soup(nav_url)
 
         metadata = soup.select('#main h2.heading a')
         story = Section(
@@ -31,9 +57,7 @@ class ArchiveOfOurOwn(Site):
 
         for chapter in soup.select('#main ol[role="navigation"] li'):
             link = chapter.find('a')
-            chapter_url = str(link.get('href'))
-            if chapter_url.startswith('/works/'):
-                chapter_url = 'http://archiveofourown.org' + chapter_url
+            chapter_url = urllib.parse.urljoin(nav_url, str(link.get('href')))
             chapter_url += '?view_adult=true'
 
             updated = datetime.datetime.strptime(
@@ -46,7 +70,7 @@ class ArchiveOfOurOwn(Site):
         return story
 
     def _chapter(self, url):
-        print("Extracting chapter from", url)
+        logger.info("Extracting chapter @ %s", url)
         soup = self._soup(url)
         content = soup.find('div', role='article')
 
@@ -79,7 +103,8 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
 
         story = Section(
             title=soup.select('#main h2.heading')[0].string,
-            author=soup.select('#main dl.series.meta a[rel="author"]')[0].string
+            author=soup.select('#main dl.series.meta a[rel="author"]')[0].string,
+            url='http://archiveofourown.org/series/{}'.format(seriesid)
         )
 
         for work in soup.select('#main ul.series li.work'):

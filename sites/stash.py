@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
+import logging
 import datetime
 import re
 from . import register, Site, SiteException, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 
 @register
@@ -35,12 +38,12 @@ class Stash(Site):
                 if thumb['href'] is not '#':
                     story.add(self._chapter(thumb['href']))
             except Exception as e:
-                print(e)
+                logger.exception("Couldn't extract chapters from thumbs")
 
         return story
 
     def _chapter(self, url):
-        print("Extracting chapter from", url)
+        logger.info("Fetching chapter @ %s", url)
         soup = self._soup(url)
 
         content = soup.find(class_="journal-wrapper")

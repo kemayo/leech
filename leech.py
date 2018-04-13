@@ -6,6 +6,7 @@ from click_default_group import DefaultGroup
 import requests
 import requests_cache
 import http.cookiejar
+import logging
 import json
 
 import sites
@@ -14,77 +15,69 @@ import ebook
 __version__ = 2
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
+logger = logging.getLogger(__name__)
 
-def uses_session(command):
-    """Decorator for click commands that need a session."""
-    @click.option('--cache/--no-cache', default=True)
-    def wrapper(cache, **kwargs):
-        if cache:
-            session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
-        else:
-            session = requests.Session()
+def configure_logging(verbose):
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="[%(name)s] %(message)s"
+        )
 
-        lwp_cookiejar = http.cookiejar.LWPCookieJar()
-        try:
-            lwp_cookiejar.load('leech.cookies', ignore_discard=True)
-        except Exception as e:
-            pass
-        session.cookies = lwp_cookiejar
-        session.headers.update({
-            'User-agent': USER_AGENT
-        })
-        return command(session=session, **kwargs)
-    wrapper.__name__ = command.__name__
-    return wrapper
+def create_session(cache):
+    if cache:
+        session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
+    else:
+        session = requests.Session()
 
+    lwp_cookiejar = http.cookiejar.LWPCookieJar()
+    try:
+        lwp_cookiejar.load('leech.cookies', ignore_discard=True)
+    except Exception as e:
+        pass
+    session.cookies = lwp_cookiejar
+    session.headers.update({
+        'User-agent': USER_AGENT
+    })
+    return session
 
-def uses_story(command):
-    """Decorator for click commands that need a story."""
-    @click.argument('url')
-    @click.option(
-        '--site-options',
-        default='{}',
-        help='JSON object encoding any site specific option.'
+def open_story(url, session, site_options):
+    site, url = sites.get(url)
+
+    if not site:
+        raise Exception("No site handler found")
+
+    default_site_options = site.get_default_options()
+
+    with open('leech.json') as store_file:
+        store = json.load(store_file)
+        login = store.get('logins', {}).get(site.__name__, False)
+        configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+
+    overridden_site_options = json.loads(site_options)
+
+    # The final options dictionary is computed by layering the default, configured,
+    # and overridden options together in that order.
+    options = dict(
+        list(default_site_options.items()) +
+        list(configured_site_options.items()) +
+        list(overridden_site_options.items())
     )
-    @uses_session
-    def wrapper(url, session, site_options, **kwargs):
-        site, url = sites.get(url)
-        if not site:
-            raise Exception("No site handler found")
 
-        default_site_options = site.get_default_options()
+    handler = site(
+        session,
+        options=options
+    )
 
-        with open('leech.json') as store_file:
-            store = json.load(store_file)
-            login = store.get('logins', {}).get(site.__name__, False)
-            configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+    if login:
+        handler.login(login)
 
-        overridden_site_options = json.loads(site_options)
-
-        # The final options dictionary is computed by layering the default, configured,
-        # and overridden options together in that order.
-        options = dict(
-            list(default_site_options.items()) +
-            list(configured_site_options.items()) +
-            list(overridden_site_options.items())
-        )
-
-        handler = site(
-            session,
-            options=options
-        )
-
-        if login:
-            handler.login(login)
-
-        story = handler.extract(url)
-        if not story:
-            raise Exception("Couldn't extract story")
-
-        command(story=story, **kwargs)
-    wrapper.__name__ = command.__name__
-    return wrapper
-
+    story = handler.extract(url)
+    if not story:
+        raise Exception("Couldn't extract story")
+    return story
 
 @click.group(cls=DefaultGroup, default='download', default_if_no_args=True)
 def cli():
@@ -93,19 +86,31 @@ def cli():
 
 
 @cli.command()
-def flush():
-    """"Flushes the contents of the cache."""
+@click.option('--verbose', '-v', is_flag=True, help="verbose output")
+def flush(verbose):
+    """Flushes the contents of the cache."""
+    configure_logging(verbose)
     requests_cache.install_cache('leech')
     requests_cache.clear()
-    print("Flushed cache")
+    logger.info("Flushed cache")
 
 
 @cli.command()
-@uses_story
-def download(story):
+@click.argument('url')
+@click.option(
+    '--site-options',
+    default='{}',
+    help='JSON object encoding any site specific option.'
+)
+@click.option('--cache/--no-cache', default=True)
+@click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
+def download(url, site_options, cache, verbose):
     """Downloads a story and saves it on disk as a ebpub ebook."""
+    configure_logging(verbose)
+    session = create_session(cache)
+    story = open_story(url, session, site_options)
     filename = ebook.generate_epub(story)
-    print("File created:", filename)
+    logger.info("File created: " + filename)
 
 
 if __name__ == '__main__':
