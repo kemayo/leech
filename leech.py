@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import click
-from click_default_group import DefaultGroup
-
+import http.cookiejar
+import json
+import logging
 import requests
 import requests_cache
-import http.cookiejar
-import logging
-import json
+import sqlite3
+from click_default_group import DefaultGroup
 
 import sites
 import ebook
@@ -52,6 +52,8 @@ def open_story(url, session, site_options):
     if not site:
         raise Exception("No site handler found")
 
+    logger.info("Handler: %s (%s)", site, url)
+
     default_site_options = site.get_default_options()
 
     with open('leech.json') as store_file:
@@ -95,6 +97,11 @@ def flush(verbose):
     configure_logging(verbose)
     requests_cache.install_cache('leech')
     requests_cache.clear()
+
+    conn = sqlite3.connect('leech.sqlite')
+    conn.execute("VACUUM")
+    conn.close()
+
     logger.info("Flushed cache")
 
 
