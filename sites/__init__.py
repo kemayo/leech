@@ -3,9 +3,13 @@ import glob
 import os
 import argparse
 import uuid
+import time
+import logging
 import attr
 from bs4 import BeautifulSoup
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 _sites = []
 
 
@@ -96,9 +100,16 @@ class Site:
     def _add_arguments(self, parser):
         pass
 
-    def _soup(self, url, method='html5lib', **kw):
+    def _soup(self, url, method='html5lib', retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
         if not page:
+            if retry and retry > 0:
+                delay = retry_delay
+                if 'Retry-After' in page.headers:
+                    delay = int(page.headers['Retry-After'])
+                logger.warning("Load failed: waiting %s to retry (%s)", delay, page)
+                time.sleep(delay)
+                return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
             raise SiteException("Couldn't fetch", url)
         return BeautifulSoup(page.text, method)
 

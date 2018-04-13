@@ -4,6 +4,8 @@ import argparse
 import sys
 import json
 import http.cookiejar
+import logging
+import sqlite3
 
 import sites
 import ebook
@@ -14,6 +16,8 @@ import requests_cache
 __version__ = 1
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
+logger = logging.getLogger(__name__)
+
 
 def leech(url, session, filename=None, args=None):
     # we have: a page, which could be absolutely any part of a story, or not a story at all
@@ -22,7 +26,7 @@ def leech(url, session, filename=None, args=None):
     if not site:
         raise Exception("No site handler found")
 
-    print("Handler", site, url)
+    logger.info("Handler: %s (%s)", site, url)
 
     handler = site(session, args=args)
 
@@ -48,13 +52,27 @@ if __name__ == '__main__':
     parser.add_argument('--filename', help="output filename (the title is used if this isn't provided)")
     parser.add_argument('--no-cache', dest='cache', action='store_false')
     parser.add_argument('--flush', dest='flush', action='store_true')
-    parser.set_defaults(cache=True, flush=False)
+    parser.add_argument('-v', '--verbose', help="verbose output", action='store_true', dest='verbose')
+    parser.set_defaults(cache=True, flush=False, verbose=False)
     args, extra_args = parser.parse_known_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="[%(name)s] %(message)s"
+        )
 
     if args.flush:
         requests_cache.install_cache('leech')
         requests_cache.clear()
-        print("Flushed cache")
+
+        conn = sqlite3.connect('leech.sqlite')
+        conn.execute("VACUUM")
+        conn.close()
+
+        logger.info("Flushed cache")
         sys.exit()
 
     if not args.url:
@@ -76,4 +94,4 @@ if __name__ == '__main__':
     })
 
     filename = leech(args.url, filename=args.filename, session=session, args=extra_args)
-    print("File created:", filename)
+    logger.info("File created: %s", filename)

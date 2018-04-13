@@ -1,0 +1,8 @@
+{
+    "url": "https://ceruleanscrawling.wordpress.com/table-of-contents/",
+    "title": "Heretical Edge",
+    "author": "Ceruelean",
+    "chapter_selector": "article .entry-content > p > a",
+    "content_selector": "article .entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style"
+}

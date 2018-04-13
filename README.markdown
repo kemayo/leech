@@ -33,6 +33,8 @@ Supports
  * ArchiveOfOurOwn
    * Yes, it has its own built-in EPUB export, but the formatting is horrible
  * Various XenForo-based sites: SpaceBattles and SufficientVelocity, most notably
+ * RoyalRoad
+ * Fiction.live (Anonkun)
  * DeviantArt galleries/collections
  * Sta.sh
  * Completely arbitrary sites, with a bit more work (see below)

@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
+import logging
 import itertools
 import datetime
 import re
 from . import register, Site, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 
 @register
@@ -40,7 +43,7 @@ class FictionLive(Site):
             # https://fiction.live/api/anonkun/chapters/SBBA49fQavNQMWxFT/1502823848216/9999999999999998
             # i.e. format is [current timestamp] / [next timestamp - 1]
             chapter_url = 'https://fiction.live/api/anonkun/chapters/{}/{}/{}'.format(workid, currc['ct'], nextc['ct'] - 1)
-            print("Extracting chapter from", chapter_url)
+            logger.info("Extracting chapter \"%s\" @ %s", currc['title'], chapter_url)
             data = self.session.get(chapter_url).json()
             html = []
 

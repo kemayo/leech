@@ -1,10 +1,14 @@
 #!/usr/bin/python
 
+import logging
 import attr
 import datetime
 import json
 import os.path
+import urllib
 from . import register, Site, Section, Chapter
+
+logger = logging.getLogger(__name__)
 
 """
 Example JSON:
@@ -47,19 +51,19 @@ class Arbitrary(Site):
 
         story = Section(
             title=definition.title,
-            author=definition.author
+            author=definition.author,
+            url=url
         )
 
         if definition.chapter_selector:
             soup = self._soup(definition.url)
             for chapter in soup.select(definition.chapter_selector):
-                chapter_url = str(chapter.get('href'))
+                chapter_url = urllib.parse.urljoin(definition.url, str(chapter.get('href')))
                 story.add(Chapter(
                     title=chapter.string,
                     contents=self._chapter(chapter_url, definition),
                     # TODO: better date detection
-                    date=datetime.datetime.now(),
-                    url=url
+                    date=datetime.datetime.now()
                 ))
         else:
             story.add(Chapter(
@@ -74,7 +78,7 @@ class Arbitrary(Site):
     def _chapter(self, url, definition):
         # TODO: refactor so this can meaningfully handle multiple matches on content_selector.
         # Probably by changing it so that this returns a Chapter / Section.
-        print("Extracting chapter from", url)
+        logger.info("Extracting chapter @ %s", url)
         soup = self._soup(url)
         content = soup.select(definition.content_selector)[0]
 
