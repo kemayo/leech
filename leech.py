@@ -17,6 +17,7 @@ USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
 logger = logging.getLogger(__name__)
 
+
 def configure_logging(verbose):
     if verbose:
         logging.basicConfig(
@@ -28,6 +29,7 @@ def configure_logging(verbose):
             level=logging.INFO,
             format="[%(name)s] %(message)s"
         )
+
 
 def create_session(cache):
     if cache:
@@ -45,6 +47,7 @@ def create_session(cache):
         'User-agent': USER_AGENT
     })
     return session
+
 
 def open_story(url, session, site_options):
     site, url = sites.get(url)
@@ -83,6 +86,7 @@ def open_story(url, session, site_options):
     if not story:
         raise Exception("Couldn't extract story")
     return story
+
 
 @click.group(cls=DefaultGroup, default='download', default_if_no_args=True)
 def cli():
