@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 
 def configure_logging(verbose):
     if verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="[%(name)s @ %(levelname)s] %(message)s"
+        )
     else:
         logging.basicConfig(
             level=logging.INFO,
