@@ -8,6 +8,7 @@ import requests
 import requests_cache
 import sqlite3
 from click_default_group import DefaultGroup
+from functools import reduce
 
 import sites
 import ebook
@@ -49,31 +50,43 @@ def create_session(cache):
     return session
 
 
-def open_story(url, session, site_options):
-    site, url = sites.get(url)
+def load_on_disk_options(site):
+    try:
+        with open('leech.json') as store_file:
+            store = json.load(store_file)
+            login = store.get('logins', {}).get(site.__name__, False)
+            configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+    except FileNotFoundError:
+        logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
+        login = False
+        configured_site_options = {}
+    return configured_site_options, login
 
-    if not site:
-        raise Exception("No site handler found")
 
-    logger.info("Handler: %s (%s)", site, url)
-
+def create_options(site, site_options, unused_flags):
+    """Compiles options provided from multiple different sources
+    (e.g. on disk, via flags, via defaults, via JSON provided as a flag value)
+    into a single options object."""
     default_site_options = site.get_default_options()
 
-    with open('leech.json') as store_file:
-        store = json.load(store_file)
-        login = store.get('logins', {}).get(site.__name__, False)
-        configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+    flag_specified_site_options = site.interpret_site_specific_options(**unused_flags)
+
+    configured_site_options, login = load_on_disk_options(site)
 
     overridden_site_options = json.loads(site_options)
 
     # The final options dictionary is computed by layering the default, configured,
-    # and overridden options together in that order.
+    # and overridden, and flag-specified options together in that order.
     options = dict(
         list(default_site_options.items()) +
         list(configured_site_options.items()) +
-        list(overridden_site_options.items())
+        list(overridden_site_options.items()) +
+        list(flag_specified_site_options.items())
     )
+    return options, login
 
+
+def open_story(site, url, session, login, options):
     handler = site(
         session,
         options=options
@@ -86,6 +99,11 @@ def open_story(url, session, site_options):
     if not story:
         raise Exception("Couldn't extract story")
     return story
+
+
+def site_specific_options(f):
+    option_list = sites.list_site_specific_options()
+    return reduce(lambda cmd, decorator: decorator(cmd), [f] + option_list)
 
 
 @click.group(cls=DefaultGroup, default='download', default_if_no_args=True)
@@ -118,11 +136,16 @@ def flush(verbose):
 )
 @click.option('--cache/--no-cache', default=True)
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
-def download(url, site_options, cache, verbose):
+@site_specific_options  # Includes other click.options specific to sites
+def download(url, site_options, cache, verbose, **other_flags):
     """Downloads a story and saves it on disk as a ebpub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
-    story = open_story(url, session, site_options)
+
+    site, url = sites.get(url)
+    options, login = create_options(site, site_options, other_flags)
+    story = open_story(site, url, session, login, options)
+
     filename = ebook.generate_epub(story)
     logger.info("File created: " + filename)
 

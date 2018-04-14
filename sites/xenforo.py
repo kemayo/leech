@@ -3,7 +3,7 @@
 import datetime
 import re
 import logging
-from . import register, Site, SiteException, Section, Chapter
+from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
 
 logger = logging.getLogger(__name__)
 
@@ -14,13 +14,33 @@ class XenForo(Site):
     domain = False
 
     @staticmethod
-    def get_default_options():
-        return {
-            'offset': None,
-            'limit': None,
-            'skip_spoilers': True,
-            'include_index': False,
-        }
+    def get_site_specific_option_defs():
+        return [
+            SiteSpecificOption(
+                'include_index',
+                '--include-index/--no-include-index',
+                default=False,
+                help="If true, the post marked as an index will be included as a chapter."
+            ),
+            SiteSpecificOption(
+                'skip_spoilers',
+                '--skip-spoilers/--include-spoilers',
+                default=True,
+                help="If true, do not transcribe any tags that are marked as a spoiler."
+            ),
+            SiteSpecificOption(
+                'offset',
+                '--offset',
+                type=int,
+                help="The chapter index to start in the chapter marks."
+            ),
+            SiteSpecificOption(
+                'limit',
+                '--limit',
+                type=int,
+                help="The chapter to end at at in the chapter marks."
+            ),
+        ]
 
     @classmethod
     def matches(cls, url):
