@@ -55,7 +55,7 @@ Example:
         "fontname": "Comic Sans MS",
         "fontsize": 30,
         "bgcolor": [20, 120, 20],
-        "textcolor": [180, 20, 180],
+        "textcolor": [180, 20, 180]
     }
 }
 ```
