@@ -16,13 +16,13 @@ class RoyalRoad(Site):
     @staticmethod
     def matches(url):
         # e.g. https://royalroadl.com/fiction/6752/lament-of-the-fallen
-        match = re.match(r'^(https?://royalroadl\.com/fiction/\d+)/?.*', url)
+        match = re.match(r'^(https?://(?:www\.)?royalroadl\.com/fiction/\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
 
     def extract(self, url):
-        workid = re.match(r'^https?://royalroadl\.com/fiction/(\d+)/?.*', url).group(1)
-        soup = self._soup('https://royalroadl.com/fiction/{}'.format(workid))
+        workid = re.match(r'^https?://(?:www\.)?royalroadl\.com/fiction/(\d+)/?.*', url).group(1)
+        soup = self._soup('https://www.royalroadl.com/fiction/{}'.format(workid))
         # should have gotten redirected, for a valid title
 
         original_maxheaders = http.client._MAXHEADERS
