@@ -1,0 +1,7 @@
+{
+    "url": "https://wanderinginn.com/table-of-contents/",
+    "title": "The Wandering Inn",
+    "author": "pirateaba",
+    "chapter_selector": ".entry-content > p > a",
+    "content_selector": ".entry-content"
+}
