@@ -15,3 +15,5 @@ requests-cache==0.4.13
 six==1.10.0
 urllib3==1.22
 webencodings==0.5.1
+click==6.7
+click-default-group==1.2

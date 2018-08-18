@@ -3,7 +3,7 @@
 import datetime
 import re
 import logging
-from . import register, Site, SiteException, Section, Chapter
+from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +12,35 @@ class XenForo(Site):
     """XenForo is forum software that powers a number of fiction-related forums."""
 
     domain = False
+
+    @staticmethod
+    def get_site_specific_option_defs():
+        return [
+            SiteSpecificOption(
+                'include_index',
+                '--include-index/--no-include-index',
+                default=False,
+                help="If true, the post marked as an index will be included as a chapter."
+            ),
+            SiteSpecificOption(
+                'skip_spoilers',
+                '--skip-spoilers/--include-spoilers',
+                default=True,
+                help="If true, do not transcribe any tags that are marked as a spoiler."
+            ),
+            SiteSpecificOption(
+                'offset',
+                '--offset',
+                type=int,
+                help="The chapter index to start in the chapter marks."
+            ),
+            SiteSpecificOption(
+                'limit',
+                '--limit',
+                type=int,
+                help="The chapter to end at at in the chapter marks."
+            ),
+        ]
 
     @classmethod
     def matches(cls, url):
@@ -43,7 +72,7 @@ class XenForo(Site):
             mark for mark in self._chapter_list(url)
             if '/members' not in mark.get('href') and '/threadmarks' not in mark.get('href')
         ]
-        marks = marks[self.options.offset:self.options.limit]
+        marks = marks[self.options['offset']:self.options['limit']]
 
         for idx, mark in enumerate(marks, 1):
             href = mark.get('href')
@@ -101,7 +130,7 @@ class XenForo(Site):
         if not links:
             raise SiteException("No links in index?")
 
-        if self.options.include_index:
+        if self.options['include_index']:
             fake_link = self._new_tag('a', href=url)
             fake_link.string = "Index"
             links.insert(0, fake_link)
@@ -157,7 +186,7 @@ class XenForo(Site):
         # spoilers don't work well, so turn them into epub footnotes
         for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
             spoiler_title = spoiler.find(class_='SpoilerTitle')
-            if self.options.spoilers:
+            if self.options['skip_spoilers']:
                 link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), chapterid)
                 if spoiler_title:
                     link.string = spoiler_title.get_text()
@@ -180,12 +209,6 @@ class XenForo(Site):
             return datetime.datetime.strptime(maybe_date['title'], "%b %d, %Y at %I:%M %p")
         raise SiteException("No date", maybe_date)
 
-    def _add_arguments(self, parser):
-        parser.add_argument('--include-index', dest='include_index', action='store_true', default=False)
-        parser.add_argument('--offset', dest='offset', type=int, default=None)
-        parser.add_argument('--limit', dest='limit', type=int, default=None)
-        parser.add_argument('--skip-spoilers', dest='spoilers', action='store_false', default=True)
-
 
 class XenForoIndex(XenForo):
     @classmethod
@@ -204,8 +227,8 @@ class SpaceBattles(XenForo):
 
 
 @register
-class SpaceBattlesIndex(XenForoIndex):
-    domain = 'forums.spacebattles.com'
+class SpaceBattlesIndex(SpaceBattles, XenForoIndex):
+    pass
 
 
 @register

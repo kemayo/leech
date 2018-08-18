@@ -1,7 +1,7 @@
 
+import click
 import glob
 import os
-import argparse
 import uuid
 import time
 import logging
@@ -66,11 +66,44 @@ class Site:
     extracting the content of a story from said site.
     """
     session = attr.ib()
-    args = attr.ib()
     footnotes = attr.ib(default=attr.Factory(list), init=False)
+    options = attr.ib(default=attr.Factory(
+        lambda site: site.get_default_options(),
+        True
+    ))
 
-    def __attrs_post_init__(self):
-        self.options = self._parse_args(self.args)
+    @staticmethod
+    def get_site_specific_option_defs():
+        """Returns a list of click.option objects to add to CLI commands.
+
+        It is best practice to ensure that these names are reasonably unique
+        to ensure that they do not conflict with the core options, or other
+        sites' options. It is OK for different site's options to have the
+        same name, but pains should be taken to ensure they remain semantically
+        similar in meaning.
+        """
+        return []
+
+    @classmethod
+    def get_default_options(cls):
+        options = {}
+        for option in cls.get_site_specific_option_defs():
+            options[option.name] = option.default
+        return options
+
+    @classmethod
+    def interpret_site_specific_options(cls, **kwargs):
+        """Returns options summarizing CLI flags provided.
+
+        Only includes entries the user has explicitly provided as flags
+        / will not contain default values. For that, use get_default_options().
+        """
+        options = {}
+        for option in cls.get_site_specific_option_defs():
+            option_value = kwargs[option.name]
+            if option_value is not None:
+                options[option.name] = option_value
+        return options
 
     @staticmethod
     def matches(url):
@@ -91,14 +124,6 @@ class Site:
 
     def login(self, login_details):
         raise NotImplementedError()
-
-    def _parse_args(self, args):
-        parser = argparse.ArgumentParser()
-        self._add_arguments(parser)
-        return parser.parse_args(args)
-
-    def _add_arguments(self, parser):
-        pass
 
     def _soup(self, url, method='html5lib', retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
@@ -153,6 +178,32 @@ class Site:
         return spoiler_link
 
 
+@attr.s(hash=True)
+class SiteSpecificOption:
+    """Represents a site-specific option that can be configured.
+
+    Will be added to the CLI as a click.option -- many of these
+    fields correspond to click.option arguments."""
+    name = attr.ib()
+    flag_pattern = attr.ib()
+    type = attr.ib(default=None)
+    help = attr.ib(default=None)
+    default = attr.ib(default=None)
+
+    def as_click_option(self):
+        return click.option(
+            str(self.name),
+            str(self.flag_pattern),
+            type=self.type,
+            # Note: This default not matching self.default is intentional.
+            # It ensures that we know if a flag was explicitly provided,
+            # which keeps it from overriding options set in leech.json etc.
+            # Instead, default is used in site_cls.get_default_options()
+            default=None,
+            help=self.help if self.help is not None else ""
+        )
+
+
 class SiteException(Exception):
     pass
 
@@ -166,8 +217,21 @@ def get(url):
     for site_class in _sites:
         match = site_class.matches(url)
         if match:
+            logger.info("Handler: %s (%s)", site_class, match)
             return site_class, match
     raise NotImplementedError("Could not find a handler for " + url)
+
+
+def list_site_specific_options():
+    """Returns a list of all site's click options, which will be presented to the user."""
+
+    # Ensures that duplicate options are not added twice.
+    # Especially important for subclassed sites (e.g. Xenforo sites)
+    options = set()
+
+    for site_class in _sites:
+        options.update(site_class.get_site_specific_option_defs())
+    return [option.as_click_option() for option in options]
 
 
 # And now, a particularly hacky take on a plugin system:
