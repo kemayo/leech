@@ -1,0 +1,8 @@
+{
+  "url": "https://tiraas.wordpress.com/table-of-contents/",
+  "title": "The Gods Are Bastards",
+  "author": "D. D. Webb",
+  "chapter_selector": "article .entry-content a[href*='20']",
+  "content_selector": "article .entry-content",
+  "filter_selector": ".sharedaddy, .wpcnt, style, a[href*='tiraas.wordpress.com']"
+}
