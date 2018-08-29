@@ -80,6 +80,10 @@ class Arbitrary(Site):
         # Probably by changing it so that this returns a Chapter / Section.
         logger.info("Extracting chapter @ %s", url)
         soup = self._soup(url)
+
+        if not soup.select(definition.content_selector):
+            return ''
+
         content = soup.select(definition.content_selector)[0]
 
         if definition.filter_selector:
