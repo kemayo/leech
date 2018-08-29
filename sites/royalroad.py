@@ -37,8 +37,10 @@ class RoyalRoad(Site):
         for chapter in soup.select('#chapters tbody tr[data-url]'):
             chapter_url = str(urllib.parse.urljoin(story.url, str(chapter.get('data-url'))))
 
+            # Have to get exact publishing time from the chapter page
+            chapter_soup = self._soup(chapter_url)
             updated = datetime.datetime.fromtimestamp(
-                int(chapter.find('time').get('unixtime')),
+                int(chapter_soup.find(class_="profile-info").find('time').get('unixtime')),
             )
 
             story.add(Chapter(title=chapter.find('a', href=True).string.strip(), contents=self._chapter(chapter_url), date=updated))
