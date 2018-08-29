@@ -1,0 +1,8 @@
+{
+	"url": "https://parahumans.wordpress.com/table-of-contents/",
+	"title": "Worm",
+	"author": "Wildbow",
+	"chapter_selector": "#main .entry-content  a",
+	"content_selector": "#main .entry-content",
+	"filter_selector": ".sharedaddy, style, a[href*='parahumans.wordpress.com']"
+}
