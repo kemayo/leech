@@ -53,6 +53,8 @@ class RoyalRoad(Site):
         # TODO: this could be more robust, and I don't know if there's post-chapter notes anywhere as well.
         author_note = soup.find('div', class_='author-note-portlet')
 
-        updated = int(soup.find(class_="profile-info").find('time').get('unixtime'))
+        updated = datetime.datetime.fromtimestamp(
+            int(soup.find(class_="profile-info").find('time').get('unixtime'))
+        )
 
         return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify(), updated
