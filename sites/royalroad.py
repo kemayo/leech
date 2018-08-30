@@ -61,6 +61,7 @@ class RoyalRoad(Site):
 
         return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify(), updated
 
+
 @register
 class RoyalRoadL(RoyalRoad):
     domain = 'royalroadl'
