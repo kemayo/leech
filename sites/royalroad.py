@@ -12,17 +12,19 @@ logger = logging.getLogger(__name__)
 
 @register
 class RoyalRoad(Site):
+    domain = r'royalroad'
+
     """Royal Road: a place where people write novels, mostly seeming to be light-novel in tone."""
-    @staticmethod
-    def matches(url):
-        # e.g. https://royalroadl.com/fiction/6752/lament-of-the-fallen
-        match = re.match(r'^(https?://(?:www\.)?royalroadl\.com/fiction/\d+)/?.*', url)
+    @classmethod
+    def matches(cls, url):
+        # e.g. https://royalroad.com/fiction/6752/lament-of-the-fallen
+        match = re.match(r'^(https?://(?:www\.)?%s\.com/fiction/\d+)/?.*' % cls.domain, url)
         if match:
             return match.group(1) + '/'
 
     def extract(self, url):
-        workid = re.match(r'^https?://(?:www\.)?royalroadl\.com/fiction/(\d+)/?.*', url).group(1)
-        soup = self._soup('https://www.royalroadl.com/fiction/{}'.format(workid))
+        workid = re.match(r'^https?://(?:www\.)?%s\.com/fiction/(\d+)/?.*' % self.domain, url).group(1)
+        soup = self._soup('https://www.{}.com/fiction/{}'.format(self.domain, workid))
         # should have gotten redirected, for a valid title
 
         original_maxheaders = http.client._MAXHEADERS
@@ -58,3 +60,7 @@ class RoyalRoad(Site):
         )
 
         return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify(), updated
+
+@register
+class RoyalRoadL(RoyalRoad):
+    domain = 'royalroadl'
