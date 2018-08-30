@@ -39,11 +39,9 @@ class RoyalRoad(Site):
 
             # Have to get exact publishing time from the chapter page
             chapter_soup = self._soup(chapter_url)
-            updated = datetime.datetime.fromtimestamp(
-                int(chapter_soup.find(class_="profile-info").find('time').get('unixtime')),
-            )
+            contents, updated = self._chapter(chapter_url)
 
-            story.add(Chapter(title=chapter.find('a', href=True).string.strip(), contents=self._chapter(chapter_url), date=updated))
+            story.add(Chapter(title=chapter.find('a', href=True).string.strip(), contents=contents, date=updated))
 
         http.client._MAXHEADERS = original_maxheaders
 
@@ -56,5 +54,7 @@ class RoyalRoad(Site):
 
         # TODO: this could be more robust, and I don't know if there's post-chapter notes anywhere as well.
         author_note = soup.find('div', class_='author-note-portlet')
+        
+        updated = int(soup.find(class_="profile-info").find('time').get('unixtime'))
 
-        return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify()
+        return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify(), updated
