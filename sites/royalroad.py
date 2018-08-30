@@ -37,11 +37,9 @@ class RoyalRoad(Site):
         for chapter in soup.select('#chapters tbody tr[data-url]'):
             chapter_url = str(urllib.parse.urljoin(story.url, str(chapter.get('data-url'))))
 
-            updated = datetime.datetime.fromtimestamp(
-                int(chapter.find('time').get('unixtime')),
-            )
+            contents, updated = self._chapter(chapter_url)
 
-            story.add(Chapter(title=chapter.find('a', href=True).string.strip(), contents=self._chapter(chapter_url), date=updated))
+            story.add(Chapter(title=chapter.find('a', href=True).string.strip(), contents=contents, date=updated))
 
         http.client._MAXHEADERS = original_maxheaders
 
@@ -55,4 +53,8 @@ class RoyalRoad(Site):
         # TODO: this could be more robust, and I don't know if there's post-chapter notes anywhere as well.
         author_note = soup.find('div', class_='author-note-portlet')
 
-        return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify()
+        updated = datetime.datetime.fromtimestamp(
+            int(soup.find(class_="profile-info").find('time').get('unixtime'))
+        )
+
+        return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify(), updated
