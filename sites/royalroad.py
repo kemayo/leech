@@ -33,7 +33,8 @@ class RoyalRoad(Site):
         story = Section(
             title=soup.find('h1', property='name').string.strip(),
             author=soup.find('meta', property='books:author').get('content').strip(),
-            url=soup.find('meta', property='og:url').get('content').strip()
+            url=soup.find('meta', property='og:url').get('content').strip(),
+            cover_url=soup.find('img', class_='thumbnail')['src']
         )
 
         for chapter in soup.select('#chapters tbody tr[data-url]'):
