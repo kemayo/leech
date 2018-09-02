@@ -2,6 +2,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import textwrap
+import requests
 
 
 def make_cover(title, author, width=600, height=800, fontname="Helvetica", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
@@ -26,6 +27,15 @@ def make_cover(title, author, width=600, height=800, fontname="Helvetica", fonts
     # writing left the cursor at the end of the file, so reset it
     output.seek(0)
     return output
+
+def make_cover_from_url(url, title, author):
+    try:
+        img = requests.Session().get(url)
+        cover = BytesIO(img.content)
+    except: 
+        cover = make_cover(title, author)
+    
+    return cover
 
 
 def _safe_font(preferred, *args, **kwargs):

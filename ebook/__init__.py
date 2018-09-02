@@ -1,5 +1,6 @@
 from .epub import make_epub
 from .cover import make_cover
+from .cover import make_cover_from_url
 
 import datetime
 import requests
@@ -105,7 +106,12 @@ def generate_epub(story, output_filename=None, cover_options={}):
     # The cover is static, and the only change comes from the image which we generate
     html = [('Cover', 'cover.html', cover_template)]
 
-    cover_image = ('images/cover.png', make_cover(story.title, story.author, **cover_options).read(), 'image/png')
+    if story.cover_url:
+        image = make_cover_from_url(story.cover_url, story.title, story.author)
+    else:
+        image = make_cover(story.title, story.author, **cover_options)
+
+    cover_image = ('images/cover.png', image.read(), 'image/png')
 
     html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 
