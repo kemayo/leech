@@ -4,5 +4,6 @@
 	"author": "erraticerrata",
 	"chapter_selector": "#main .entry-content > ul:nth-of-type(1) > li > a",
 	"content_selector": "#main .entry-content",
-	"filter_selector": ".sharedaddy, .wpcnt, style"
+	"filter_selector": ".sharedaddy, .wpcnt, style",
+	"cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
 }
