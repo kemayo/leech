@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import textwrap
 import requests
+import logging
 
 
 def make_cover(title, author, width=600, height=800, fontname="Helvetica", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
@@ -32,11 +33,21 @@ def make_cover_from_url(url, title, author):
     try:
         img = requests.Session().get(url)
         cover = BytesIO(img.content)
+        if Image.open(cover).format != "PNG":
+            cover = _convert_to_png(cover)
     except: 
+        #logger.info("Encountered an error downloading cover, reverting to default cover")
         cover = make_cover(title, author)
-    
+
     return cover
 
+def _convert_to_png(image_bytestream):
+    img = Image.open(image_bytestream)
+    png_image = BytesIO()
+    img.save(png_image, format="PNG")
+    png_image.seek(0)
+
+    return png_image
 
 def _safe_font(preferred, *args, **kwargs):
     for font in (preferred, "Helvetica", "FreeSans", "Arial"):
