@@ -4,5 +4,6 @@
   "author": "D. D. Webb",
   "chapter_selector": "article .entry-content a[href*='20']",
   "content_selector": "article .entry-content",
-  "filter_selector": ".sharedaddy, .wpcnt, style, a[href*='tiraas.wordpress.com']"
+  "filter_selector": ".sharedaddy, .wpcnt, style, a[href*='tiraas.wordpress.com']",
+  "cover_url": "https://tiraas.files.wordpress.com/2016/02/classof1182byhoarous.png"
 }
