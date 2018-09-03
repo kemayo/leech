@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def make_cover(title, author, width=600, height=800, fontname="Helvetica", fontsize=40, bgcolor=(120, 20, 20), textcolor=(255, 255, 255), wrapat=30):
     img = Image.new("RGBA", (width, height), bgcolor)
     draw = ImageDraw.Draw(img)
@@ -30,6 +31,7 @@ def make_cover(title, author, width=600, height=800, fontname="Helvetica", fonts
     output.seek(0)
     return output
 
+
 def make_cover_from_url(url, title, author):
     try:
         logger.info("Downloading cover from " + url)
@@ -38,11 +40,12 @@ def make_cover_from_url(url, title, author):
 
         if Image.open(cover).format != "PNG":
             cover = _convert_to_png(cover)
-    except Exception as e: 
+    except Exception as e:
         logger.info("Encountered an error downloading cover: " + e)
         cover = make_cover(title, author)
 
     return cover
+
 
 def _convert_to_png(image_bytestream):
     png_image = BytesIO()
@@ -51,6 +54,7 @@ def _convert_to_png(image_bytestream):
     png_image.seek(0)
 
     return png_image
+
 
 def _safe_font(preferred, *args, **kwargs):
     for font in (preferred, "Helvetica", "FreeSans", "Arial"):
