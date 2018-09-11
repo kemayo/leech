@@ -56,11 +56,12 @@ def load_on_disk_options(site):
             store = json.load(store_file)
             login = store.get('logins', {}).get(site.__name__, False)
             configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+            cover_options = store.get('cover')
     except FileNotFoundError:
         logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
         login = False
         configured_site_options = {}
-    return configured_site_options, login
+    return configured_site_options, login, cover_options
 
 
 def create_options(site, site_options, unused_flags):
@@ -71,7 +72,7 @@ def create_options(site, site_options, unused_flags):
 
     flag_specified_site_options = site.interpret_site_specific_options(**unused_flags)
 
-    configured_site_options, login = load_on_disk_options(site)
+    configured_site_options, login, cover_options = load_on_disk_options(site)
 
     overridden_site_options = json.loads(site_options)
 
@@ -81,7 +82,8 @@ def create_options(site, site_options, unused_flags):
         list(default_site_options.items()) +
         list(configured_site_options.items()) +
         list(overridden_site_options.items()) +
-        list(flag_specified_site_options.items())
+        list(flag_specified_site_options.items()) +
+        list(cover_options.items())
     )
     return options, login
 
@@ -146,7 +148,7 @@ def download(url, site_options, cache, verbose, **other_flags):
     options, login = create_options(site, site_options, other_flags)
     story = open_story(site, url, session, login, options)
 
-    filename = ebook.generate_epub(story)
+    filename = ebook.generate_epub(story, options)
     logger.info("File created: " + filename)
 
 

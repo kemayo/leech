@@ -70,6 +70,7 @@ class CoverOptions:
     wrapat = attr.ib(default=None, convert=attr.converters.optional(int))
     bgcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
     textcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
+    cover_url = attr.ib(default=None, convert=attr.converters.optional(str))
 
 
 def chapter_html(story, titleprefix=None):
@@ -90,7 +91,7 @@ def chapter_html(story, titleprefix=None):
     return chapters
 
 
-def generate_epub(story, output_filename=None, cover_options={}):
+def generate_epub(story, cover_options={}, output_filename=None):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
