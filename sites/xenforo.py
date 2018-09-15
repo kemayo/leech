@@ -3,6 +3,8 @@
 import datetime
 import re
 import logging
+from bs4 import BeautifulSoup
+
 from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
 
 logger = logging.getLogger(__name__)
@@ -115,7 +117,26 @@ class XenForo(Site):
         base = soup.head.base.get('href')
         soup = self._soup(base + href)
 
-        marks = soup.select('.threadmarks li.primaryContent.threadmarkListItem a, .threadmarks li.primaryContent.threadmarkItem a')
+        fetcher = soup.find(class_='ThreadmarkFetcher')
+        while fetcher:
+            # ThreadmarksPro, hiding some threadmarks. Means the API is available to do this.
+            # Note: the fetched threadmarks can contain more placeholder elements to fetch. Ergo, loop.
+            # Good test case: https://forums.sufficientvelocity.com/threads/ignition-mtg-multicross-planeswalker-pc.26099/threadmarks
+            # e.g.: <li class="primaryContent threadmarkListItem ThreadmarkFetcher _depth0 filler" data-range-min="0" data-range-max="306" data-thread-id="26099" data-category-id="1" title="305 hidden">
+            response = self.session.post('https://{}/index.php?threads/threadmarks/load-range'.format(self.domain), data={
+                # I did try a fetch on min/data-min+data-max, but there seems
+                # to be an absolute limit which the API fetch won't override
+                'min': fetcher.get('data-range-min'),
+                'max': fetcher.get('data-range-max'),
+                'thread_id': fetcher.get('data-thread-id'),
+                'category_id': fetcher.get('data-category-id'),
+                '_xfResponseType': 'json',
+            }).json()
+            responseSoup = BeautifulSoup(response['templateHtml'], 'html5lib')
+            fetcher.replace_with(responseSoup)
+            fetcher = soup.find(class_='ThreadmarkFetcher')
+
+        marks = soup.find(class_='threadmarks').select('li.primaryContent.threadmarkListItem a, li.primaryContent.threadmarkItem a')
         if not marks:
             raise SiteException("No marks on threadmarks page")
 
