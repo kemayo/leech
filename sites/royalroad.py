@@ -52,14 +52,20 @@ class RoyalRoad(Site):
         soup = self._soup(url)
         content = soup.find('div', class_='chapter-content')
 
-        # TODO: this could be more robust, and I don't know if there's post-chapter notes anywhere as well.
+        # TODO: this could be more robust.
         author_note = soup.find('div', class_='author-note-portlet')
+
+        # Find the portlet-body and check if the first child div is the author note.
+        if 'author-note-portlet' in soup.find('div', class_='portlet-body').find('div', recursive=False)['class']:
+            output = (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify()
+        else:  # Possible post chapter note
+            output = content.prettify() + (author_note and ('<hr/>' + author_note.prettify()) or '')
 
         updated = datetime.datetime.fromtimestamp(
             int(soup.find(class_="profile-info").find('time').get('unixtime'))
         )
 
-        return (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify(), updated
+        return output, updated
 
 
 @register
