@@ -50,22 +50,22 @@ class RoyalRoad(Site):
     def _chapter(self, url):
         logger.info("Extracting chapter @ %s", url)
         soup = self._soup(url)
-        content = soup.find('div', class_='chapter-content')
+        content = soup.find('div', class_='chapter-content').prettify()
 
-        # TODO: this could be more robust.
         author_note = soup.find('div', class_='author-note-portlet')
 
-        # Find the portlet-body and check if the first child div is the author note.
-        if 'author-note-portlet' in soup.find('div', class_='portlet-body').find('div', recursive=False)['class']:
-            output = (author_note and (author_note.prettify() + '<hr/>') or '') + content.prettify()
-        else:  # Possible post chapter note
-            output = content.prettify() + (author_note and ('<hr/>' + author_note.prettify()) or '')
+        if author_note:
+            # Find the portlet-body and check if the first child div is the author note.
+            if 'author-note-portlet' in soup.find('div', class_='portlet-body').find('div', recursive=False)['class']:
+                content = author_note.prettify() + '<hr/>' + content
+            else:  # Post-chapter note goes on the end
+                content = content + '<hr/>' + author_note.prettify()
 
         updated = datetime.datetime.fromtimestamp(
             int(soup.find(class_="profile-info").find('time').get('unixtime'))
         )
 
-        return output, updated
+        return content, updated
 
 
 @register
