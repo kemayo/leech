@@ -52,14 +52,16 @@ class RoyalRoad(Site):
         soup = self._soup(url)
         content = soup.find('div', class_='chapter-content').prettify()
 
-        author_note = soup.find('div', class_='author-note-portlet')
+        author_note = soup.find_all('div', class_='author-note-portlet')
 
-        if author_note:
-            # Find the portlet-body and check if the first child div is the author note.
+        if len(author_note) is 1:
+            # The first child div is either the chapter content or an author note
             if 'author-note-portlet' in soup.find('div', class_='portlet-body').find('div', recursive=False)['class']:
-                content = author_note.prettify() + '<hr/>' + content
-            else:  # Post-chapter note goes on the end
-                content = content + '<hr/>' + author_note.prettify()
+                content = author_note[0].prettify() + '<hr/>' + content
+            else:  # The author note must be after the chapter content
+                content = content + '<hr/>' + author_note[0].prettify()
+        elif len(author_note) is 2:
+            content = author_note[0].prettify() + '<hr/>' + content + '<hr/>' + author_note[1].prettify()
 
         updated = datetime.datetime.fromtimestamp(
             int(soup.find(class_="profile-info").find('time').get('unixtime'))
