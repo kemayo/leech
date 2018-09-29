@@ -265,3 +265,11 @@ class QuestionableQuesting(XenForo):
 @register
 class QuestionableQuestingIndex(QuestionableQuesting, XenForoIndex):
     pass
+
+@register
+class AlternateHistory(XenForo):
+    domain = 'www.alternatehistory.com/forum'
+
+@register
+class AlternateHistoryIndex(AlternateHistory, XenForoIndex):
+    pass
