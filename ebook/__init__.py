@@ -74,11 +74,12 @@ class CoverOptions:
 def chapter_html(story, titleprefix=None):
     chapters = []
     for i, chapter in enumerate(story):
+        title = chapter.title or '#{}'.format(i)
         if hasattr(chapter, '__iter__'):
             # This is a Section
-            chapters.extend(chapter_html(chapter, titleprefix=chapter.title))
+            chapters.extend(chapter_html(chapter, titleprefix=title))
         else:
-            title = titleprefix and '{}: {}'.format(titleprefix, chapter.title) or chapter.title
+            title = titleprefix and '{}: {}'.format(titleprefix, title) or title
             chapters.append((
                 title,
                 '{}/chapter{}.html'.format(story.id, i + 1),
