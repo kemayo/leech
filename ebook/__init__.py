@@ -1,5 +1,6 @@
 from .epub import make_epub
 from .cover import make_cover
+from .cover import make_cover_from_url
 
 import datetime
 import requests
@@ -69,6 +70,7 @@ class CoverOptions:
     wrapat = attr.ib(default=None, convert=attr.converters.optional(int))
     bgcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
     textcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
+    cover_url = attr.ib(default=None, convert=attr.converters.optional(str))
 
 
 def chapter_html(story, titleprefix=None):
@@ -90,7 +92,7 @@ def chapter_html(story, titleprefix=None):
     return chapters
 
 
-def generate_epub(story, output_filename=None, cover_options={}):
+def generate_epub(story, cover_options={}, output_filename=None):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -106,7 +108,14 @@ def generate_epub(story, output_filename=None, cover_options={}):
     # The cover is static, and the only change comes from the image which we generate
     html = [('Cover', 'cover.html', cover_template)]
 
-    cover_image = ('images/cover.png', make_cover(story.title, story.author, **cover_options).read(), 'image/png')
+    if cover_options and cover_options["cover_url"]:
+        image = make_cover_from_url(cover_options["cover_url"], story.title, story.author)
+    elif story.cover_url:
+        image = make_cover_from_url(story.cover_url, story.title, story.author)
+    else:
+        image = make_cover(story.title, story.author, **cover_options)
+
+    cover_image = ('images/cover.png', image.read(), 'image/png')
 
     html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 

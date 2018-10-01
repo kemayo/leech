@@ -30,6 +30,7 @@ class Section:
     title = attr.ib()
     author = attr.ib()
     url = attr.ib()
+    cover_url = attr.ib(default='')
     id = attr.ib(default=attr.Factory(_default_uuid_string), convert=str)
     contents = attr.ib(default=attr.Factory(list))
     footnotes = attr.ib(default=attr.Factory(list))

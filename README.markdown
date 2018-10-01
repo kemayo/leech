@@ -65,7 +65,8 @@ Example:
         "fontname": "Comic Sans MS",
         "fontsize": 30,
         "bgcolor": [20, 120, 20],
-        "textcolor": [180, 20, 180]
+        "textcolor": [180, 20, 180],
+        "cover_url": "https://website.com/image.png"
     }
 }
 ```
@@ -84,7 +85,8 @@ Example `practical.json`:
     "author": "erraticerrata",
     "chapter_selector": "#main .entry-content > ul > li > a",
     "content_selector": "#main .entry-content",
-    "filter_selector": ".sharedaddy, .wpcnt, style"
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
 }
 ```
 
@@ -92,9 +94,9 @@ Run as:
 
     $ ./leech.py practical.json
 
-This tells leech to load `url`, follow the links described by `chapter_selector`, extract the content from those pages as described by `content_selector`, and remove any content from *that* which matches `filter_selector`.
+This tells leech to load `url`, follow the links described by `chapter_selector`, extract the content from those pages as described by `content_selector`, and remove any content from *that* which matches `filter_selector`. Optionally, `cover_url` will replace the default cover with the image of your choice. 
 
-If `chapter_selector` isn't given, it'll create a single-chapter book by applying `content_selector` to `url`.
+If `chapter_selector` isn't given, it'll create a single-chapter book by applying `content_selector` to `url`. 
 
 This is a fairly viable way to extract a story from, say, a random Wordpress installation. It's relatively likely to get you at least *most* of the way to the ebook you want, with maybe some manual editing needed.
 

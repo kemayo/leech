@@ -18,7 +18,8 @@ Example JSON:
     "author": "erraticerrata",
     "chapter_selector": "#main .entry-content > ul > li > a",
     "content_selector": "#main .entry-content",
-    "filter_selector": ".sharedaddy, .wpcnt, style"
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
 }
 """
 
@@ -39,6 +40,7 @@ class SiteDefinition:
     next_selector = attr.ib(default=False)
     # If present, use to filter out content that matches the selector
     filter_selector = attr.ib(default=False)
+    cover_url = attr.ib(default='')
 
 
 @register
@@ -58,7 +60,8 @@ class Arbitrary(Site):
         story = Section(
             title=definition.title,
             author=definition.author,
-            url=url
+            url=url,
+            cover_url=definition.cover_url
         )
 
         if definition.chapter_selector:
