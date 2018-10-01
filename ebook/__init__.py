@@ -102,7 +102,8 @@ def generate_epub(story, cover_options={}, output_filename=None):
         'updated': max(dates),
     }
 
-    cover_options = CoverOptions(**cover_options)
+    valid_cover_options = ('fontname', 'fontsize', 'width', 'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
+    cover_options = CoverOptions(**{k: v for k, v in cover_options.items() if k in valid_cover_options})
     cover_options = attr.asdict(cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
 
     # The cover is static, and the only change comes from the image which we generate
