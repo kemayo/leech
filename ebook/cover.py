@@ -38,7 +38,12 @@ def make_cover_from_url(url, title, author):
         img = requests.Session().get(url)
         cover = BytesIO(img.content)
 
-        if Image.open(cover).format != "PNG":
+        imgformat = Image.open(cover).format
+        # The `Image.open` read a few bytes from the stream to work out the
+        # format, so reset it:
+        cover.seek(0)
+
+        if imgformat != "PNG":
             cover = _convert_to_png(cover)
     except Exception as e:
         logger.info("Encountered an error downloading cover: " + e)
