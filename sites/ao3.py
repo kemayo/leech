@@ -50,8 +50,8 @@ class ArchiveOfOurOwn(Site):
 
         metadata = soup.select('#main h2.heading a')
         story = Section(
-            title=metadata[0].string,
-            author=metadata[1].string,
+            title=metadata[0].text.strip(),
+            author=metadata[1].text.strip(),
             url='http://archiveofourown.org/works/{}'.format(workid)
         )
 
@@ -102,7 +102,7 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
         soup = self._soup('http://archiveofourown.org/series/{}?view_adult=true'.format(seriesid))
 
         story = Section(
-            title=soup.select('#main h2.heading')[0].string,
+            title=soup.select('#main h2.heading')[0].text.strip(),
             author=soup.select('#main dl.series.meta a[rel="author"]')[0].string,
             url='http://archiveofourown.org/series/{}'.format(seriesid)
         )
