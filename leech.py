@@ -54,8 +54,8 @@ def load_on_disk_options(site):
     try:
         with open('leech.json') as store_file:
             store = json.load(store_file)
-            login = store.get('logins', {}).get(site.__name__, False)
-            configured_site_options = store.get('site_options', {}).get(site.__name__, {})
+            login = store.get('logins', {}).get(site.site_key(), False)
+            configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
             cover_options = store.get('cover', {})
     except FileNotFoundError:
         logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")

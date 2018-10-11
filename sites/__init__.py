@@ -67,11 +67,17 @@ class Site:
     extracting the content of a story from said site.
     """
     session = attr.ib()
-    footnotes = attr.ib(default=attr.Factory(list), init=False)
+    footnotes = attr.ib(factory=list, init=False)
     options = attr.ib(default=attr.Factory(
         lambda site: site.get_default_options(),
         True
     ))
+
+    @classmethod
+    def site_key(cls):
+        if hasattr(cls, '_key'):
+            return cls._key
+        return cls.__name__
 
     @staticmethod
     def get_site_specific_option_defs():

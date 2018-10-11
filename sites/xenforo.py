@@ -249,7 +249,7 @@ class SpaceBattles(XenForo):
 
 @register
 class SpaceBattlesIndex(SpaceBattles, XenForoIndex):
-    pass
+    _key = "SpaceBattles"
 
 
 @register
@@ -264,7 +264,7 @@ class QuestionableQuesting(XenForo):
 
 @register
 class QuestionableQuestingIndex(QuestionableQuesting, XenForoIndex):
-    pass
+    _key = "QuestionableQuesting"
 
 
 @register
@@ -274,4 +274,4 @@ class AlternateHistory(XenForo):
 
 @register
 class AlternateHistoryIndex(AlternateHistory, XenForoIndex):
-    pass
+    _key = "AlternateHistory"

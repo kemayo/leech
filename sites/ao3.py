@@ -89,6 +89,8 @@ class ArchiveOfOurOwn(Site):
 
 @register
 class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
+    _key = "ArchiveOfOurOwn"
+
     @staticmethod
     def matches(url):
         # e.g. http://archiveofourown.org/series/5683105/
