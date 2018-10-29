@@ -1,0 +1,9 @@
+{
+  "url": "https://thefifthdefiance.com/chapters/",
+  "title": "The Fifth Defiance",
+  "author": "Walter",
+  "chapter_selector": ".entry-content > p > a",
+  "content_selector": ".entry-content",
+  "content_title_selector": ".entry-title",
+  "filter_selector": ".sharedaddy, .wpcnt, style"
+}
