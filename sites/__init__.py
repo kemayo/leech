@@ -139,7 +139,7 @@ class Site:
                 delay = retry_delay
                 if 'Retry-After' in page.headers:
                     delay = int(page.headers['Retry-After'])
-                logger.warning("Load failed: waiting %s to retry (%s)", delay, page)
+                logger.warning("Load failed: waiting %s to retry (%s: %s)", delay, page.status_code, page.url)
                 time.sleep(delay)
                 return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
             raise SiteException("Couldn't fetch", url)
