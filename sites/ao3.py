@@ -23,21 +23,24 @@ class ArchiveOfOurOwn(Site):
 
     def login(self, login_details):
         with requests_cache.disabled():
-            login = self.session.get('http://archiveofourown.org/login')
+            login = self.session.get('https://archiveofourown.org/users/login')
             soup = BeautifulSoup(login.text, 'html5lib')
-            form = soup.find(id='new_user_session')
+            form = soup.find(id='new_user')
             post = {
-                'user_session[login]': login_details[0],
-                'user_session[password]': login_details[1],
+                'user[login]': login_details[0],
+                'user[password]': login_details[1],
                 # standard fields:
-                'user_session[remember_me]': '1',
+                'user[remember_me]': '1',
                 'utf8': form.find(attrs={'name': 'utf8'})['value'],
                 'authenticity_token': form.find(attrs={'name': 'authenticity_token'})['value'],
                 'commit': 'Log In',
             }
             # I feel the session *should* handle this cookies bit for me. But
             # it doesn't. And I don't know why.
-            self.session.post('https://archiveofourown.org/user_sessions', data=post, cookies=login.cookies)
+            self.session.post(
+                urllib.parse.urljoin(login.url, str(form.get('action'))),
+                data=post, cookies=login.cookies
+            )
             logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
