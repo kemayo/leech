@@ -71,6 +71,7 @@ def make_epub(filename, html_files, meta, extra_files=False, compress=True):
     etree.SubElement(metadata, 'dc:title').text = meta.get('title', 'Untitled')
     etree.SubElement(metadata, 'dc:language').text = meta.get('language', 'en')
     etree.SubElement(metadata, 'dc:creator', {'opf:role': 'aut'}).text = meta.get('author', 'Unknown')
+    etree.SubElement(metadata, 'meta', {'name': 'generator', 'content': 'leech'})
 
     # we'll need a manifest and spine
     manifest = etree.SubElement(package, 'manifest')
