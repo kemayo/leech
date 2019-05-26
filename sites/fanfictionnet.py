@@ -76,7 +76,7 @@ class FanFictionNet(Site):
         try:
             for tag in text.find_all(True):
                 tag.attrs = None
-        except Exception as e:
+        except Exception:
             logger.exception("Trouble cleaning attributes")
 
         return text.prettify()

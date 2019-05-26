@@ -41,9 +41,9 @@ class DeviantArt(Stash):
             return
         for thumb in thumbs:
             try:
-                if thumb['href'] is not '#':
+                if thumb['href'] != '#':
                     story.add(self._chapter(thumb['href']))
-            except Exception as e:
+            except Exception:
                 logger.exception("Couldn't extract chapters from thumbs")
 
         return story

@@ -41,7 +41,9 @@ def create_session(cache):
     lwp_cookiejar = http.cookiejar.LWPCookieJar()
     try:
         lwp_cookiejar.load('leech.cookies', ignore_discard=True)
-    except Exception as e:
+    except Exception:
+        # This file is very much optional, so this log isn't really necessary
+        # logging.exception("Couldn't load cookies from leech.cookies")
         pass
     session.cookies = lwp_cookiejar
     session.headers.update({

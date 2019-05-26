@@ -72,9 +72,11 @@ class ArchiveOfOurOwn(Site):
                 "(%Y-%m-%d)"
             )
 
-            contents = self._chapter(soup.find(id='chapter-{}'.format(index+1)))
-
-            story.add(Chapter(title=link.string, contents=contents, date=updated))
+            story.add(Chapter(
+                title=link.string,
+                contents=self._chapter(soup.find(id='chapter-{}'.format(index + 1))),
+                date=updated
+            ))
 
         return story
 

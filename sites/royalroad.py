@@ -55,13 +55,13 @@ class RoyalRoad(Site):
 
         author_note = soup.find_all('div', class_='author-note-portlet')
 
-        if len(author_note) is 1:
+        if len(author_note) == 1:
             # Find the parent of chapter-content and check if the author's note is the first child div
             if 'author-note-portlet' in soup.find('div', class_='chapter-content').parent.find('div')['class']:
                 content = author_note[0].prettify() + '<hr/>' + content
             else:  # The author note must be after the chapter content
                 content = content + '<hr/>' + author_note[0].prettify()
-        elif len(author_note) is 2:
+        elif len(author_note) == 2:
             content = author_note[0].prettify() + '<hr/>' + content + '<hr/>' + author_note[1].prettify()
 
         updated = datetime.datetime.fromtimestamp(
