@@ -5,6 +5,7 @@ import os
 import uuid
 import time
 import logging
+import urllib
 import attr
 from bs4 import BeautifulSoup
 
@@ -149,6 +150,9 @@ class Site:
     def _new_tag(self, *args, **kw):
         soup = BeautifulSoup("", 'html5lib')
         return soup.new_tag(*args, **kw)
+
+    def _join_url(self, *args, **kwargs):
+        return urllib.parse.urljoin(*args, **kwargs)
 
     def _footnote(self, contents, chapterid):
         """Register a footnote and return a link to that footnote"""

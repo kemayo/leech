@@ -4,7 +4,6 @@ import http.client
 import logging
 import datetime
 import re
-import urllib
 from . import register, Site, Section, Chapter
 
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class RoyalRoad(Site):
         )
 
         for chapter in soup.select('#chapters tbody tr[data-url]'):
-            chapter_url = str(urllib.parse.urljoin(story.url, str(chapter.get('data-url'))))
+            chapter_url = str(self._join_url(story.url, str(chapter.get('data-url'))))
 
             contents, updated = self._chapter(chapter_url)
 

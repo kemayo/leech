@@ -3,7 +3,6 @@
 import logging
 import datetime
 import re
-import urllib
 import requests_cache
 from bs4 import BeautifulSoup
 from . import register, Site, Section, Chapter
@@ -38,7 +37,7 @@ class ArchiveOfOurOwn(Site):
             # I feel the session *should* handle this cookies bit for me. But
             # it doesn't. And I don't know why.
             self.session.post(
-                urllib.parse.urljoin(login.url, str(form.get('action'))),
+                self._join_url(login.url, str(form.get('action'))),
                 data=post, cookies=login.cookies
             )
             logger.info("Logged in as %s", login_details[0])

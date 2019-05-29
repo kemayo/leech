@@ -5,7 +5,6 @@ import attr
 import datetime
 import json
 import os.path
-import urllib
 from . import register, Site, Section, Chapter
 
 logger = logging.getLogger(__name__)
@@ -70,8 +69,8 @@ class Arbitrary(Site):
             for chapter_link in soup.select(definition.chapter_selector):
                 chapter_url = str(chapter_link.get('href'))
                 if base:
-                    chapter_url = urllib.parse.urljoin(base, chapter_url)
-                chapter_url = urllib.parse.urljoin(definition.url, chapter_url)
+                    chapter_url = self._join_url(base, chapter_url)
+                chapter_url = self._join_url(definition.url, chapter_url)
                 for chapter in self._chapter(chapter_url, definition, title=chapter_link.string):
                     story.add(chapter)
         else:
@@ -86,8 +85,8 @@ class Arbitrary(Site):
                     if next_link:
                         next_link_url = str(next_link[0].get('href'))
                         if base:
-                            next_link_url = urllib.parse.urljoin(base, next_link_url)
-                        content_url = urllib.parse.urljoin(content_url, next_link_url)
+                            next_link_url = self._join_url(base, next_link_url)
+                        content_url = self._join_url(content_url, next_link_url)
                     else:
                         content_url = False
                 else:
