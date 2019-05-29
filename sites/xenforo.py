@@ -3,6 +3,7 @@
 import datetime
 import re
 import logging
+import urllib
 from bs4 import BeautifulSoup
 
 from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
@@ -70,23 +71,57 @@ class XenForo(Site):
             url=url
         )
 
-        marks = [
-            mark for mark in self._chapter_list(url)
-            if '/members' not in mark.get('href') and '/threadmarks' not in mark.get('href')
-        ]
-        marks = marks[self.options['offset']:self.options['limit']]
+        if url.endswith('/reader'):
+            reader_url = url
+        elif soup.find('a', class_='readerToggle'):
+            reader_url = soup.find('a', class_='readerToggle').get('href')
 
-        for idx, mark in enumerate(marks, 1):
-            href = mark.get('href')
-            if not href.startswith('http'):
-                href = base + href
-            title = str(mark.string).strip()
-            logger.info("Fetching chapter \"%s\" @ %s", title, href)
-            chapter = Chapter(title=title, contents="")
-            contents, post_date = self._chapter(href, idx)
-            chapter.contents = contents
-            chapter.date = post_date
-            story.add(chapter)
+        if reader_url:
+            idx = 0
+            while reader_url:
+                reader_url = self._join_url(base, reader_url)
+                logger.info("Fetching chapters @ %s", reader_url)
+                reader_soup = self._soup(reader_url)
+                posts = reader_soup.select('#messageList > li.hasThreadmark')
+
+                for post in posts:
+                    idx = idx + 1
+                    if self.options['offset'] and idx < self.options['offset']:
+                        continue
+                    if self.options['limit'] and idx >= self.options['limit']:
+                        continue
+                    # Get the title, removing "<strong>Threadmark:</strong>" which precedes it
+                    title = ''.join(post.select('div.threadmarker > span.label')[0].findAll(text=True, recursive=False)).strip()
+                    logger.info("Extracting chapter \"%s\"", title)
+
+                    story.add(Chapter(
+                        title=title,
+                        contents=self._clean_chapter(post, len(story) + 1),
+                        date=self._post_date(post)
+                    ))
+
+                reader_url = False
+                page_nav = reader_soup.find('div', class_='PageNav')
+                if page_nav:
+                    # e.g. <div class="PageNav" data-page="1" data-range="2" data-start="2" data-end="6" data-last="11" data-sentinel="{{sentinel}}" data-baseurl="threads/the-cycle-of-deicide-quest-post-canon-worm-wot-cross.376535/reader?page=%7B%7Bsentinel%7D%7D">
+                    if int(page_nav.get('data-page')) < int(page_nav.get('data-last')):
+                        reader_url = urllib.parse.unquote(page_nav.get('data-baseurl')).replace(page_nav.get('data-sentinel'), str(int(page_nav.get('data-page')) + 1))
+        else:
+            # TODO: Research whether reader mode is guaranteed to be enabled
+            # when threadmarks are; if so, can delete this branch.
+            marks = [
+                mark for mark in self._chapter_list(url)
+                if '/members' not in mark.get('href') and '/threadmarks' not in mark.get('href')
+            ]
+            marks = marks[self.options['offset']:self.options['limit']]
+
+            for idx, mark in enumerate(marks, 1):
+                href = self._join_url(base, mark.get('href'))
+                title = str(mark.string).strip()
+                logger.info("Fetching chapter \"%s\" @ %s", title, href)
+                contents, post_date = self._chapter(href, idx)
+                chapter = Chapter(title=title, contents=contents, date=post_date)
+                story.add(chapter)
 
         story.footnotes = self.footnotes
         self.footnotes = []
