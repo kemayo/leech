@@ -65,8 +65,12 @@ class XenForo(Site):
 
         base = soup.head.base.get('href')
 
+        title = soup.select('div.titleBar > h1')[0]
+        # clean out informational bits from the title
+        for tag in title.find_all(class_='prefix'):
+            tag.decompose()
         story = Section(
-            title=soup.select('div.titleBar > h1')[0].get_text(),
+            title=title.get_text().strip(),
             author=soup.find('p', id='pageDescription').find('a', class_='username').get_text(),
             url=url
         )
