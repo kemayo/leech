@@ -2,9 +2,8 @@
 
 import datetime
 import logging
-import re
 
-from . import register, Section
+from . import register, Section, SiteException
 from .xenforo import XenForo
 
 logger = logging.getLogger(__name__)
@@ -55,7 +54,7 @@ class XenForo2(XenForo):
     def _post_date(self, post):
         if post.find('time'):
             return datetime.datetime.fromtimestamp(int(post.find('time').get('data-time')))
-        raise SiteException("No date", maybe_date)
+        raise SiteException("No date")
 
 
 @register

@@ -3,7 +3,6 @@
 import datetime
 import re
 import logging
-import urllib
 from bs4 import BeautifulSoup
 
 from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
