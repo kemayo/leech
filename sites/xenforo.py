@@ -63,22 +63,19 @@ class XenForo(Site):
     def extract(self, url):
         soup = self._soup(url)
 
-        base = soup.head.base.get('href')
+        base = soup.head.base and soup.head.base.get('href') or url
 
-        title = soup.select('div.titleBar > h1')[0]
-        # clean out informational bits from the title
-        for tag in title.find_all(class_='prefix'):
-            tag.decompose()
-        story = Section(
-            title=title.get_text().strip(),
-            author=soup.find('p', id='pageDescription').find('a', class_='username').get_text(),
-            url=url
-        )
+        story = self._base_story(soup)
 
         if url.endswith('/reader'):
             reader_url = url
         elif soup.find('a', class_='readerToggle'):
             reader_url = soup.find('a', class_='readerToggle').get('href')
+        elif soup.find('div', class_='threadmarks-reader'):
+            # Technically this is the xenforo2 bit, but :shrug:
+            reader_url = soup.find('div', class_='threadmarks-reader').find('a').get('href')
+        else:
+            reader_url = False
 
         if reader_url:
             idx = 0
@@ -86,7 +83,7 @@ class XenForo(Site):
                 reader_url = self._join_url(base, reader_url)
                 logger.info("Fetching chapters @ %s", reader_url)
                 reader_soup = self._soup(reader_url)
-                posts = reader_soup.select('#messageList > li.hasThreadmark')
+                posts = self._posts_from_page(reader_soup)
 
                 for post in posts:
                     idx = idx + 1
@@ -94,8 +91,7 @@ class XenForo(Site):
                         continue
                     if self.options['limit'] and idx >= self.options['limit']:
                         continue
-                    # Get the title, removing "<strong>Threadmark:</strong>" which precedes it
-                    title = ''.join(post.select('div.threadmarker > span.label')[0].findAll(text=True, recursive=False)).strip()
+                    title = self._threadmark_title(post)
                     logger.info("Extracting chapter \"%s\"", title)
 
                     story.add(Chapter(
@@ -105,11 +101,8 @@ class XenForo(Site):
                     ))
 
                 reader_url = False
-                page_nav = reader_soup.find('div', class_='PageNav')
-                if page_nav:
-                    # e.g. <div class="PageNav" data-page="1" data-range="2" data-start="2" data-end="6" data-last="11" data-sentinel="{{sentinel}}" data-baseurl="threads/the-cycle-of-deicide-quest-post-canon-worm-wot-cross.376535/reader?page=%7B%7Bsentinel%7D%7D">
-                    if int(page_nav.get('data-page')) < int(page_nav.get('data-last')):
-                        reader_url = urllib.parse.unquote(page_nav.get('data-baseurl')).replace(page_nav.get('data-sentinel'), str(int(page_nav.get('data-page')) + 1))
+                if reader_soup.find('link', rel='next'):
+                    reader_url = reader_soup.find('link', rel='next').get('href')
         else:
             # TODO: Research whether reader mode is guaranteed to be enabled
             # when threadmarks are; if so, can delete this branch.
@@ -131,6 +124,27 @@ class XenForo(Site):
         self.footnotes = []
 
         return story
+
+    def _base_story(self, soup):
+        url = soup.find('meta', property='og:url').get('content')
+        title = soup.select('div.titleBar > h1')[0]
+        # clean out informational bits from the title
+        for tag in title.find_all(class_='prefix'):
+            tag.decompose()
+        return Section(
+            title=title.get_text().strip(),
+            author=soup.find('p', id='pageDescription').find('a', class_='username').get_text(),
+            url=url
+        )
+
+    def _posts_from_page(self, soup, postid=False):
+        if postid:
+            return soup.find('li', id='post-' + postid)
+        return soup.select('#messageList > li.hasThreadmark')
+
+    def _threadmark_title(self, post):
+        # Get the title, removing "<strong>Threadmark:</strong>" which precedes it
+        return ''.join(post.select('div.threadmarker > span.label')[0].findAll(text=True, recursive=False)).strip()
 
     def _chapter_list(self, url):
         try:
@@ -217,13 +231,16 @@ class XenForo(Site):
         soup = self._soup(url, 'html5lib')
 
         if postid:
-            return soup.find('li', id='post-' + postid)
+            return self._posts_from_page(soup, postid)
 
         # just the first one in the thread, then
         return soup.find('li', class_='message')
 
+    def _chapter_contents(self, post):
+        return post.find('blockquote', class_='messageText')
+
     def _clean_chapter(self, post, chapterid):
-        post = post.find('blockquote', class_='messageText')
+        post = self._chapter_contents(post)
         post.name = 'div'
         # mostly, we want to remove colors because the Kindle is terrible at them
         # TODO: find a way to denote colors, because it can be relevant
@@ -243,8 +260,12 @@ class XenForo(Site):
                 tag.unwrap()
         for tag in post.find_all(class_='quoteExpand'):
             tag.decompose()
+        self._clean_spoilers(post, chapterid)
+        return post.prettify()
+
+    def _clean_spoilers(self, post, chapterid):
         # spoilers don't work well, so turn them into epub footnotes
-        for idx, spoiler in enumerate(post.find_all(class_='ToggleTriggerAnchor')):
+        for spoiler in post.find_all(class_='ToggleTriggerAnchor'):
             spoiler_title = spoiler.find(class_='SpoilerTitle')
             if self.options['skip_spoilers']:
                 link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), chapterid)
@@ -258,7 +279,6 @@ class XenForo(Site):
             new_spoiler = self._new_tag('div')
             new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
-        return post.prettify()
 
     def _post_date(self, post):
         maybe_date = post.find(class_='DateTime')
@@ -289,11 +309,6 @@ class SpaceBattles(XenForo):
 @register
 class SpaceBattlesIndex(SpaceBattles, XenForoIndex):
     _key = "SpaceBattles"
-
-
-@register
-class SufficientVelocity(XenForo):
-    domain = 'forums.sufficientvelocity.com'
 
 
 @register
