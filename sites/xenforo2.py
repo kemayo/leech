@@ -14,7 +14,7 @@ class XenForo2(XenForo):
         url = soup.find('meta', property='og:url').get('content')
         title = soup.select('h1.p-title-value')[0]
         # clean out informational bits from the title
-        for tag in title.find_all(class_='prefix'):
+        for tag in title.select('.labelLink,.label-append'):
             tag.decompose()
         return Section(
             title=title.get_text().strip(),
