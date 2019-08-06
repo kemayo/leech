@@ -46,6 +46,9 @@ class XenForo(Site):
 
     @classmethod
     def matches(cls, url):
+        match = re.match(r'^(https?://%s/threads/[^/]*\d+/(?:\d+/)?reader)/?.*' % cls.domain, url)
+        if match:
+            return match.group(1)
         match = re.match(r'^(https?://%s/threads/[^/]*\d+)/?.*' % cls.domain, url)
         if match:
             return match.group(1) + '/'
