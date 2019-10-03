@@ -55,7 +55,7 @@ class FictionLive(Site):
                 if segment['nt'] == 'chapter':
                     html.extend(('<div>', segment['b'].replace('<br>', '<br/>'), '</div>'))
                 elif segment['nt'] == 'choice':
-                    if not 'votes' in segment:
+                    if 'votes' not in segment:
                         # Somehow, sometime, we end up with a choice without votes (or choices)
                         continue
                     votes = {}
