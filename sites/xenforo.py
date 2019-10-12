@@ -304,16 +304,6 @@ class XenForoIndex(XenForo):
 
 
 @register
-class SpaceBattles(XenForo):
-    domain = 'forums.spacebattles.com'
-
-
-@register
-class SpaceBattlesIndex(SpaceBattles, XenForoIndex):
-    _key = "SpaceBattles"
-
-
-@register
 class QuestionableQuesting(XenForo):
     domain = 'forum.questionablequesting.com'
 
