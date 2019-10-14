@@ -23,7 +23,7 @@ class Chapter:
     title = attr.ib()
     contents = attr.ib()
     date = attr.ib(default=False)
-    id = attr.ib(default=attr.Factory(_default_uuid_string), convert=str)
+    id = attr.ib(default=attr.Factory(_default_uuid_string), converter=str)
 
 
 @attr.s
@@ -32,7 +32,7 @@ class Section:
     author = attr.ib()
     url = attr.ib()
     cover_url = attr.ib(default='')
-    id = attr.ib(default=attr.Factory(_default_uuid_string), convert=str)
+    id = attr.ib(default=attr.Factory(_default_uuid_string), converter=str)
     contents = attr.ib(default=attr.Factory(list))
     footnotes = attr.ib(default=attr.Factory(list))
     summary = attr.ib(default='')

@@ -63,14 +63,14 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
 @attr.s
 class CoverOptions:
-    fontname = attr.ib(default=None, convert=attr.converters.optional(str))
-    fontsize = attr.ib(default=None, convert=attr.converters.optional(int))
-    width = attr.ib(default=None, convert=attr.converters.optional(int))
-    height = attr.ib(default=None, convert=attr.converters.optional(int))
-    wrapat = attr.ib(default=None, convert=attr.converters.optional(int))
-    bgcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
-    textcolor = attr.ib(default=None, convert=attr.converters.optional(tuple))
-    cover_url = attr.ib(default=None, convert=attr.converters.optional(str))
+    fontname = attr.ib(default=None, converter=attr.converters.optional(str))
+    fontsize = attr.ib(default=None, converter=attr.converters.optional(int))
+    width = attr.ib(default=None, converter=attr.converters.optional(int))
+    height = attr.ib(default=None, converter=attr.converters.optional(int))
+    wrapat = attr.ib(default=None, converter=attr.converters.optional(int))
+    bgcolor = attr.ib(default=None, converter=attr.converters.optional(tuple))
+    textcolor = attr.ib(default=None, converter=attr.converters.optional(tuple))
+    cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
 
 
 def chapter_html(story, titleprefix=None):
