@@ -109,7 +109,7 @@ def generate_epub(story, cover_options={}, output_filename=None):
     # The cover is static, and the only change comes from the image which we generate
     html = [('Cover', 'cover.html', cover_template)]
 
-    if cover_options and cover_options["cover_url"]:
+    if cover_options and "cover_url" in cover_options:
         image = make_cover_from_url(cover_options["cover_url"], story.title, story.author)
     elif story.cover_url:
         image = make_cover_from_url(story.cover_url, story.title, story.author)
