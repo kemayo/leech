@@ -22,7 +22,7 @@ class FictionLive(Site):
     def extract(self, url):
         workid = re.match(r'^https?://fiction\.live/stories/[^\/]+/([0-9a-zA-Z]+)/?.*', url).group(1)
 
-        response = self.session.get('https://fiction.live/api/node/{}'.format(workid)).json()
+        response = self.session.get(f'https://fiction.live/api/node/{workid}').json()
 
         story = Section(
             title=response['t'],
@@ -42,7 +42,7 @@ class FictionLive(Site):
             # https://fiction.live/api/anonkun/chapters/SBBA49fQavNQMWxFT/1449266444062/1449615394752
             # https://fiction.live/api/anonkun/chapters/SBBA49fQavNQMWxFT/1502823848216/9999999999999998
             # i.e. format is [current timestamp] / [next timestamp - 1]
-            chapter_url = 'https://fiction.live/api/anonkun/chapters/{}/{}/{}'.format(workid, currc['ct'], nextc['ct'] - 1)
+            chapter_url = f'https://fiction.live/api/anonkun/chapters/{workid}/{currc["ct"]}/{nextc["ct"] - 1}'
             logger.info("Extracting chapter \"%s\" @ %s", currc['title'], chapter_url)
             data = self.session.get(chapter_url).json()
             html = []
@@ -70,7 +70,7 @@ class FictionLive(Site):
                     choices.sort(reverse=True)
                     html.append('<hr/><ul>')
                     for votecount, choice in choices:
-                        html.append('<li>{}: {}</li>'.format(choice, votecount))
+                        html.append(f'<li>{choice}: {votecount}</li>')
                     html.append('</ul><hr/>')
 
             story.add(Chapter(

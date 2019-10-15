@@ -44,7 +44,7 @@ class XenForo2(XenForo):
                     link.string = spoiler_title.get_text()
             else:
                 if spoiler_title:
-                    link = '[SPOILER: {}]'.format(spoiler_title.get_text())
+                    link = f'[SPOILER: {spoiler_title.get_text()}]'
                 else:
                     link = '[SPOILER]'
             new_spoiler = self._new_tag('div')

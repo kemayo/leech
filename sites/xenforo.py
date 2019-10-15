@@ -178,7 +178,7 @@ class XenForo(Site):
             # Note: the fetched threadmarks can contain more placeholder elements to fetch. Ergo, loop.
             # Good test case: https://forums.sufficientvelocity.com/threads/ignition-mtg-multicross-planeswalker-pc.26099/threadmarks
             # e.g.: <li class="primaryContent threadmarkListItem ThreadmarkFetcher _depth0 filler" data-range-min="0" data-range-max="306" data-thread-id="26099" data-category-id="1" title="305 hidden">
-            response = self.session.post('https://{}/index.php?threads/threadmarks/load-range'.format(self.domain), data={
+            response = self.session.post(f'https://{self.domain}/index.php?threads/threadmarks/load-range', data={
                 # I did try a fetch on min/data-min+data-max, but there seems
                 # to be an absolute limit which the API fetch won't override
                 'min': fetcher.get('data-range-min'),
@@ -275,7 +275,7 @@ class XenForo(Site):
                     link.string = spoiler_title.get_text()
             else:
                 if spoiler_title:
-                    link = '[SPOILER: {}]'.format(spoiler_title.get_text())
+                    link = f'[SPOILER: {spoiler_title.get_text()}]'
                 else:
                     link = '[SPOILER]'
             new_spoiler = self._new_tag('div')

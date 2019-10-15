@@ -23,7 +23,7 @@ class RoyalRoad(Site):
 
     def extract(self, url):
         workid = re.match(r'^https?://(?:www\.)?%s\.com/fiction/(\d+)/?.*' % self.domain, url).group(1)
-        soup = self._soup('https://www.{}.com/fiction/{}'.format(self.domain, workid))
+        soup = self._soup(f'https://www.{self.domain}.com/fiction/{workid}')
         # should have gotten redirected, for a valid title
 
         original_maxheaders = http.client._MAXHEADERS

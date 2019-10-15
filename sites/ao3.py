@@ -48,7 +48,7 @@ class ArchiveOfOurOwn(Site):
 
     def _extract_work(self, workid):
         # Fetch the full work
-        url = 'http://archiveofourown.org/works/{}?view_adult=true&view_full_work=true'.format(workid)
+        url = f'http://archiveofourown.org/works/{workid}?view_adult=true&view_full_work=true'
         logger.info("Extracting full work @ %s", url)
         soup = self._soup(url)
 
@@ -56,11 +56,11 @@ class ArchiveOfOurOwn(Site):
             title=soup.select('#workskin > .preface .title')[0].text.strip(),
             author=soup.select('#workskin .preface .byline a')[0].text.strip(),
             summary=soup.select('#workskin .preface .summary blockquote')[0].prettify(),
-            url='http://archiveofourown.org/works/{}'.format(workid)
+            url=f'http://archiveofourown.org/works/{workid}'
         )
 
         # Fetch the chapter list as well because it contains info that's not in the full work
-        nav_soup = self._soup('https://archiveofourown.org/works/{}/navigate'.format(workid))
+        nav_soup = self._soup(f'https://archiveofourown.org/works/{workid}/navigate')
 
         for index, chapter in enumerate(nav_soup.select('#main ol[role="navigation"] li')):
             link = chapter.find('a')
@@ -73,7 +73,7 @@ class ArchiveOfOurOwn(Site):
 
             story.add(Chapter(
                 title=link.string,
-                contents=self._chapter(soup.find(id='chapter-{}'.format(index + 1))),
+                contents=self._chapter(soup.find(id=f'chapter-{index + 1}')),
                 date=updated
             ))
 
@@ -109,12 +109,12 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
     def extract(self, url):
         seriesid = re.match(r'^https?://archiveofourown\.org/series/(\d+)/?.*', url).group(1)
 
-        soup = self._soup('http://archiveofourown.org/series/{}?view_adult=true'.format(seriesid))
+        soup = self._soup(f'http://archiveofourown.org/series/{seriesid}?view_adult=true')
 
         story = Section(
             title=soup.select('#main h2.heading')[0].text.strip(),
             author=soup.select('#main dl.series.meta a[rel="author"]')[0].string,
-            url='http://archiveofourown.org/series/{}'.format(seriesid)
+            url=f'http://archiveofourown.org/series/{seriesid}'
         )
 
         for work in soup.select('#main ul.series li.work'):
