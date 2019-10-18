@@ -39,8 +39,8 @@ def make_epub(filename, html_files, meta, extra_files=False, compress=True):
     filename = sanitize_filename(filename)
     epub = zipfile.ZipFile(filename, 'w', compression=compress and zipfile.ZIP_DEFLATED or zipfile.ZIP_STORED)
 
-    # The first file must be named "mimetype"
-    epub.writestr("mimetype", "application/epub+zip")
+    # The first file must be named "mimetype", and shouldn't be compressed
+    epub.writestr("mimetype", "application/epub+zip", compress_type=zipfile.ZIP_STORED)
 
     # We need an index file, that lists all other HTML files
     # This index file itself is referenced in the META_INF/container.xml
