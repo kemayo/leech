@@ -70,12 +70,14 @@ class FanFictionNet(Site):
             raise SiteException("No chapter content")
 
         text = content.find(id="storytext")
+        if not text:
+            raise SiteException("No chapter content")
 
         # clean up some invalid xhtml attributes
         # TODO: be more selective about this somehow
         try:
             for tag in text.find_all(True):
-                tag.attrs = None
+                tag.attrs.clear()
         except Exception:
             logger.exception("Trouble cleaning attributes")
 
