@@ -64,8 +64,10 @@ class FictionLive(Site):
                         if type(votechoices) == int:
                             votechoices = (votechoices,)
                         for choice in votechoices:
-                            choice = segment['choices'][int(choice)]
-                            votes[choice] = votes.get(choice, 0) + 1
+                            if int(choice) in segment['choices']:
+                                # sometimes someone has voted for a presumably-deleted choice
+                                choice = segment['choices'][int(choice)]
+                                votes[choice] = votes.get(choice, 0) + 1
                     choices = [(votes[v], v) for v in votes]
                     choices.sort(reverse=True)
                     html.append('<hr/><ul>')
