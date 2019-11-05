@@ -64,7 +64,7 @@ class FictionLive(Site):
                         if type(votechoices) == int:
                             votechoices = (votechoices,)
                         for choice in votechoices:
-                            if int(choice) in segment['choices']:
+                            if int(choice) < len(segment['choices']):
                                 # sometimes someone has voted for a presumably-deleted choice
                                 choice = segment['choices'][int(choice)]
                                 votes[choice] = votes.get(choice, 0) + 1
