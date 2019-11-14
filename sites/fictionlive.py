@@ -15,12 +15,12 @@ class FictionLive(Site):
     @staticmethod
     def matches(url):
         # e.g. https://fiction.live/stories/Descendant-of-a-Demon-Lord/SBBA49fQavNQMWxFT
-        match = re.match(r'^(https?://fiction\.live/stories/[^\/]+/[0-9a-zA-Z]+)/?.*', url)
+        match = re.match(r'^(https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/[0-9a-zA-Z\-]+)/?.*', url)
         if match:
             return match.group(1)
 
     def extract(self, url):
-        workid = re.match(r'^https?://fiction\.live/stories/[^\/]+/([0-9a-zA-Z]+)/?.*', url).group(1)
+        workid = re.match(r'^https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/([0-9a-zA-Z\-]+)/?.*', url).group(1)
 
         response = self.session.get(f'https://fiction.live/api/node/{workid}').json()
 
