@@ -10,8 +10,8 @@ import sqlite3
 from click_default_group import DefaultGroup
 from functools import reduce
 
-import sites
-import ebook
+from . import sites
+from . import ebook
 
 __version__ = 2
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
