@@ -1,0 +1,14 @@
+[build-system]
+requires = ["flit_core >=2,<3"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "leech"
+author = "David Lynch"
+author-email = "kemayo@gmail.com"
+home-page = "https://github.com/kemayo/leech"
+description-file="README.md"
+classifiers = ["License :: OSI Approved :: MIT License"]
+
+[tool.flit.scripts]
+leech = "leech.leech:cli"
