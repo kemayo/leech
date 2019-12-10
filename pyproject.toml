@@ -9,6 +9,7 @@ author-email = "kemayo@gmail.com"
 home-page = "https://github.com/kemayo/leech"
 description-file="README.md"
 classifiers = ["License :: OSI Approved :: MIT License"]
+requires-python = "~=3.6"
 requires = [
 "attrs~=19.2.0",
 "beautifulsoup4~=4.8.1",
