@@ -25,4 +25,4 @@ test = [
 ]
 
 [tool.flit.scripts]
-leech = "leech.leech:cli"
+leech = "leech:cli"

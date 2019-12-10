@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Turn a story on certain websites into an ebook for convenient reading."""
 
 import click
 import http.cookiejar
@@ -13,7 +14,7 @@ from functools import reduce
 from . import sites
 from . import ebook
 
-__version__ = 2
+__version__ = '2.1'
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
 logger = logging.getLogger(__name__)
