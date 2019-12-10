@@ -8,30 +8,30 @@ Setup
 
 You need Python 3.6+.
 
-My recommended setup process is:
+My recommended installation method is [pipx](https://pypi.org/project/pipx/). If you don't have it yet, [install pipx](https://pipxproject.github.io/pipx/installation/) with:
 
-    $ pyvenv venv
-    $ source venv/bin/activate
-    $ pip install -r requirements.txt
+    $ pip install pipx
 
-...adjust as needed. Just make sure the dependencies from `requirements.txt` get installed somehow.
+Then you can install leech with:
+
+    $ pipx install --spec git+https://github.com/kemayo/leech.git leech
 
 Usage
 ---
 
 Basic
 
-    $ python3 leech.py [[URL]]
+    $ leech [[URL]]
 
 A new file will appear named `Title of the Story.epub`.
 
 This is equivalent to the slightly longer
 
-    $ python3 leech.py download [[URL]]
+    $ leech download [[URL]]
 
 Flushing the cache
 
-    $ python3 leech.py flush
+    $ leech flush
 
 If you want to put it on a Kindle you'll have to convert it. I'd recommend [Calibre](http://calibre-ebook.com/), though you could also try using [kindlegen](http://www.amazon.com/gp/feature.html?docId=1000765211) directly.
 
@@ -52,7 +52,7 @@ Supports
 Configuration
 ---
 
-A very small amount of configuration is possible by creating a file called `leech.json` in the project directory. Currently you can define login information for sites that support it, and some options for book covers.
+A very small amount of configuration is possible by creating a file called `leech.json` in your current directory. Currently you can define login information for sites that support it, and some options for book covers.
 
 Example:
 
@@ -92,7 +92,7 @@ Example `practical.json`:
 
 Run as:
 
-    $ ./leech.py practical.json
+    $ leech practical.json
 
 This tells leech to load `url`, follow the links described by `chapter_selector`, extract the content from those pages as described by `content_selector`, and remove any content from *that* which matches `filter_selector`. Optionally, `cover_url` will replace the default cover with the image of your choice. 
 
