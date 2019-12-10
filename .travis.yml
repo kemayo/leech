@@ -2,14 +2,19 @@ language: python
 python:
   - "3.7"
 
-install:
-  - pip install -r requirements.txt
-  - pip install flake8
+before_install:
+  - pip install -q flit~=2.1
   - . $HOME/.nvm/nvm.sh
   - nvm install stable
   - nvm use stable
   - npm install -g eclint
 
+install:
+  - flit install
+
 script:
   - flake8 .
   - eclint check *.py sites/*.py
+  - leech --help
+  - flit build
+  - ls -og dist/*
