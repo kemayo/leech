@@ -4,11 +4,13 @@ import click
 import http.cookiejar
 import json
 import logging
+import os.path
 import requests
 import requests_cache
-import sqlite3
+from appdirs import AppDirs
 from click_default_group import DefaultGroup
 from functools import reduce
+from pathlib import Path
 
 import sites
 import ebook
@@ -17,6 +19,35 @@ __version__ = 2
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
 logger = logging.getLogger(__name__)
+
+
+class AppFilenames:
+    def __init__(self):
+        self._dirs = AppDirs(appname='leech', appauthor="davidlynch.org")
+
+    @property
+    def cookies(self):
+        return os.path.join(self._dirs.user_cache_dir, 'leech.cookies')
+
+    @property
+    def options(self):
+        return os.path.join(self._dirs.user_config_dir, 'leech.json')
+
+    @property
+    def cache(self):
+        return os.path.join(self._dirs.user_cache_dir, 'request_cache')
+
+    def ensure_cache_directory_exists(self):
+        self._ensure_directory(self._dirs.user_cache_dir)
+
+    def _ensure_directory(self, dirname):
+        path = Path(dirname)
+        if not path.exists():
+            path.mkdir(mode=0o700, parents=True)
+        assert path.is_dir(), f"expected {path} to be a directory!"
+
+
+_appFilenames = AppFilenames()
 
 
 def configure_logging(verbose):
@@ -34,14 +65,21 @@ def configure_logging(verbose):
 
 def create_session(cache):
     if cache:
-        session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
+        _appFilenames.ensure_cache_directory_exists()
+        try:
+            # Extra logging if this fails, since the sqlite exception isn't good about
+            # showing what it's trying to access.
+            session = requests_cache.CachedSession(_appFilenames.cache, expire_after=4 * 3600)
+        except Exception:
+            logger.error("failed to create request cache at %s", _appFilenames.cache)
+            raise
     else:
         session = requests.Session()
 
     lwp_cookiejar = http.cookiejar.LWPCookieJar()
     try:
-        lwp_cookiejar.load('leech.cookies', ignore_discard=True)
-    except Exception:
+        lwp_cookiejar.load(_appFilenames.cookies, ignore_discard=True)
+    except FileNotFoundError:
         # This file is very much optional, so this log isn't really necessary
         # logging.exception("Couldn't load cookies from leech.cookies")
         pass
@@ -54,16 +92,18 @@ def create_session(cache):
 
 def load_on_disk_options(site):
     try:
-        with open('leech.json') as store_file:
+        with open(_appFilenames.options) as store_file:
             store = json.load(store_file)
-            login = store.get('logins', {}).get(site.site_key(), False)
-            configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
-            cover_options = store.get('cover', {})
     except FileNotFoundError:
-        logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
+        logger.info("Unable to locate %s. Continuing assuming it does not exist.", _appFilenames.options)
         login = False
         configured_site_options = {}
         cover_options = {}
+    else:
+        login = store.get('logins', {}).get(site.site_key(), False)
+        configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
+        cover_options = store.get('cover', {})
+
     return configured_site_options, login, cover_options
 
 
@@ -122,12 +162,8 @@ def cli():
 def flush(verbose):
     """Flushes the contents of the cache."""
     configure_logging(verbose)
-    requests_cache.install_cache('leech')
-    requests_cache.clear()
-
-    conn = sqlite3.connect('leech.sqlite')
-    conn.execute("VACUUM")
-    conn.close()
+    cached_session = create_session(cache=True)
+    cached_session.cache.clear()
 
     logger.info("Flushed cache")
 
