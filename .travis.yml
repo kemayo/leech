@@ -16,5 +16,7 @@ script:
   - flake8 .
   - eclint check *.py sites/*.py
   - leech --help
+  - python3 src/leech/ebook/cover.py && file -E output.png && rm output.png
+  # - python3 src/leech/ebook/epub.py && file -E test.epub
   - flit build
   - ls -og dist/*
