@@ -1,0 +1,10 @@
+{
+    "url": "http://gravitytales.com/novel/phoenix-destiny/pd-chapter-1",
+    "title": "Phoenix Destiny",
+    "author": "Yun Ji",
+    "content_selector": "#contentElement",
+    "content_title_selector": "h4",
+    "content_text_selector": "#chapterContent",
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": ".chapter-navigation > a:last-child[href*=\"pd-chapter\"]"
+}

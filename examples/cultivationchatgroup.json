@@ -1,0 +1,10 @@
+{
+    "url": "https://novelfull.com/cultivation-chat-group/chapter-1-mt-yellows-true-monarch-and-nine-provinces-1-group.html",
+    "title": "Cultivation Chat Group",
+    "author": "Legend of the Paladin",
+    "content_selector": "#chapter",
+    "content_title_selector": "h2 .chapter-text",
+    "content_text_selector": "#chapter-content",
+    "filter_selector": "style, script, .adsbygoogle, .ads",
+    "next_selector": "#next_chap[href]"
+}

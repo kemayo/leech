@@ -1,0 +1,10 @@
+{
+    "url": "https://paeantosmac.wordpress.com/2015/02/17/introduction/",
+    "title": "Paean to SMAC",
+    "author": "Nick Stipanovich",
+    "content_selector": "article.post",
+    "content_title_selector": "header h1",
+    "content_text_selector": "div.entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": "link[rel=next]"
+}
