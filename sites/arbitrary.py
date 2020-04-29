@@ -111,7 +111,7 @@ class Arbitrary(Site):
             if definition.content_title_selector:
                 title_element = content.select(definition.content_title_selector)
                 if title_element:
-                    title = title_element[0].string
+                    title = title_element[0].get_text().strip()
 
             if definition.content_text_selector:
                 # TODO: multiple text elements?
