@@ -73,7 +73,8 @@ class ArchiveOfOurOwn(Site):
 
             story.add(Chapter(
                 title=link.string,
-                contents=self._chapter(soup.find(id=f'chapter-{index + 1}')),
+                # the `or soup` fallback covers single-chapter works
+                contents=self._chapter(soup.find(id=f'chapter-{index + 1}') or soup),
                 date=updated
             ))
 
