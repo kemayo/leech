@@ -1,0 +1,9 @@
+{
+    "url": "https://shouldthesun.wordpress.com/",
+    "title": "Should The Sun Not Rise",
+    "author": "Omicron",
+    "chapter_selector": "#text-1 li a",
+    "content_selector": ".entry-content",
+    "filter_selector": ".sharedaddy, style, a[href*='shouldthesun.wordpress.com']",
+    "cover_url": "https://shouldthesun.files.wordpress.com/2017/09/itzpapalotl.jpg"
+}

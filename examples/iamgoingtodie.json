@@ -1,0 +1,8 @@
+{
+  "url": "https://www.iagtd.com/story-archive",
+  "title": "I Am Going To Die In This Game Like Dimension",
+  "author": "H. C. Mills",
+  "chapter_selector": ".ag-cell-link",
+  "chapter_order": "reverse",
+  "content_selector": "div.s_usaAWRichTextClickableSkin_richTextContainer"
+}
