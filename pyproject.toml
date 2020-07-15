@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "leech"
+version = "1.0.0"
+description = "Turn a story on certain websites into an ebook for convenient reading"
+authors = ["David Lynch <kemayo@gmail.com>"]
+license = "MIT License"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+attrs = "^19.3.0"
+beautifulsoup4 = "^4.9.1"
+click-default-group = "^1.2.2"
+click = "^7.1.2"
+html5lib = "^1.1"
+pillow = "^7.2.0"
+requests = "^2.24.0"
+requests-cache = "^0.5.2"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.8.3"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

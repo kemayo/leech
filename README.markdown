@@ -6,15 +6,15 @@ Let's say you want to read some sort of fiction. You're a fan of it, perhaps. Bu
 Setup
 ---
 
-You need Python 3.6+.
+You need Python 3.6+ and poetry.
 
 My recommended setup process is:
 
-    $ pyvenv venv
-    $ source venv/bin/activate
-    $ pip install -r requirements.txt
+    $ pip install poetry
+    $ poetry install
+    $ poetry shell
 
-...adjust as needed. Just make sure the dependencies from `requirements.txt` get installed somehow.
+...adjust as needed. Just make sure the dependencies from `pyproject.toml` get installed somehow.
 
 Usage
 ---
