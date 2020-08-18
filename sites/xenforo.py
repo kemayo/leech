@@ -260,7 +260,7 @@ class XenForo(Site):
                 if "text-decoration: strikethrough" in tag['style']:
                     tag.wrap(self._new_tag('strike'))
                 tag.unwrap()
-        for tag in post.find_all(class_='quoteExpand'):
+        for tag in post.select('.quoteExpand, .bbCodeBlock-expandLink, .bbCodeBlock-shrinkLink'):
             tag.decompose()
         self._clean_spoilers(post, chapterid)
         return post.prettify()
