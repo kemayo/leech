@@ -1,9 +1,11 @@
 {
-	"url": "https://practicalguidetoevil.wordpress.com/table-of-contents/",
-	"title": "A Practical Guide To Evil: Book 1",
-	"author": "erraticerrata",
-	"chapter_selector": "#main .entry-content > ul:nth-of-type(1) > li > a",
-	"content_selector": "#main .entry-content",
-	"filter_selector": ".sharedaddy, .wpcnt, style",
-	"cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
+    "url": "https://practicalguidetoevil.wordpress.com/2015/03/25/prologue/",
+    "title": "A Practical Guide To Evil: Book 1",
+    "author": "erraticerrata",
+    "content_selector": "#main .entry-wrapper",
+    "content_title_selector": "h1.entry-title",
+    "content_text_selector": ".entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])",
+    "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
 }

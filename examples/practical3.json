@@ -1,9 +1,11 @@
 {
-    "url": "https://practicalguidetoevil.wordpress.com/table-of-contents/",
+    "url": "https://practicalguidetoevil.wordpress.com/2017/02/08/prologue-3/",
     "title": "A Practical Guide To Evil: Book 3",
     "author": "erraticerrata",
-    "chapter_selector": "#main .entry-content > ul:nth-of-type(3) > li > a",
-    "content_selector": "#main .entry-content",
+    "content_selector": "#main .entry-wrapper",
+    "content_title_selector": "h1.entry-title",
+    "content_text_selector": ".entry-content",
     "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])",
     "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
 }

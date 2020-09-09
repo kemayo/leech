@@ -83,7 +83,7 @@ Example `practical.json`:
     "url": "https://practicalguidetoevil.wordpress.com/table-of-contents/",
     "title": "A Practical Guide To Evil: Book 1",
     "author": "erraticerrata",
-    "chapter_selector": "#main .entry-content > ul > li > a",
+    "chapter_selector": "#main .entry-content > ul:nth-of-type(1) > li > a",
     "content_selector": "#main .entry-content",
     "filter_selector": ".sharedaddy, .wpcnt, style",
     "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
@@ -94,11 +94,31 @@ Run as:
 
     $ ./leech.py practical.json
 
-This tells leech to load `url`, follow the links described by `chapter_selector`, extract the content from those pages as described by `content_selector`, and remove any content from *that* which matches `filter_selector`. Optionally, `cover_url` will replace the default cover with the image of your choice. 
+This tells leech to load `url`, follow the links described by `chapter_selector`, extract the content from those pages as described by `content_selector`, and remove any content from *that* which matches `filter_selector`. Optionally, `cover_url` will replace the default cover with the image of your choice.
 
-If `chapter_selector` isn't given, it'll create a single-chapter book by applying `content_selector` to `url`. 
+If `chapter_selector` isn't given, it'll create a single-chapter book by applying `content_selector` to `url`.
 
-This is a fairly viable way to extract a story from, say, a random Wordpress installation. It's relatively likely to get you at least *most* of the way to the ebook you want, with maybe some manual editing needed.
+This is a fairly viable way to extract a story from, say, a random Wordpress installation with a convenient table of contents. It's relatively likely to get you at least *most* of the way to the ebook you want, with maybe some manual editing needed.
+
+A more advanced example with JSON would be:
+
+```
+{
+    "url": "https://practicalguidetoevil.wordpress.com/2015/03/25/prologue/",
+    "title": "A Practical Guide To Evil: Book 1",
+    "author": "erraticerrata",
+    "content_selector": "#main .entry-wrapper",
+    "content_title_selector": "h1.entry-title",
+    "content_text_selector": ".entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])",
+    "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
+}
+```
+
+Because there's no `chapter_selector` here, leech will keep on looking for a link which it can find with `next_selector` and following that link. *Yes*, it would be easy to make this an endless loop; don't do that. We also see more advanced metadata acquisition here, with `content_title_selector` and `content_text_selector` being used to find specific elements from within the content.
+
+If multiple matches for `content_selector` are found, leech will assume multiple chapters are present on one page, and will handle that. If you find a story that you want on a site which has all the chapters in the right order and next-page links, this is a notably efficient way to download it. See `examples/dungeonkeeperami.json` for this being used.
 
 If you need more advanced behavior, consider looking at...
 
