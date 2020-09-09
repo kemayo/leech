@@ -2,7 +2,7 @@
     "url": "https://tcthrone.wordpress.com/",
     "title": "Vacant Throne",
     "author": "TCurator",
-    "chapter_selector": "#main .entry-content > p a",
+    "chapter_selector": "#main .entry-content > p a[href*=\"vacant-throne-\"]",
     "content_selector": "#main .entry-content",
     "filter_selector": ".sharedaddy, style, p:nth-of-type(1), a[href*='tcthrone.wordpress.com']"
 }
