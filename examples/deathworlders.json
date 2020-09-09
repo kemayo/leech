@@ -1,7 +1,0 @@
-{
-    "url": "http://hfy-archive.org/book/deathworlders/chapter-01-kevin-jenkins-experience",
-    "title": "Deathworlders",
-    "author": "Philip Richard Johnson, AKA Hambone",
-    "chapter_selector": "#block-book-navigation .menu a",
-    "content_selector": "article .node-content .field-name-body .field-item"
-}
