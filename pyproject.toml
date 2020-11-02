@@ -7,14 +7,14 @@ license = "MIT License"
 
 [tool.poetry.dependencies]
 python = "^3.6"
-attrs = "^19.3.0"
-beautifulsoup4 = "^4.9.1"
+attrs = "^20.2.0"
+beautifulsoup4 = "^4.9.3"
 click-default-group = "^1.2.2"
 click = "^7.1.2"
 html5lib = "^1.1"
-pillow = "^7.2.0"
 requests = "^2.24.0"
 requests-cache = "^0.5.2"
+Pillow = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
