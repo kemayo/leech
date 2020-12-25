@@ -2,7 +2,7 @@
 	"url": "https://parahumans.wordpress.com/table-of-contents/",
 	"title": "Worm",
 	"author": "Wildbow",
-	"chapter_selector": "#main .entry-content  a",
+	"chapter_selector": "#main .entry-content > *:not(.sharedaddy) a",
 	"content_selector": "#main .entry-content",
 	"filter_selector": ".sharedaddy, style, a[href*='parahumans.wordpress.com']",
 	"cover_url": "https://pre00.deviantart.net/969a/th/pre/i/2015/051/8/7/worm_cover_by_cactusfantastico-d8ivj4b.png"
