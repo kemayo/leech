@@ -4,14 +4,18 @@ python:
 
 before_install:
   - pip install poetry
-
-install:
-  - poetry install
   - . $HOME/.nvm/nvm.sh
   - nvm install stable
   - nvm use stable
   - npm install -g eclint
 
+install:
+  - poetry install
+
 script:
   - flake8 .
   - eclint check *.py sites/*.py
+  - leech --help
+  - python3 ebook/cover.py && file -E output.png && rm output.png
+  - poetry build
+  - ls -og dist/*
