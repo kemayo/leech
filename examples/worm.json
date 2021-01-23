@@ -1,9 +1,11 @@
 {
-	"url": "https://parahumans.wordpress.com/table-of-contents/",
+	"url": "https://parahumans.wordpress.com/2011/06/11/1-1/",
 	"title": "Worm",
 	"author": "Wildbow",
-	"chapter_selector": "#main .entry-content  a",
-	"content_selector": "#main .entry-content",
+	"content_selector": "#main",
+	"content_title_selector": "h1.entry-title",
+	"content_text_selector": ".entry-content",
 	"filter_selector": ".sharedaddy, style, a[href*='parahumans.wordpress.com']",
+	"next_selector": "a[rel=\"next\"]",
 	"cover_url": "https://pre00.deviantart.net/969a/th/pre/i/2015/051/8/7/worm_cover_by_cactusfantastico-d8ivj4b.png"
 }
