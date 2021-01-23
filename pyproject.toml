@@ -5,6 +5,9 @@ description = "Turn a story on certain websites into an ebook for convenient rea
 authors = ["David Lynch <kemayo@gmail.com>"]
 license = "MIT License"
 
+[tool.poetry.scripts]
+leech = "leech:cli"
+
 [tool.poetry.dependencies]
 python = "^3.6"
 attrs = "^20.2.0"
