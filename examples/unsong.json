@@ -1,10 +1,11 @@
 {
-    "url": "https://unsongbook.com/prologue-2/",
-    "title": "Unsong",
-    "author": "Scott Alexander",
-    "content_selector": "#pjgm-content",
-    "content_title_selector": ".pjgm-posttitle",
-    "content_text_selector": ".pjgm-postcontent",
-    "filter_selector": ".sharedaddy", 
-    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])"
+	"url": "https://unsongbook.com/prologue-2/",
+	"title": "Unsong",
+	"author": "Scott Alexander",
+	"content_selector": "#pjgm-content",
+	"content_title_selector": "h1.pjgm-posttitle",
+	"content_text_selector": ".pjgm-postcontent",
+	"filter_selector": ".sharedaddy, style",
+	"next_selector": "a[rel=\"next\"]",
+	"cover_url": "https://i.imgur.com/d9LvKMc.png"
 }
