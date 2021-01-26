@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import http.client
 import logging
 import datetime
 import re
@@ -22,43 +21,27 @@ class Wattpad(Site):
             return match.group(1)
 
     def extract(self, url):
-        # URL should give us the table of contents page for the story
-        soup = self._soup(url)
+        workid = re.match(r'^https?://(?:www\.)?wattpad\.com/story/(\d+)?.*', url).group(1)
+        info = self.session.get(f"https://www.wattpad.com/api/v3/stories/{workid}").json()
 
         story = Section(
-            title=soup.find('h1').string.strip(),
-            author=soup.find('div', class_='author-info').strong.a.string.strip(),
-            url=soup.find('link', rel='canonical')['href'],
-            cover_url=soup.find('div', class_='cover').img['src']
+            title=info['title'],
+            author=info['user']['name'],
+            url=url,
+            cover_url=info['cover']
         )
 
-        info = soup.find('div', class_='author-info').small
-        published = datetime.datetime.strptime(info['title'], 'First published: %b %d, %Y')
-        info.find('span').decompose()
-        updated = datetime.datetime.strptime(info.get_text().strip(), 'Updated %b %d, %Y')
-
-        for chapter in soup.select('ul.table-of-contents a'):
-            chapter_url = str(self._join_url(story.url, str(chapter['href'])))
-
-            contents = self._chapter(chapter_url)
-
-            story.add(Chapter(title=chapter.string.strip(), contents=contents))
-
-        # fix up the dates
-        story[-1].date = updated
-        story[0].date = published
+        for chapter in info['parts']:
+            story.add(Chapter(
+                title=chapter['title'],
+                contents=self._chapter(chapter['id']),
+                # "2020-05-03T22:14:29Z"
+                date=datetime.datetime.fromisoformat(chapter['createDate'].rstrip('Z'))  # modifyDate also?
+            ))
 
         return story
 
-    def _chapter(self, url):
-        logger.info("Extracting chapter @ %s", url)
-        soup = self._soup(url)
-
-        content = soup.find('article').find('div', class_="page").pre
-        content.name = 'div'
-
-        for ad in content.find_all(attrs={'aria_label': "Advertisement"}):
-            ad.decompose()
-
-        content.extract()
-        return content.prettify()
+    def _chapter(self, chapterid):
+        logger.info(f"Extracting chapter @ {chapterid}")
+        api = self.session.get(f"https://www.wattpad.com/apiv2/storytext?id={chapterid}")
+        return '<div>' + api.text + '</div>'
