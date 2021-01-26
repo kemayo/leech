@@ -46,4 +46,4 @@ jobs:
     - name: eclint
       uses: snow-actions/eclint@v1.0.1
       with:
-        args: 'check'
+        args: 'check *.py sites/*.py'
