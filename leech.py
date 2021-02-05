@@ -140,9 +140,10 @@ def flush(verbose):
     help='JSON object encoding any site specific option.'
 )
 @click.option('--cache/--no-cache', default=True)
+@click.option('--normalize/--no-normalize', default=True, help="Whether to normalize strange unicode text")
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
 @site_specific_options  # Includes other click.options specific to sites
-def download(url, site_options, cache, verbose, **other_flags):
+def download(url, site_options, cache, verbose, normalize, **other_flags):
     """Downloads a story and saves it on disk as a ebpub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
@@ -151,7 +152,7 @@ def download(url, site_options, cache, verbose, **other_flags):
     options, login = create_options(site, site_options, other_flags)
     story = open_story(site, url, session, login, options)
 
-    filename = ebook.generate_epub(story, options)
+    filename = ebook.generate_epub(story, options, normalize=normalize)
     logger.info("File created: " + filename)
 
 

@@ -2,6 +2,7 @@ from .epub import make_epub
 from .cover import make_cover
 from .cover import make_cover_from_url
 
+import unicodedata
 import datetime
 import requests
 import attr
@@ -73,26 +74,30 @@ class CoverOptions:
     cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
 
 
-def chapter_html(story, titleprefix=None):
+def chapter_html(story, titleprefix=None, normalize=False):
     chapters = []
     for i, chapter in enumerate(story):
         title = chapter.title or f'#{i}'
         if hasattr(chapter, '__iter__'):
             # This is a Section
-            chapters.extend(chapter_html(chapter, titleprefix=title))
+            chapters.extend(chapter_html(chapter, titleprefix=title, normalize=normalize))
         else:
             title = titleprefix and f'{titleprefix}: {title}' or title
+            contents = chapter.contents
+            if normalize:
+                title = unicodedata.normalize('NFKC', title)
+                contents = unicodedata.normalize('NFKC', contents)
             chapters.append((
                 title,
                 f'{story.id}/chapter{i + 1}.html',
-                html_template.format(title=title, text=chapter.contents)
+                html_template.format(title=title, text=contents)
             ))
     if story.footnotes:
         chapters.append(("Footnotes", f'{story.id}/footnotes.html', html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
     return chapters
 
 
-def generate_epub(story, cover_options={}, output_filename=None):
+def generate_epub(story, cover_options={}, output_filename=None, normalize=False):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -120,7 +125,7 @@ def generate_epub(story, cover_options={}, output_filename=None):
 
     html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
 
-    html.extend(chapter_html(story))
+    html.extend(chapter_html(story, normalize=normalize))
 
     css = ('Styles/base.css', requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
 
