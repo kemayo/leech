@@ -127,12 +127,9 @@ class Arbitrary(Site):
             # TODO: consider `'\n'.join(map(str, content.contents))`
             content.name = 'div'
 
-            # Extract from bs4 tree so the rest of the tree gets deleted.
-            content = content.extract()
-
             chapters.append(Chapter(
                 title=title,
-                contents=content,
+                contents=content.prettify(),
                 # TODO: better date detection
                 date=datetime.datetime.now(),
             ))
