@@ -1,0 +1,11 @@
+{
+    "url": "https://practicalguidetoevil.wordpress.com/2015/03/25/prologue/",
+    "title": "A Practical Guide To Evil",
+    "author": "erraticerrata",
+    "content_selector": "#main .entry-wrapper",
+    "content_title_selector": "h1.entry-title",
+    "content_text_selector": ".entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": "a[rel=\"next\"]",
+    "cover_url": "https://gitlab.com/Mikescher2/A-Practical-Guide-To-Evil-Lyx/raw/master/APGTE_1/APGTE_front.png"
+}
