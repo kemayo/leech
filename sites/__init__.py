@@ -137,6 +137,8 @@ class Site:
     def _soup(self, url, method='html5lib', retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
         if not page:
+            if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
+                raise SiteException("Couldn't fetch, probably because of Cloudflare protection", url)
             if retry and retry > 0:
                 delay = retry_delay
                 if 'Retry-After' in page.headers:
