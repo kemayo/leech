@@ -45,7 +45,7 @@ def create_session(cache):
         # This file is very much optional, so this log isn't really necessary
         # logging.exception("Couldn't load cookies from leech.cookies")
         pass
-    session.cookies = lwp_cookiejar
+    session.cookies.update(lwp_cookiejar)
     session.headers.update({
         'User-agent': USER_AGENT
     })
