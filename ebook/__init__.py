@@ -2,6 +2,7 @@ from .epub import make_epub
 from .cover import make_cover
 from .cover import make_cover_from_url
 
+import html
 import unicodedata
 import datetime
 import requests
@@ -90,7 +91,7 @@ def chapter_html(story, titleprefix=None, normalize=False):
             chapters.append((
                 title,
                 f'{story.id}/chapter{i + 1}.html',
-                html_template.format(title=title, text=contents)
+                html_template.format(title=html.escape(title), text=contents)
             ))
     if story.footnotes:
         chapters.append(("Footnotes", f'{story.id}/footnotes.html', html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
