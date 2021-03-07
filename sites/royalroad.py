@@ -4,7 +4,7 @@ import http.client
 import logging
 import datetime
 import re
-from . import register, Site, Section, Chapter
+from . import register, Site, Section, Chapter, SiteSpecificOption
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +12,17 @@ logger = logging.getLogger(__name__)
 @register
 class RoyalRoad(Site):
     domain = r'royalroad'
+
+    @staticmethod
+    def get_site_specific_option_defs():
+        return [
+            SiteSpecificOption(
+                'skip_spoilers',
+                '--skip-spoilers/--include-spoilers',
+                default=True,
+                help="If true, do not transcribe any tags that are marked as a spoiler."
+            ),
+        ]
 
     """Royal Road: a place where people write novels, mostly seeming to be light-novel in tone."""
     @classmethod
@@ -39,18 +50,25 @@ class RoyalRoad(Site):
         for chapter in soup.select('#chapters tbody tr[data-url]'):
             chapter_url = str(self._join_url(story.url, str(chapter.get('data-url'))))
 
-            contents, updated = self._chapter(chapter_url)
+            contents, updated = self._chapter(chapter_url, len(story) + 1)
 
             story.add(Chapter(title=chapter.find('a', href=True).string.strip(), contents=contents, date=updated))
 
         http.client._MAXHEADERS = original_maxheaders
 
+        story.footnotes = self.footnotes
+        self.footnotes = []
+
         return story
 
-    def _chapter(self, url):
+    def _chapter(self, url, chapterid):
         logger.info("Extracting chapter @ %s", url)
         soup = self._soup(url)
-        content = soup.find('div', class_='chapter-content').prettify()
+        content = soup.find('div', class_='chapter-content')
+
+        self._clean_spoilers(content, chapterid)
+
+        content = content.prettify()
 
         author_note = soup.find_all('div', class_='author-note-portlet')
 
@@ -68,6 +86,20 @@ class RoyalRoad(Site):
         )
 
         return content, updated
+
+    def _clean_spoilers(self, content, chapterid):
+        # Spoilers to footnotes
+        for spoiler in content.find_all(class_=('spoiler-new')):
+            spoiler_title = spoiler['data-caption']
+            if self.options['skip_spoilers']:
+                link = self._footnote(spoiler, chapterid)
+                if spoiler_title:
+                    link.string = spoiler_title
+            else:
+                link = spoiler_title and f'[SPOILER: {spoiler_title}]' or '[SPOILER]'
+            new_spoiler = self._new_tag('div')
+            new_spoiler.append(link)
+            spoiler.replace_with(new_spoiler)
 
 
 @register
