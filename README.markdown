@@ -116,7 +116,7 @@ A more advanced example with JSON would be:
 }
 ```
 
-Because there's no `chapter_selector` here, leech will keep on looking for a link which it can find with `next_selector` and following that link. *Yes*, it would be easy to make this an endless loop; don't do that. We also see more advanced metadata acquisition here, with `content_title_selector` and `content_text_selector` being used to find specific elements from within the content.
+Because there's no `chapter_selector` here, leech will keep on looking for a link which it can find with `next_selector` and following that link. We also see more advanced metadata acquisition here, with `content_title_selector` and `content_text_selector` being used to find specific elements from within the content.
 
 If multiple matches for `content_selector` are found, leech will assume multiple chapters are present on one page, and will handle that. If you find a story that you want on a site which has all the chapters in the right order and next-page links, this is a notably efficient way to download it. See `examples/dungeonkeeperami.json` for this being used.
 
