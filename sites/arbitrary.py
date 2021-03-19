@@ -75,8 +75,11 @@ class Arbitrary(Site):
                 for chapter in self._chapter(chapter_url, definition, title=chapter_link.string):
                     story.add(chapter)
         else:
+            # set of already processed urls. Stored to detect loops.
+            found_content_urls = set()
             content_url = definition.url
-            while content_url:
+            while content_url and content_url not in found_content_urls:
+                found_content_urls.add(content_url)
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
                 if definition.next_selector:
