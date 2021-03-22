@@ -5,7 +5,7 @@ import datetime
 import re
 import requests_cache
 from bs4 import BeautifulSoup
-from . import register, Site, Section, Chapter
+from . import register, Site, Section, Chapter, SiteException
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class ArchiveOfOurOwn(Site):
                 'user[remember_me]': '1',
                 'utf8': form.find(attrs={'name': 'utf8'})['value'],
                 'authenticity_token': form.find(attrs={'name': 'authenticity_token'})['value'],
-                'commit': 'Log In',
+                'commit': 'Log in',
             }
             # I feel the session *should* handle this cookies bit for me. But
             # it doesn't. And I don't know why.
@@ -51,6 +51,9 @@ class ArchiveOfOurOwn(Site):
         url = f'http://archiveofourown.org/works/{workid}?view_adult=true&view_full_work=true'
         logger.info("Extracting full work @ %s", url)
         soup = self._soup(url)
+
+        if not soup.find(id='workskin'):
+            raise SiteException("Can't find the story text; you may need to log in or flush the cache")
 
         story = Section(
             title=soup.select('#workskin > .preface .title')[0].text.strip(),
