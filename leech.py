@@ -100,7 +100,11 @@ def open_story(site, url, session, login, options):
     if login:
         handler.login(login)
 
-    story = handler.extract(url)
+    try:
+        story = handler.extract(url)
+    except sites.SiteException as e:
+        logger.error(e.args)
+        return
     if not story:
         raise Exception("Couldn't extract story")
     return story
@@ -151,9 +155,11 @@ def download(url, site_options, cache, verbose, normalize, **other_flags):
     site, url = sites.get(url)
     options, login = create_options(site, site_options, other_flags)
     story = open_story(site, url, session, login, options)
-
-    filename = ebook.generate_epub(story, options, normalize=normalize)
-    logger.info("File created: " + filename)
+    if story:
+        filename = ebook.generate_epub(story, options, normalize=normalize)
+        logger.info("File created: " + filename)
+    else:
+        logger.warning("No ebook created")
 
 
 if __name__ == '__main__':
