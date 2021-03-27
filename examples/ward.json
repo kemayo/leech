@@ -1,0 +1,8 @@
+{
+    "url": "https://www.parahumans.net/table-of-contents/",
+    "title": "Ward",
+    "author": "Wildbow",
+    "chapter_selector": "#main .entry-content a",
+    "content_selector": "#main .entry-content",
+    "filter_selector": ".sharedaddy, style, a[href*='parahumans.wordpress.com'], p:first-of-type, p:last-of-type"
+}
