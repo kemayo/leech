@@ -191,6 +191,23 @@ class Site:
 
         return spoiler_link
 
+    def _clean(self, contents):
+        """Clean up story content to be more ebook-friendly
+
+        TODO: this expects a soup as its argument, so the couple of API-driven sites can't use it as-is
+        """
+        # Cloudflare is used on many sites, and mangles things that look like email addresses
+        # e.g. Point_Me_@_The_Sky becomes
+        # <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85d5eaecebf1dac8e0dac5">[email&#160;protected]</a>_The_Sky
+        for a in contents.find_all('a', class_='__cf_email__', href='/cdn-cgi/l/email-protection'):
+            # See: https://usamaejaz.com/cloudflare-email-decoding/
+            encoded = a['data-cfemail']
+            r = int(encoded[:2], 16)
+            email = ''.join([chr(int(encoded[i:i+2], 16) ^ r) for i in range(2, len(encoded), 2)])
+            a.insert_before(email)
+            a.decompose()
+        return contents
+
 
 @attr.s(hash=True)
 class SiteSpecificOption:

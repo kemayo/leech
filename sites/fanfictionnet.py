@@ -81,6 +81,8 @@ class FanFictionNet(Site):
         except Exception:
             logger.exception("Trouble cleaning attributes")
 
+        self._clean(text)
+
         return text.prettify()
 
 

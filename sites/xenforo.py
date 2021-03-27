@@ -262,6 +262,7 @@ class XenForo(Site):
                 tag.unwrap()
         for tag in post.select('.quoteExpand, .bbCodeBlock-expandLink, .bbCodeBlock-shrinkLink'):
             tag.decompose()
+        self._clean(post)
         self._clean_spoilers(post, chapterid)
         return post.prettify()
 

@@ -96,6 +96,8 @@ class ArchiveOfOurOwn(Site):
             for landmark in notes.find_all(class_='landmark'):
                 landmark.decompose()
 
+        self._clean(content)
+
         return content.prettify() + (notes and notes.prettify() or '')
 
 

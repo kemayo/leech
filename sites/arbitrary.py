@@ -130,6 +130,8 @@ class Arbitrary(Site):
             # TODO: consider `'\n'.join(map(str, content.contents))`
             content.name = 'div'
 
+            self._clean(content)
+
             chapters.append(Chapter(
                 title=title,
                 contents=content.prettify(),
