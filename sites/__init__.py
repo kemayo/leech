@@ -2,6 +2,7 @@
 import click
 import glob
 import os
+import random
 import uuid
 import time
 import logging
@@ -14,8 +15,9 @@ logger.addHandler(logging.NullHandler())
 _sites = []
 
 
-def _default_uuid_string(*args):
-    return str(uuid.uuid4())
+def _default_uuid_string(self):
+    rd = random.Random(x=self.url)
+    return str(uuid.UUID(int=rd.getrandbits(8*16), version=4))
 
 
 @attr.s
@@ -23,7 +25,6 @@ class Chapter:
     title = attr.ib()
     contents = attr.ib()
     date = attr.ib(default=False)
-    id = attr.ib(default=attr.Factory(_default_uuid_string), converter=str)
 
 
 @attr.s
@@ -32,7 +33,7 @@ class Section:
     author = attr.ib()
     url = attr.ib()
     cover_url = attr.ib(default='')
-    id = attr.ib(default=attr.Factory(_default_uuid_string), converter=str)
+    id = attr.ib(default=attr.Factory(_default_uuid_string, takes_self=True), converter=str)
     contents = attr.ib(default=attr.Factory(list))
     footnotes = attr.ib(default=attr.Factory(list))
     summary = attr.ib(default='')
