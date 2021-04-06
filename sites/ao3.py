@@ -64,6 +64,7 @@ class ArchiveOfOurOwn(Site):
 
         # Fetch the chapter list as well because it contains info that's not in the full work
         nav_soup = self._soup(f'https://archiveofourown.org/works/{workid}/navigate')
+        chapters = soup.find_all(id=re.compile(r"chapter-\d+"))
 
         for index, chapter in enumerate(nav_soup.select('#main ol[role="navigation"] li')):
             link = chapter.find('a')
@@ -74,10 +75,15 @@ class ArchiveOfOurOwn(Site):
                 "(%Y-%m-%d)"
             )
 
+            chapter_soup = chapters[index]
+            if not chapter_soup:
+                logger.warning("Couldn't find chapter %s in full work", index + 1)
+                continue
+
             story.add(Chapter(
                 title=link.string,
                 # the `or soup` fallback covers single-chapter works
-                contents=self._chapter(soup.find(id=f'chapter-{index + 1}') or soup),
+                contents=self._chapter(chapter_soup),
                 date=updated
             ))
 
