@@ -16,10 +16,12 @@ class XenForo2(XenForo):
         # clean out informational bits from the title
         for tag in title.select('.labelLink,.label-append'):
             tag.decompose()
+        tags = [tag.get_text().strip() for tag in soup.select('.tagList a.tagItem')]
         return Section(
             title=title.get_text().strip(),
             author=soup.find('div', class_='p-description').find('a', class_='username').get_text(),
-            url=url
+            url=url,
+            tags=tags
         )
 
     def _posts_from_page(self, soup, postid=False):

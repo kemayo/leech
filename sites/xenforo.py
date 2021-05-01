@@ -133,10 +133,12 @@ class XenForo(Site):
         # clean out informational bits from the title
         for tag in title.find_all(class_='prefix'):
             tag.decompose()
+        tags = [tag.get_text().strip() for tag in soup.select('div.tagBlock a.tag')]
         return Section(
             title=title.get_text().strip(),
             author=soup.find('p', id='pageDescription').find('a', class_='username').get_text(),
-            url=url
+            url=url,
+            tags=tags
         )
 
     def _posts_from_page(self, soup, postid=False):

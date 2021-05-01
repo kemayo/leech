@@ -36,6 +36,7 @@ class Section:
     id = attr.ib(default=attr.Factory(_default_uuid_string, takes_self=True), converter=str)
     contents = attr.ib(default=attr.Factory(list))
     footnotes = attr.ib(default=attr.Factory(list))
+    tags = attr.ib(default=attr.Factory(list))
     summary = attr.ib(default='')
 
     def __iter__(self):

@@ -59,7 +59,8 @@ class ArchiveOfOurOwn(Site):
             title=soup.select('#workskin > .preface .title')[0].text.strip(),
             author=soup.select('#workskin .preface .byline a')[0].text.strip(),
             summary=soup.select('#workskin .preface .summary blockquote')[0].prettify(),
-            url=f'http://archiveofourown.org/works/{workid}'
+            url=f'http://archiveofourown.org/works/{workid}',
+            tags=[tag.get_text().strip() for tag in soup.select('.work.meta .tags a.tag')]
         )
 
         # Fetch the chapter list as well because it contains info that's not in the full work
