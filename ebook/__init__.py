@@ -56,6 +56,7 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <dd>{updated:%Y-%m-%d}</dd>
         <dt>Downloaded on</dt>
         <dd>{now:%Y-%m-%d}</dd>
+        {extra}
     </dl>
 </div>
 </body>
@@ -106,7 +107,17 @@ def generate_epub(story, cover_options={}, output_filename=None, normalize=False
         'unique_id': story.url,
         'started': min(dates),
         'updated': max(dates),
+        'extra': '',
     }
+    extra_metadata = {}
+
+    if story.summary:
+        extra_metadata['Summary'] = story.summary
+    if story.tags:
+        extra_metadata['Tags'] = ', '.join(story.tags)
+
+    if extra_metadata:
+        metadata['extra'] = '\n        '.join(f'<dt>{k}</dt><dd>{v}</dd>' for k, v in extra_metadata.items())
 
     valid_cover_options = ('fontname', 'fontsize', 'width', 'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
     cover_options = CoverOptions(**{k: v for k, v in cover_options.items() if k in valid_cover_options})
