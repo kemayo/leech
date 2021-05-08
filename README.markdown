@@ -127,6 +127,21 @@ Adding new site handers
 
 To add support for a new site, create a file in the `sites` directory that implements the `Site` interface. Take a look at `ao3.py` for a minimal example of what you have to do.
 
+Docker
+---
+
+You can build the project's Docker container like this:
+
+```shell
+docker build . -t kemayo/leech:snapshot
+```
+
+The container's entrypoint runs `leech` directly and sets the current working directory to `/work`, so you can mount any directory there:
+
+```shell
+docker run -it --rm -v ${DIR}:/work kemayo/leech:snapshot download [[URL]]
+```
+
 Contributing
 ---
 
