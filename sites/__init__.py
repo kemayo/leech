@@ -136,19 +136,21 @@ class Site:
     def login(self, login_details):
         raise NotImplementedError()
 
-    def _soup(self, url, method='html5lib', retry=3, retry_delay=10, **kw):
+    def _soup(self, url, method='html5lib', delay=0, retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
         if not page:
             if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
-                raise SiteException("Couldn't fetch, probably because of Cloudflare protection", url)
+                raise CloudflareException("Couldn't fetch, probably because of Cloudflare protection", url)
             if retry and retry > 0:
-                delay = retry_delay
+                real_delay = retry_delay
                 if 'Retry-After' in page.headers:
-                    delay = int(page.headers['Retry-After'])
-                logger.warning("Load failed: waiting %s to retry (%s: %s)", delay, page.status_code, page.url)
-                time.sleep(delay)
+                    real_delay = int(page.headers['Retry-After'])
+                logger.warning("Load failed: waiting %s to retry (%s: %s)", real_delay, page.status_code, page.url)
+                time.sleep(real_delay)
                 return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
             raise SiteException("Couldn't fetch", url)
+        if delay and delay > 0 and not page.from_cache:
+            time.sleep(delay)
         return BeautifulSoup(page.text, method)
 
     def _new_tag(self, *args, **kw):
@@ -237,6 +239,10 @@ class SiteSpecificOption:
 
 
 class SiteException(Exception):
+    pass
+
+
+class CloudflareException(SiteException):
     pass
 
 
