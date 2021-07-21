@@ -5,6 +5,7 @@ import zipfile
 import xml.etree.ElementTree as etree
 import uuid
 import string
+from collections import namedtuple
 
 """
 So, an epub is approximately a zipfile of HTML files, with
@@ -12,6 +13,9 @@ a bit of metadata thrown in for good measure.
 
 This totally started from http://www.manuel-strehl.de/dev/simple_epub_ebooks_with_python.en.html
 """
+
+
+EpubFile = namedtuple('EbookFile', 'path, contents, title, filetype', defaults=(False, False, "application/xhtml+xml"))
 
 
 def sanitize_filename(s):
@@ -31,7 +35,7 @@ def sanitize_filename(s):
     return filename
 
 
-def make_epub(filename, html_files, meta, extra_files=False, compress=True):
+def make_epub(filename, files, meta, compress=True):
     unique_id = meta.get('unique_id', False)
     if not unique_id:
         unique_id = 'leech_book_' + str(uuid.uuid4())
@@ -90,49 +94,40 @@ def make_epub(filename, html_files, meta, extra_files=False, compress=True):
     navmap = etree.SubElement(ncx, 'navMap')
 
     # Write each HTML file to the ebook, collect information for the index
-    for i, html in enumerate(html_files):
+    for i, file in enumerate(files):
         file_id = 'file_%d' % (i + 1)
         etree.SubElement(manifest, 'item', {
             'id': file_id,
-            'href': html[1],
-            'media-type': "application/xhtml+xml",
+            'href': file.path,
+            'media-type': file.filetype,
         })
-        itemref = etree.SubElement(spine, 'itemref', idref=file_id)
-        point = etree.SubElement(navmap, 'navPoint', {
-            'class': "h1",
-            'id': file_id,
-        })
-        etree.SubElement(etree.SubElement(point, 'navLabel'), 'text').text = html[0]
-        etree.SubElement(point, 'content', src=html[1])
+        if file.filetype == "application/xhtml+xml":
+            itemref = etree.SubElement(spine, 'itemref', idref=file_id)
+            point = etree.SubElement(navmap, 'navPoint', {
+                'class': "h1",
+                'id': file_id,
+            })
+            etree.SubElement(etree.SubElement(point, 'navLabel'), 'text').text = file.title
+            etree.SubElement(point, 'content', src=file.path)
 
-        if 'cover.html' == os.path.basename(html[1]):
+        if 'cover.html' == os.path.basename(file.path):
             etree.SubElement(guide, 'reference', {
                 'type': 'cover',
                 'title': 'Cover',
-                'href': html[1],
+                'href': file.path,
             })
             itemref.set('linear', 'no')
+        if 'images/cover.png' == file.path:
+            etree.SubElement(metadata, 'meta', {
+                'name': 'cover',
+                'content': file_id,
+            })
 
         # and add the actual html to the zip
-        if html[2]:
-            epub.writestr('OEBPS/' + html[1], html[2])
+        if file.contents:
+            epub.writestr('OEBPS/' + file.path, file.contents)
         else:
-            epub.write(html[1], 'OEBPS/' + html[1])
-
-    if extra_files:
-        for i, data in enumerate(extra_files):
-            file_id = 'extrafile_%d' % (i + 1)
-            etree.SubElement(manifest, 'item', {
-                'id': file_id,
-                'href': data[0],
-                'media-type': data[2],
-            })
-            if 'images/cover.png' == data[0]:
-                etree.SubElement(metadata, 'meta', {
-                    'name': 'cover',
-                    'content': file_id,
-                })
-            epub.writestr('OEBPS/' + data[0], data[1])
+            epub.write(file.path, 'OEBPS/' + file.path)
 
     # ...and add the ncx to the manifest
     etree.SubElement(manifest, 'item', {
@@ -151,4 +146,4 @@ def make_epub(filename, html_files, meta, extra_files=False, compress=True):
 
 
 if __name__ == '__main__':
-    make_epub('test.epub', [('Chapter 1', 'test/a.html'), ('Chapter 2', 'test/b.html')], {})
+    make_epub('test.epub', [EpubFile(title='Chapter 1', path='a.html', contents="Test"), EpubFile(title='Chapter 2', path='test/b.html', contents="Still a test")], {})
