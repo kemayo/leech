@@ -16,7 +16,7 @@ class ArchiveOfOurOwn(Site):
     @staticmethod
     def matches(url):
         # e.g. http://archiveofourown.org/works/5683105/chapters/13092007
-        match = re.match(r'^(https?://archiveofourown\.org/works/\d+)/?.*', url)
+        match = re.match(r'^(https?://(?:www\.)?archiveofourown\.org/works/\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
 
@@ -43,7 +43,7 @@ class ArchiveOfOurOwn(Site):
             logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
-        workid = re.match(r'^https?://archiveofourown\.org/works/(\d+)/?.*', url).group(1)
+        workid = re.match(r'^https?://(?:www\.)?archiveofourown\.org/works/(\d+)/?.*', url).group(1)
         return self._extract_work(workid)
 
     def _extract_work(self, workid):
