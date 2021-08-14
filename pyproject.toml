@@ -10,6 +10,7 @@ leech = "leech:cli"
 
 [tool.poetry.dependencies]
 python = "^3.6"
+appdirs = "^1.4.4"
 attrs = "^20.2.0"
 beautifulsoup4 = "^4.9.3"
 click-default-group = "^1.2.2"
