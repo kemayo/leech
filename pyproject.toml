@@ -4,6 +4,7 @@ version = "1.0.0"
 description = "Turn a story on certain websites into an ebook for convenient reading"
 authors = ["David Lynch <kemayo@gmail.com>"]
 license = "MIT License"
+include = ["ebook/*", "sites/*"]
 
 [tool.poetry.scripts]
 leech = "leech:cli"
