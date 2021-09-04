@@ -99,7 +99,7 @@ def chapter_html(story, titleprefix=None, normalize=False):
     return chapters
 
 
-def generate_epub(story, cover_options={}, output_filename=None, normalize=False):
+def generate_epub(story, cover_options={}, output_filename=None, output_dir=None, normalize=False):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -145,6 +145,6 @@ def generate_epub(story, cover_options={}, output_filename=None, normalize=False
 
     output_filename = output_filename or story.title + '.epub'
 
-    output_filename = make_epub(output_filename, files, metadata)
+    output_filename = make_epub(output_filename, files, metadata, output_dir=output_dir)
 
     return output_filename

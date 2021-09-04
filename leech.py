@@ -4,6 +4,7 @@ import click
 import http.cookiejar
 import json
 import logging
+import os
 import requests
 import requests_cache
 import sqlite3
@@ -59,11 +60,15 @@ def load_on_disk_options(site):
             login = store.get('logins', {}).get(site.site_key(), False)
             configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
             cover_options = store.get('cover', {})
+            output_dir = store.get('output_dir', False)
     except FileNotFoundError:
         logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
         login = False
         configured_site_options = {}
         cover_options = {}
+        output_dir = False
+    if output_dir and 'output_dir' not in configured_site_options:
+        configured_site_options['output_dir'] = output_dir
     return configured_site_options, login, cover_options
 
 
@@ -143,20 +148,26 @@ def flush(verbose):
     default='{}',
     help='JSON object encoding any site specific option.'
 )
+@click.option(
+    '--output-dir',
+    default=None,
+    help='Directory to save generated ebooks'
+)
 @click.option('--cache/--no-cache', default=True)
 @click.option('--normalize/--no-normalize', default=True, help="Whether to normalize strange unicode text")
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
 @site_specific_options  # Includes other click.options specific to sites
-def download(url, site_options, cache, verbose, normalize, **other_flags):
+def download(url, site_options, cache, verbose, normalize, output_dir, **other_flags):
     """Downloads a story and saves it on disk as a ebpub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
 
     site, url = sites.get(url)
     options, login = create_options(site, site_options, other_flags)
+    output_dir = output_dir or options.get('output_dir', os.getcwd())
     story = open_story(site, url, session, login, options)
     if story:
-        filename = ebook.generate_epub(story, options, normalize=normalize)
+        filename = ebook.generate_epub(story, options, normalize=normalize, output_dir=output_dir)
         logger.info("File created: " + filename)
     else:
         logger.warning("No ebook created")

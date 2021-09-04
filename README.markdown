@@ -67,6 +67,12 @@ Example:
         "bgcolor": [20, 120, 20],
         "textcolor": [180, 20, 180],
         "cover_url": "https://website.com/image.png"
+    },
+    "output_dir": "/tmp/ebooks",
+    "site_options": {
+        "RoyalRoad": {
+            "output_dir": "/tmp/litrpg_isekai_trash"
+        }
     }
 }
 ```
