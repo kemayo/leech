@@ -6,7 +6,7 @@ Let's say you want to read some sort of fiction. You're a fan of it, perhaps. Bu
 Setup
 ---
 
-You need Python 3.6+ and poetry.
+You need Python 3.7+ and poetry.
 
 My recommended setup process is:
 
