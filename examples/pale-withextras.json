@@ -1,0 +1,10 @@
+{
+    "url": "https://palewebserial.wordpress.com/2020/05/05/blood-run-cold-0-0/",
+    "title": "Pale",
+    "author": "Wildbow",
+    "content_selector": "#main",
+    "content_title_selector": "h1.entry-title",
+    "content_text_selector": ".entry-content",
+    "filter_selector": ".sharedaddy, style, a[href*='palewebserial.wordpress.com']",
+    "next_selector": "a[rel=\"next\"]"
+}

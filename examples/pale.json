@@ -1,0 +1,8 @@
+{
+    "url": "https://palewebserial.wordpress.com/table-of-contents/",
+    "title": "Pale",
+    "author": "Wildbow",
+    "chapter_selector": "article .entry-content > p a",
+    "content_selector": "article .entry-content",
+    "filter_selector": ".sharedaddy, style, a[href*='palewebserial.wordpress.com']"
+}
