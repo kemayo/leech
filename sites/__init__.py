@@ -7,6 +7,7 @@ import uuid
 import time
 import logging
 import urllib
+import re
 import attr
 from bs4 import BeautifulSoup
 
@@ -93,7 +94,14 @@ class Site:
         same name, but pains should be taken to ensure they remain semantically
         similar in meaning.
         """
-        return []
+        return [
+            SiteSpecificOption(
+                'strip_colors',
+                '--strip-colors/--no-strip-colors',
+                default=True,
+                help="If true, colors will be stripped from the text."
+            ),
+        ]
 
     @classmethod
     def get_default_options(cls):
@@ -209,6 +217,11 @@ class Site:
             email = bytes([c ^ enc[0] for c in enc[1:]]).decode('utf8')
             a.insert_before(email)
             a.decompose()
+        # strip colors
+        if self.options['strip_colors']:
+            for tag in contents.find_all(style=re.compile(r'(?:color|background)\s*:')):
+                tag['style'] = re.sub(r'(?:color|background)\s*:[^;]+;?', '', tag['style'])
+
         return contents
 
 

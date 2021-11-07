@@ -15,7 +15,7 @@ class RoyalRoad(Site):
 
     @staticmethod
     def get_site_specific_option_defs():
-        return [
+        return Site.get_site_specific_option_defs() + [
             SiteSpecificOption(
                 'skip_spoilers',
                 '--skip-spoilers/--include-spoilers',

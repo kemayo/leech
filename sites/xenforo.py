@@ -17,7 +17,7 @@ class XenForo(Site):
 
     @staticmethod
     def get_site_specific_option_defs():
-        return [
+        return Site.get_site_specific_option_defs() + [
             SiteSpecificOption(
                 'include_index',
                 '--include-index/--no-include-index',
