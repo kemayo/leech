@@ -18,7 +18,7 @@ click = "^7.1.2"
 html5lib = "^1.1"
 requests = "^2.24.0"
 requests-cache = "^0.5.2"
-Pillow = "^8.0.1"
+Pillow = "^9.0.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
