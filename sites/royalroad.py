@@ -93,7 +93,7 @@ class RoyalRoad(Site):
     def _clean_spoilers(self, content, chapterid):
         # Spoilers to footnotes
         for spoiler in content.find_all(class_=('spoiler-new')):
-            spoiler_title = spoiler['data-caption']
+            spoiler_title = spoiler.get('data-caption')
             if self.options['skip_spoilers']:
                 link = self._footnote(spoiler, chapterid)
                 if spoiler_title:
