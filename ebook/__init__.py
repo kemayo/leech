@@ -123,9 +123,6 @@ def generate_epub(story, cover_options={}, output_filename=None, output_dir=None
     cover_options = CoverOptions(**{k: v for k, v in cover_options.items() if k in valid_cover_options})
     cover_options = attr.asdict(cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
 
-    # The cover is static, and the only change comes from the image which we generate
-    files = [EpubFile(title='Cover', path='cover.html', contents=cover_template)]
-
     if cover_options and "cover_url" in cover_options:
         image = make_cover_from_url(cover_options["cover_url"], story.title, story.author)
     elif story.cover_url:
@@ -133,18 +130,16 @@ def generate_epub(story, cover_options={}, output_filename=None, output_dir=None
     else:
         image = make_cover(story.title, story.author, **cover_options)
 
-    cover_image = EpubFile(path='images/cover.png', contents=image.read(), filetype='image/png')
-
-    files.append(EpubFile(title='Front Matter', path='frontmatter.html', contents=frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
-
-    files.extend(chapter_html(story, normalize=normalize))
-
-    css = EpubFile(path='Styles/base.css', contents=requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, filetype='text/css')
-
-    files.extend((css, cover_image))
-
-    output_filename = output_filename or story.title + '.epub'
-
-    output_filename = make_epub(output_filename, files, metadata, output_dir=output_dir)
-
-    return output_filename
+    return make_epub(
+        output_filename or story.title + '.epub',
+        [
+            # The cover is static, and the only change comes from the image which we generate
+            EpubFile(title='Cover', path='cover.html', contents=cover_template),
+            EpubFile(title='Front Matter', path='frontmatter.html', contents=frontmatter_template.format(now=datetime.datetime.now(), **metadata)),
+            *chapter_html(story, normalize=normalize),
+            EpubFile(path='Styles/base.css', contents=requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, filetype='text/css'),
+            EpubFile(path='images/cover.png', contents=image.read(), filetype='image/png'),
+        ],
+        metadata,
+        output_dir=output_dir
+    )
