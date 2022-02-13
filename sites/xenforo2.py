@@ -49,7 +49,7 @@ class XenForo2(XenForo):
                     link = f'[SPOILER: {spoiler_title.get_text()}]'
                 else:
                     link = '[SPOILER]'
-            new_spoiler = self._new_tag('div')
+            new_spoiler = self._new_tag('div', class_="leech-spoiler")
             new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
 
