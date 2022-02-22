@@ -37,6 +37,8 @@ class RoyalRoad(Site):
         soup = self._soup(f'https://www.{self.domain}.com/fiction/{workid}')
         # should have gotten redirected, for a valid title
 
+        base = soup.head.base and soup.head.base.get('href') or url
+
         original_maxheaders = http.client._MAXHEADERS
         http.client._MAXHEADERS = 1000
 
@@ -44,7 +46,7 @@ class RoyalRoad(Site):
             title=soup.find('h1', property='name').string.strip(),
             author=soup.find('meta', property='books:author').get('content').strip(),
             url=soup.find('meta', property='og:url').get('content').strip(),
-            cover_url=soup.find('img', class_='thumbnail')['src'],
+            cover_url=self._join_url(base, soup.find('img', class_='thumbnail')['src']),
             summary=str(soup.find('div', property='description')).strip(),
             tags=[tag.get_text().strip() for tag in soup.select('span.tags a.fiction-tag')]
         )
