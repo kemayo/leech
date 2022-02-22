@@ -46,7 +46,7 @@ def make_cover_from_url(url, title, author):
         if imgformat != "PNG":
             cover = _convert_to_png(cover)
     except Exception as e:
-        logger.info("Encountered an error downloading cover: " + e)
+        logger.info("Encountered an error downloading cover: " + str(e))
         cover = make_cover(title, author)
 
     return cover
