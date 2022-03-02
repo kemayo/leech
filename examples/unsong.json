@@ -1,0 +1,10 @@
+{
+    "url": "https://unsongbook.com/prologue-2/",
+    "title": "Unsong",
+    "author": "Scott Alexander",
+    "content_selector": "#pjgm-content",
+    "content_title_selector": ".pjgm-posttitle",
+    "content_text_selector": ".pjgm-postcontent",
+    "filter_selector": ".sharedaddy", 
+    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])"
+}
