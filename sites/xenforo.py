@@ -86,8 +86,9 @@ class XenForo(Site):
             reader_url = False
 
         if reader_url:
-            if m := re.search(r'\d+/(\d+)/reader', reader_url):
-                cat = int(m.group(1))
+            match = re.search(r'\d+/(\d+)/reader', reader_url)
+            if match:
+                cat = int(match.group(1))
                 if cat != 1 and cat in threadmark_categories:
                     story.title = f'{story.title} ({threadmark_categories[cat]})'
             idx = 0
