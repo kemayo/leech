@@ -30,7 +30,6 @@ class ArchiveOfOurOwn(Site):
                 'user[password]': login_details[1],
                 # standard fields:
                 'user[remember_me]': '1',
-                'utf8': form.find(attrs={'name': 'utf8'})['value'],
                 'authenticity_token': form.find(attrs={'name': 'authenticity_token'})['value'],
                 'commit': 'Log in',
             }
