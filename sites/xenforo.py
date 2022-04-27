@@ -272,7 +272,9 @@ class XenForo(Site):
                     tag.wrap(self._new_tag('code'))
                 if "text-decoration: strikethrough" in tag['style']:
                     tag.wrap(self._new_tag('strike'))
-                tag.unwrap()
+                if "margin-left" in tag['style']:
+                    continue
+                del tag['style']
         for tag in post.select('.quoteExpand, .bbCodeBlock-expandLink, .bbCodeBlock-shrinkLink'):
             tag.decompose()
         self._clean(post)
