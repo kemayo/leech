@@ -161,6 +161,43 @@ class Site:
             time.sleep(delay)
         return BeautifulSoup(page.text, method)
 
+    def _form_in_soup(self, soup):
+        if soup.name == 'form':
+            return soup
+        return soup.find('form')
+
+    def _form_data(self, soup):
+        data = {}
+        form = self._form_in_soup(soup)
+        if not form:
+            return data, '', ''
+        for tag in form.find_all('input'):
+            itype = tag.attrs.get('type', 'text')
+            name = tag.attrs.get('name')
+            if not name:
+                continue
+            value = tag.attrs.get('value', '')
+            if itype in ('checkbox', 'radio') and not tag.attrs.get('checked', False):
+                continue
+            data[name] = value
+        for select in form.find_all('select'):
+            # todo: multiple
+            name = select.attrs.get('name')
+            if not name:
+                continue
+            data[name] = ''
+            for option in select.find_all('option'):
+                value = option.attrs.get('value', '')
+                if value and option.attrs.get('selected'):
+                    data[name] = value
+        for textarea in form.find_all('textarea'):
+            name = textarea.attrs.get('name')
+            if not name:
+                continue
+            data[name] = textarea.attrs.get('value', '')
+
+        return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
+
     def _new_tag(self, *args, **kw):
         soup = BeautifulSoup("", 'html5lib')
         return soup.new_tag(*args, **kw)
