@@ -2,7 +2,7 @@
     "url": "https://practicalguidetoevil.wordpress.com/2020/01/06/prologue-6/",
     "title": "A Practical Guide To Evil: Book 6",
     "author": "erraticerrata",
-    "content_selector": "#main .entry-wrapper",
+    "content_selector": "#main",
     "content_title_selector": "h1.entry-title",
     "content_text_selector": ".entry-content",
     "filter_selector": ".sharedaddy, .wpcnt, style",

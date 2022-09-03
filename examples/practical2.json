@@ -2,7 +2,7 @@
     "url": "https://practicalguidetoevil.wordpress.com/2015/11/04/prologue-2/",
     "title": "A Practical Guide To Evil: Book 2",
     "author": "erraticerrata",
-    "content_selector": "#main .entry-wrapper",
+    "content_selector": "#main",
     "content_title_selector": "h1.entry-title",
     "content_text_selector": ".entry-content",
     "filter_selector": ".sharedaddy, .wpcnt, style",
