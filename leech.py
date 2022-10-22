@@ -142,7 +142,7 @@ def flush(verbose):
 
 
 @cli.command()
-@click.argument('url')
+@click.argument('urls', nargs=-1, required=True)
 @click.option(
     '--site-options',
     default='{}',
@@ -157,20 +157,24 @@ def flush(verbose):
 @click.option('--normalize/--no-normalize', default=True, help="Whether to normalize strange unicode text")
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
 @site_specific_options  # Includes other click.options specific to sites
-def download(url, site_options, cache, verbose, normalize, output_dir, **other_flags):
+def download(urls, site_options, cache, verbose, normalize, output_dir, **other_flags):
     """Downloads a story and saves it on disk as a ebpub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
 
-    site, url = sites.get(url)
-    options, login = create_options(site, site_options, other_flags)
-    output_dir = output_dir or options.get('output_dir', os.getcwd())
-    story = open_story(site, url, session, login, options)
-    if story:
-        filename = ebook.generate_epub(story, options, normalize=normalize, output_dir=output_dir)
-        logger.info("File created: " + filename)
-    else:
-        logger.warning("No ebook created")
+    for url in urls:
+        site, url = sites.get(url)
+        options, login = create_options(site, site_options, other_flags)
+        story = open_story(site, url, session, login, options)
+        if story:
+            filename = ebook.generate_epub(
+                story, options,
+                normalize=normalize,
+                output_dir=output_dir or options.get('output_dir', os.getcwd())
+            )
+            logger.info("File created: " + filename)
+        else:
+            logger.warning("No ebook created")
 
 
 if __name__ == '__main__':
