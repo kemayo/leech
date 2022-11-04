@@ -27,12 +27,14 @@ class Image:
     contents = attr.ib()
     content_type = attr.ib()
 
+
 @attr.s
 class Chapter:
     title = attr.ib()
     contents = attr.ib()
     date = attr.ib(default=False)
     images = attr.ib(default=attr.Factory(list))
+
 
 @attr.s
 class Section:
