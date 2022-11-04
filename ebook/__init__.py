@@ -84,6 +84,16 @@ def chapter_html(story, titleprefix=None, normalize=False):
             # This is a Section
             chapters.extend(chapter_html(chapter, titleprefix=title, normalize=normalize))
         else:
+            # Add all pictures on this chapter as well.
+            for image in chapter.images:
+                # For/else syntax, check if the image path already exists, if it doesn't add the image.
+                # Duplicates are not allowed in the format.
+                for other_file in chapters:
+                    if other_file.path == image.path:
+                        break
+                else:
+                    chapters.append(EpubFile(path=image.path, contents=image.contents, filetype=image.content_type))
+
             title = titleprefix and f'{titleprefix}: {title}' or title
             contents = chapter.contents
             if normalize:
