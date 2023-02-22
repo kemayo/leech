@@ -158,7 +158,7 @@ def flush(verbose):
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
 @site_specific_options  # Includes other click.options specific to sites
 def download(urls, site_options, cache, verbose, normalize, output_dir, **other_flags):
-    """Downloads a story and saves it on disk as a ebpub ebook."""
+    """Downloads a story and saves it on disk as an epub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
 
