@@ -97,6 +97,8 @@ def chapter_html(story, titleprefix=None, normalize=False):
                     content_type='image/png'
                 ))
                 img['src'] = f"../images/ch{i}_leechimage_{count}.png"
+                if not img.has_attr('alt'):
+                    img['alt'] = f"Image {count} from chapter {i}"
             # Add all pictures on this chapter as well.
             for image in chapter.images:
                 # For/else syntax, check if the image path already exists, if it doesn't add the image.
