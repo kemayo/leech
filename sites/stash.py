@@ -62,6 +62,8 @@ class Stash(Site):
         except Exception as e:
             raise SiteException("Trouble cleaning attributes", e)
 
+        self._clean(text)
+
         return Chapter(title=title, contents=text.prettify(), date=self._date(soup))
 
     def _date(self, soup):

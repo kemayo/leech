@@ -6,7 +6,8 @@ import datetime
 import json
 import re
 import os.path
-from . import register, Site, Section, Chapter
+import urllib
+from . import register, Site, Section, Chapter, Image
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,9 @@ class SiteDefinition:
     filter_selector = attr.ib(default=False)
     cover_url = attr.ib(default='')
 
+    # If present, use to also download the images and embed them into the epub.
+    image_selector = attr.ib(default=False)
+
 
 @register
 class Arbitrary(Site):
@@ -75,8 +79,11 @@ class Arbitrary(Site):
                 for chapter in self._chapter(chapter_url, definition, title=chapter_link.string):
                     story.add(chapter)
         else:
+            # set of already processed urls. Stored to detect loops.
+            found_content_urls = set()
             content_url = definition.url
-            while content_url:
+            while content_url and content_url not in found_content_urls:
+                found_content_urls.add(content_url)
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
                 if definition.next_selector:
@@ -127,14 +134,44 @@ class Arbitrary(Site):
             # TODO: consider `'\n'.join(map(str, content.contents))`
             content.name = 'div'
 
-            # Extract from bs4 tree so the rest of the tree gets deleted.
-            content = content.extract()
+            self._clean(content)
+
+            images = []
+            if definition.image_selector:
+                images = self.load_images(content, definition.image_selector)
 
             chapters.append(Chapter(
                 title=title,
-                contents=content,
+                contents=content.prettify(),
                 # TODO: better date detection
                 date=datetime.datetime.now(),
+                images=images
             ))
 
         return chapters
+
+    def load_images(self, content, selector):
+        images = []
+        for image in content.select(selector):
+            if not image.has_attr('src'):
+                continue
+
+            image_url = image['src']
+            url = urllib.parse.urlparse(image_url)
+            local_path = 'chapter_images/' + url.path.strip('/')
+
+            image_res = self.session.get(image_url)
+            content_type = image_res.headers['Content-Type']
+            image_data = image_res.content
+
+            images.append(Image(
+                path=local_path,
+                contents=image_data,
+                content_type=content_type
+            ))
+            # Replace 'src'.
+            image['src'] = '../' + local_path
+            if image.has_attr('srcset'):
+                del image['srcset']
+
+        return images

@@ -2,10 +2,12 @@
 import click
 import glob
 import os
+import random
 import uuid
 import time
 import logging
 import urllib
+import re
 import attr
 from bs4 import BeautifulSoup
 
@@ -14,8 +16,16 @@ logger.addHandler(logging.NullHandler())
 _sites = []
 
 
-def _default_uuid_string(*args):
-    return str(uuid.uuid4())
+def _default_uuid_string(self):
+    rd = random.Random(x=self.url)
+    return str(uuid.UUID(int=rd.getrandbits(8*16), version=4))
+
+
+@attr.s
+class Image:
+    path = attr.ib()
+    contents = attr.ib()
+    content_type = attr.ib()
 
 
 @attr.s
@@ -23,7 +33,7 @@ class Chapter:
     title = attr.ib()
     contents = attr.ib()
     date = attr.ib(default=False)
-    id = attr.ib(default=attr.Factory(_default_uuid_string), converter=str)
+    images = attr.ib(default=attr.Factory(list))
 
 
 @attr.s
@@ -32,9 +42,10 @@ class Section:
     author = attr.ib()
     url = attr.ib()
     cover_url = attr.ib(default='')
-    id = attr.ib(default=attr.Factory(_default_uuid_string), converter=str)
+    id = attr.ib(default=attr.Factory(_default_uuid_string, takes_self=True), converter=str)
     contents = attr.ib(default=attr.Factory(list))
     footnotes = attr.ib(default=attr.Factory(list))
+    tags = attr.ib(default=attr.Factory(list))
     summary = attr.ib(default='')
 
     def __iter__(self):
@@ -91,7 +102,14 @@ class Site:
         same name, but pains should be taken to ensure they remain semantically
         similar in meaning.
         """
-        return []
+        return [
+            SiteSpecificOption(
+                'strip_colors',
+                '--strip-colors/--no-strip-colors',
+                default=True,
+                help="If true, colors will be stripped from the text."
+            ),
+        ]
 
     @classmethod
     def get_default_options(cls):
@@ -134,18 +152,59 @@ class Site:
     def login(self, login_details):
         raise NotImplementedError()
 
-    def _soup(self, url, method='html5lib', retry=3, retry_delay=10, **kw):
+    def _soup(self, url, method='html5lib', delay=0, retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
         if not page:
+            if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
+                raise CloudflareException("Couldn't fetch, probably because of Cloudflare protection", url)
             if retry and retry > 0:
-                delay = retry_delay
+                real_delay = retry_delay
                 if 'Retry-After' in page.headers:
-                    delay = int(page.headers['Retry-After'])
-                logger.warning("Load failed: waiting %s to retry (%s: %s)", delay, page.status_code, page.url)
-                time.sleep(delay)
+                    real_delay = int(page.headers['Retry-After'])
+                logger.warning("Load failed: waiting %s to retry (%s: %s)", real_delay, page.status_code, page.url)
+                time.sleep(real_delay)
                 return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
             raise SiteException("Couldn't fetch", url)
+        if delay and delay > 0 and not page.from_cache:
+            time.sleep(delay)
         return BeautifulSoup(page.text, method)
+
+    def _form_in_soup(self, soup):
+        if soup.name == 'form':
+            return soup
+        return soup.find('form')
+
+    def _form_data(self, soup):
+        data = {}
+        form = self._form_in_soup(soup)
+        if not form:
+            return data, '', ''
+        for tag in form.find_all('input'):
+            itype = tag.attrs.get('type', 'text')
+            name = tag.attrs.get('name')
+            if not name:
+                continue
+            value = tag.attrs.get('value', '')
+            if itype in ('checkbox', 'radio') and not tag.attrs.get('checked', False):
+                continue
+            data[name] = value
+        for select in form.find_all('select'):
+            # todo: multiple
+            name = select.attrs.get('name')
+            if not name:
+                continue
+            data[name] = ''
+            for option in select.find_all('option'):
+                value = option.attrs.get('value', '')
+                if value and option.attrs.get('selected'):
+                    data[name] = value
+        for textarea in form.find_all('textarea'):
+            name = textarea.attrs.get('name')
+            if not name:
+                continue
+            data[name] = textarea.attrs.get('value', '')
+
+        return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
 
     def _new_tag(self, *args, **kw):
         soup = BeautifulSoup("", 'html5lib')
@@ -189,6 +248,27 @@ class Site:
 
         return spoiler_link
 
+    def _clean(self, contents):
+        """Clean up story content to be more ebook-friendly
+
+        TODO: this expects a soup as its argument, so the couple of API-driven sites can't use it as-is
+        """
+        # Cloudflare is used on many sites, and mangles things that look like email addresses
+        # e.g. Point_Me_@_The_Sky becomes
+        # <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85d5eaecebf1dac8e0dac5">[email&#160;protected]</a>_The_Sky
+        for a in contents.find_all('a', class_='__cf_email__', href='/cdn-cgi/l/email-protection'):
+            # See: https://usamaejaz.com/cloudflare-email-decoding/
+            enc = bytes.fromhex(a['data-cfemail'])
+            email = bytes([c ^ enc[0] for c in enc[1:]]).decode('utf8')
+            a.insert_before(email)
+            a.decompose()
+        # strip colors
+        if self.options['strip_colors']:
+            for tag in contents.find_all(style=re.compile(r'(?:color|background)\s*:')):
+                tag['style'] = re.sub(r'(?:color|background)\s*:[^;]+;?', '', tag['style'])
+
+        return contents
+
 
 @attr.s(hash=True)
 class SiteSpecificOption:
@@ -217,6 +297,10 @@ class SiteSpecificOption:
 
 
 class SiteException(Exception):
+    pass
+
+
+class CloudflareException(SiteException):
     pass
 
 

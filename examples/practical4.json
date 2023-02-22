@@ -2,7 +2,7 @@
     "url": "https://practicalguidetoevil.wordpress.com/2018/04/09/prologue-4/",
     "title": "A Practical Guide To Evil: Book 4",
     "author": "erraticerrata",
-    "content_selector": "#main .entry-wrapper",
+    "content_selector": "#main",
     "content_title_selector": "h1.entry-title",
     "content_text_selector": ".entry-content",
     "filter_selector": ".sharedaddy, .wpcnt, style",

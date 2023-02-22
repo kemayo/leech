@@ -5,7 +5,7 @@ import datetime
 import re
 import requests_cache
 from bs4 import BeautifulSoup
-from . import register, Site, Section, Chapter
+from . import register, Site, Section, Chapter, SiteException
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class ArchiveOfOurOwn(Site):
     @staticmethod
     def matches(url):
         # e.g. http://archiveofourown.org/works/5683105/chapters/13092007
-        match = re.match(r'^(https?://archiveofourown\.org/works/\d+)/?.*', url)
+        match = re.match(r'^(https?://(?:www\.)?archiveofourown\.org/works/\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
 
@@ -24,26 +24,19 @@ class ArchiveOfOurOwn(Site):
         with requests_cache.disabled():
             login = self.session.get('https://archiveofourown.org/users/login')
             soup = BeautifulSoup(login.text, 'html5lib')
-            form = soup.find(id='new_user')
-            post = {
-                'user[login]': login_details[0],
-                'user[password]': login_details[1],
-                # standard fields:
-                'user[remember_me]': '1',
-                'utf8': form.find(attrs={'name': 'utf8'})['value'],
-                'authenticity_token': form.find(attrs={'name': 'authenticity_token'})['value'],
-                'commit': 'Log In',
-            }
+            post, action, method = self._form_data(soup.find(id='new_user'))
+            post['user[login]'] = login_details[0]
+            post['user[password]'] = login_details[1]
             # I feel the session *should* handle this cookies bit for me. But
             # it doesn't. And I don't know why.
             self.session.post(
-                self._join_url(login.url, str(form.get('action'))),
+                self._join_url(login.url, action),
                 data=post, cookies=login.cookies
             )
             logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
-        workid = re.match(r'^https?://archiveofourown\.org/works/(\d+)/?.*', url).group(1)
+        workid = re.match(r'^https?://(?:www\.)?archiveofourown\.org/works/(\d+)/?.*', url).group(1)
         return self._extract_work(workid)
 
     def _extract_work(self, workid):
@@ -52,15 +45,20 @@ class ArchiveOfOurOwn(Site):
         logger.info("Extracting full work @ %s", url)
         soup = self._soup(url)
 
+        if not soup.find(id='workskin'):
+            raise SiteException("Can't find the story text; you may need to log in or flush the cache")
+
         story = Section(
             title=soup.select('#workskin > .preface .title')[0].text.strip(),
             author=soup.select('#workskin .preface .byline a')[0].text.strip(),
             summary=soup.select('#workskin .preface .summary blockquote')[0].prettify(),
-            url=f'http://archiveofourown.org/works/{workid}'
+            url=f'http://archiveofourown.org/works/{workid}',
+            tags=[tag.get_text().strip() for tag in soup.select('.work.meta .tags a.tag')]
         )
 
         # Fetch the chapter list as well because it contains info that's not in the full work
         nav_soup = self._soup(f'https://archiveofourown.org/works/{workid}/navigate')
+        chapters = soup.find_all(id=re.compile(r"chapter-\d+"))
 
         for index, chapter in enumerate(nav_soup.select('#main ol[role="navigation"] li')):
             link = chapter.find('a')
@@ -71,10 +69,15 @@ class ArchiveOfOurOwn(Site):
                 "(%Y-%m-%d)"
             )
 
+            chapter_soup = chapters[index]
+            if not chapter_soup:
+                logger.warning("Couldn't find chapter %s in full work", index + 1)
+                continue
+
             story.add(Chapter(
                 title=link.string,
                 # the `or soup` fallback covers single-chapter works
-                contents=self._chapter(soup.find(id=f'chapter-{index + 1}') or soup),
+                contents=self._chapter(chapter_soup),
                 date=updated
             ))
 
@@ -92,6 +95,8 @@ class ArchiveOfOurOwn(Site):
             notes = notes[0]
             for landmark in notes.find_all(class_='landmark'):
                 landmark.decompose()
+
+        self._clean(content)
 
         return content.prettify() + (notes and notes.prettify() or '')
 

@@ -3,13 +3,17 @@
 import logging
 import datetime
 import re
-from . import register, Site, SiteException, Section, Chapter
+import urllib.parse
+import attr
+from . import register, Site, SiteException, CloudflareException, Section, Chapter
 
 logger = logging.getLogger(__name__)
 
 
 @register
 class FanFictionNet(Site):
+    _cloudflared = attr.ib(init=False, default=False)
+
     """FFN: it has a lot of stuff"""
     @staticmethod
     def matches(url):
@@ -20,6 +24,7 @@ class FanFictionNet(Site):
 
     def extract(self, url):
         soup = self._soup(url)
+
         content = soup.find(id="content_wrapper_inner")
         if not content:
             raise SiteException("No content")
@@ -48,10 +53,15 @@ class FanFictionNet(Site):
                 raise SiteException("Can't find base URL for chapters")
             base_url = base_url.group(0)
 
+            suffix = re.search(r"'(/[^']+)';", chapter_select.attrs['onchange'])
+            if not suffix:
+                raise SiteException("Can't find URL suffix for chapters")
+            suffix = suffix.group(1)
+
             # beautiful soup doesn't handle ffn's unclosed option tags at all well here
             options = re.findall(r'<option.+?value="?(\d+)"?[^>]*>([^<]+)', str(chapter_select))
             for option in options:
-                story.add(Chapter(title=option[1], contents=self._chapter(base_url + option[0]), date=False))
+                story.add(Chapter(title=option[1], contents=self._chapter(base_url + option[0] + suffix), date=False))
 
             # fix up the dates
             story[-1].date = updated
@@ -81,7 +91,26 @@ class FanFictionNet(Site):
         except Exception:
             logger.exception("Trouble cleaning attributes")
 
+        self._clean(text)
+
         return text.prettify()
+
+    def _soup(self, url, *args, **kwargs):
+        if self._cloudflared:
+            fallback = f"https://archive.org/wayback/available?url={urllib.parse.quote(url)}"
+            try:
+                response = self.session.get(fallback)
+                wayback = response.json()
+                closest = wayback['archived_snapshots']['closest']['url']
+                return super()._soup(closest, *args, delay=1, **kwargs)
+            except Exception:
+                self.session.cache.delete_url(fallback)
+                raise CloudflareException("Couldn't fetch, presumably because of Cloudflare protection, and falling back to archive.org failed; if some chapters were succeeding, try again?", url, fallback)
+        try:
+            super()._soup(self, url, *args, **kwargs)
+        except CloudflareException:
+            self._cloudflared = True
+            return self._soup(url, *args, **kwargs)
 
 
 @register

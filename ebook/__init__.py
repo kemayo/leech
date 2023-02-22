@@ -1,7 +1,9 @@
-from .epub import make_epub
+from .epub import make_epub, EpubFile
 from .cover import make_cover
 from .cover import make_cover_from_url
 
+import html
+import unicodedata
 import datetime
 import requests
 import attr
@@ -54,6 +56,7 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <dd>{updated:%Y-%m-%d}</dd>
         <dt>Downloaded on</dt>
         <dd>{now:%Y-%m-%d}</dd>
+        {extra}
     </dl>
 </div>
 </body>
@@ -73,26 +76,40 @@ class CoverOptions:
     cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
 
 
-def chapter_html(story, titleprefix=None):
+def chapter_html(story, titleprefix=None, normalize=False):
     chapters = []
     for i, chapter in enumerate(story):
         title = chapter.title or f'#{i}'
         if hasattr(chapter, '__iter__'):
             # This is a Section
-            chapters.extend(chapter_html(chapter, titleprefix=title))
+            chapters.extend(chapter_html(chapter, titleprefix=title, normalize=normalize))
         else:
+            # Add all pictures on this chapter as well.
+            for image in chapter.images:
+                # For/else syntax, check if the image path already exists, if it doesn't add the image.
+                # Duplicates are not allowed in the format.
+                for other_file in chapters:
+                    if other_file.path == image.path:
+                        break
+                else:
+                    chapters.append(EpubFile(path=image.path, contents=image.contents, filetype=image.content_type))
+
             title = titleprefix and f'{titleprefix}: {title}' or title
-            chapters.append((
-                title,
-                f'{story.id}/chapter{i + 1}.html',
-                html_template.format(title=title, text=chapter.contents)
+            contents = chapter.contents
+            if normalize:
+                title = unicodedata.normalize('NFKC', title)
+                contents = unicodedata.normalize('NFKC', contents)
+            chapters.append(EpubFile(
+                title=title,
+                path=f'{story.id}/chapter{i + 1}.html',
+                contents=html_template.format(title=html.escape(title), text=contents)
             ))
     if story.footnotes:
-        chapters.append(("Footnotes", f'{story.id}/footnotes.html', html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
+        chapters.append(EpubFile(title="Footnotes", path=f'{story.id}/footnotes.html', contents=html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
     return chapters
 
 
-def generate_epub(story, cover_options={}, output_filename=None):
+def generate_epub(story, cover_options={}, output_filename=None, output_dir=None, normalize=False):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -100,14 +117,21 @@ def generate_epub(story, cover_options={}, output_filename=None):
         'unique_id': story.url,
         'started': min(dates),
         'updated': max(dates),
+        'extra': '',
     }
+    extra_metadata = {}
+
+    if story.summary:
+        extra_metadata['Summary'] = story.summary
+    if story.tags:
+        extra_metadata['Tags'] = ', '.join(story.tags)
+
+    if extra_metadata:
+        metadata['extra'] = '\n        '.join(f'<dt>{k}</dt><dd>{v}</dd>' for k, v in extra_metadata.items())
 
     valid_cover_options = ('fontname', 'fontsize', 'width', 'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
     cover_options = CoverOptions(**{k: v for k, v in cover_options.items() if k in valid_cover_options})
     cover_options = attr.asdict(cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
-
-    # The cover is static, and the only change comes from the image which we generate
-    html = [('Cover', 'cover.html', cover_template)]
 
     if cover_options and "cover_url" in cover_options:
         image = make_cover_from_url(cover_options["cover_url"], story.title, story.author)
@@ -116,16 +140,16 @@ def generate_epub(story, cover_options={}, output_filename=None):
     else:
         image = make_cover(story.title, story.author, **cover_options)
 
-    cover_image = ('images/cover.png', image.read(), 'image/png')
-
-    html.append(('Front Matter', 'frontmatter.html', frontmatter_template.format(now=datetime.datetime.now(), **metadata)))
-
-    html.extend(chapter_html(story))
-
-    css = ('Styles/base.css', requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, 'text/css')
-
-    output_filename = output_filename or story.title + '.epub'
-
-    output_filename = make_epub(output_filename, html, metadata, extra_files=(css, cover_image))
-
-    return output_filename
+    return make_epub(
+        output_filename or story.title + '.epub',
+        [
+            # The cover is static, and the only change comes from the image which we generate
+            EpubFile(title='Cover', path='cover.html', contents=cover_template),
+            EpubFile(title='Front Matter', path='frontmatter.html', contents=frontmatter_template.format(now=datetime.datetime.now(), **metadata)),
+            *chapter_html(story, normalize=normalize),
+            EpubFile(path='Styles/base.css', contents=requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, filetype='text/css'),
+            EpubFile(path='images/cover.png', contents=image.read(), filetype='image/png'),
+        ],
+        metadata,
+        output_dir=output_dir
+    )

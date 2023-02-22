@@ -4,9 +4,13 @@ version = "1.0.0"
 description = "Turn a story on certain websites into an ebook for convenient reading"
 authors = ["David Lynch <kemayo@gmail.com>"]
 license = "MIT License"
+include = ["ebook/*", "sites/*"]
+
+[tool.poetry.scripts]
+leech = "leech:cli"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 attrs = "^20.2.0"
 beautifulsoup4 = "^4.9.3"
 click-default-group = "^1.2.2"
@@ -14,7 +18,7 @@ click = "^7.1.2"
 html5lib = "^1.1"
 requests = "^2.24.0"
 requests-cache = "^0.5.2"
-Pillow = "^8.0.1"
+Pillow = "^9.0.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"

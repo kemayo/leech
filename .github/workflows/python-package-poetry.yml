@@ -1,0 +1,49 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python package
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install tooling
+      run: |
+        python -m ensurepip
+        python -m pip install --upgrade pip
+        python -m pip install flake8 poetry
+    - name: Install dependencies
+      run: |
+        poetry install
+    - name: Lint with flake8
+      run: |
+        flake8 .
+    - name: Make sure help runs
+      run: |
+        poetry run leech --help
+    - name: Build a cover
+      run: |
+        poetry run python ebook/cover.py && file -E output.png && rm output.png
+    - name: Verify poetry build
+      run: |
+        poetry build && ls -og dist/*
+    - name: eclint
+      uses: snow-actions/eclint@v1.0.1
+      with:
+        args: 'check *.py sites/*.py'
