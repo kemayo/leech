@@ -1,6 +1,8 @@
 from .epub import make_epub, EpubFile
-from .cover import make_cover
-from .cover import make_cover_from_url
+from .cover import make_cover, make_cover_from_url
+from .image import get_image_from_url
+from sites import Image
+from bs4 import BeautifulSoup
 
 import html
 import unicodedata
@@ -72,7 +74,8 @@ class CoverOptions:
     height = attr.ib(default=None, converter=attr.converters.optional(int))
     wrapat = attr.ib(default=None, converter=attr.converters.optional(int))
     bgcolor = attr.ib(default=None, converter=attr.converters.optional(tuple))
-    textcolor = attr.ib(default=None, converter=attr.converters.optional(tuple))
+    textcolor = attr.ib(
+        default=None, converter=attr.converters.optional(tuple))
     cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
 
 
@@ -82,8 +85,18 @@ def chapter_html(story, titleprefix=None, normalize=False):
         title = chapter.title or f'#{i}'
         if hasattr(chapter, '__iter__'):
             # This is a Section
-            chapters.extend(chapter_html(chapter, titleprefix=title, normalize=normalize))
+            chapters.extend(chapter_html(
+                chapter, titleprefix=title, normalize=normalize))
         else:
+            soup = BeautifulSoup(chapter.contents, 'html5lib')
+            for count, img in enumerate(soup.find_all('img')):
+                img_contents = get_image_from_url(img['src']).read()
+                chapter.images.append(Image(
+                    path=f"images/ch{i}_leechimage_{count}.png",
+                    contents=img_contents,
+                    content_type='image/png'
+                ))
+                img['src'] = f"../images/ch{i}_leechimage_{count}.png"
             # Add all pictures on this chapter as well.
             for image in chapter.images:
                 # For/else syntax, check if the image path already exists, if it doesn't add the image.
@@ -92,20 +105,23 @@ def chapter_html(story, titleprefix=None, normalize=False):
                     if other_file.path == image.path:
                         break
                 else:
-                    chapters.append(EpubFile(path=image.path, contents=image.contents, filetype=image.content_type))
+                    chapters.append(EpubFile(
+                        path=image.path, contents=image.contents, filetype=image.content_type))
 
             title = titleprefix and f'{titleprefix}: {title}' or title
-            contents = chapter.contents
+            contents = str(soup)
             if normalize:
                 title = unicodedata.normalize('NFKC', title)
                 contents = unicodedata.normalize('NFKC', contents)
             chapters.append(EpubFile(
                 title=title,
                 path=f'{story.id}/chapter{i + 1}.html',
-                contents=html_template.format(title=html.escape(title), text=contents)
+                contents=html_template.format(
+                    title=html.escape(title), text=contents)
             ))
     if story.footnotes:
-        chapters.append(EpubFile(title="Footnotes", path=f'{story.id}/footnotes.html', contents=html_template.format(title="Footnotes", text='\n\n'.join(story.footnotes))))
+        chapters.append(EpubFile(title="Footnotes", path=f'{story.id}/footnotes.html', contents=html_template.format(
+            title="Footnotes", text='\n\n'.join(story.footnotes))))
     return chapters
 
 
@@ -127,14 +143,19 @@ def generate_epub(story, cover_options={}, output_filename=None, output_dir=None
         extra_metadata['Tags'] = ', '.join(story.tags)
 
     if extra_metadata:
-        metadata['extra'] = '\n        '.join(f'<dt>{k}</dt><dd>{v}</dd>' for k, v in extra_metadata.items())
+        metadata['extra'] = '\n        '.join(
+            f'<dt>{k}</dt><dd>{v}</dd>' for k, v in extra_metadata.items())
 
-    valid_cover_options = ('fontname', 'fontsize', 'width', 'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
-    cover_options = CoverOptions(**{k: v for k, v in cover_options.items() if k in valid_cover_options})
-    cover_options = attr.asdict(cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
+    valid_cover_options = ('fontname', 'fontsize', 'width',
+                           'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
+    cover_options = CoverOptions(
+        **{k: v for k, v in cover_options.items() if k in valid_cover_options})
+    cover_options = attr.asdict(
+        cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
 
     if cover_options and "cover_url" in cover_options:
-        image = make_cover_from_url(cover_options["cover_url"], story.title, story.author)
+        image = make_cover_from_url(
+            cover_options["cover_url"], story.title, story.author)
     elif story.cover_url:
         image = make_cover_from_url(story.cover_url, story.title, story.author)
     else:
@@ -145,10 +166,17 @@ def generate_epub(story, cover_options={}, output_filename=None, output_dir=None
         [
             # The cover is static, and the only change comes from the image which we generate
             EpubFile(title='Cover', path='cover.html', contents=cover_template),
-            EpubFile(title='Front Matter', path='frontmatter.html', contents=frontmatter_template.format(now=datetime.datetime.now(), **metadata)),
+            EpubFile(title='Front Matter', path='frontmatter.html', contents=frontmatter_template.format(
+                now=datetime.datetime.now(), **metadata)),
             *chapter_html(story, normalize=normalize),
-            EpubFile(path='Styles/base.css', contents=requests.Session().get('https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text, filetype='text/css'),
-            EpubFile(path='images/cover.png', contents=image.read(), filetype='image/png'),
+            EpubFile(
+                path='Styles/base.css',
+                contents=requests.Session().get(
+                    'https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text,
+                filetype='text/css'
+            ),
+            EpubFile(path='images/cover.png',
+                     contents=image.read(), filetype='image/png'),
         ],
         metadata,
         output_dir=output_dir
