@@ -89,7 +89,15 @@ def chapter_html(story, titleprefix=None, normalize=False):
                 chapter, titleprefix=title, normalize=normalize))
         else:
             soup = BeautifulSoup(chapter.contents, 'html5lib')
-            for count, img in enumerate(soup.find_all('img')):
+            all_images = soup.find_all('img')
+            len_of_all_images = len(all_images)
+            print(f"\nFound {len_of_all_images} images in chapter {i}\n")
+
+            for count, img in enumerate(all_images):
+                if not img.has_attr('src'):
+                    print(f"Image {count} has no src attribute, skipping...")
+                    continue
+                print(f"Downloading image {count+1} out of {len_of_all_images} from chapter {i}")
                 img_contents = get_image_from_url(img['src']).read()
                 chapter.images.append(Image(
                     path=f"images/ch{i}_leechimage_{count}.png",
