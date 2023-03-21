@@ -3,6 +3,7 @@
 import click
 import http.cookiejar
 import json
+from typing import Optional
 import logging
 import os
 import requests
@@ -10,12 +11,14 @@ import requests_cache
 import sqlite3
 from click_default_group import DefaultGroup
 from functools import reduce
+from _leech.story import Story
+from _leech.epub import Epub
+from sites import Site
 
 import sites
-import ebook
 
 __version__ = 2
-USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
+USER_AGENT = "Leech/%s +http://davidlynch.org" % __version__
 
 logger = logging.getLogger(__name__)
 
@@ -23,52 +26,50 @@ logger = logging.getLogger(__name__)
 def configure_logging(verbose):
     if verbose:
         logging.basicConfig(
-            level=logging.DEBUG,
-            format="[%(name)s @ %(levelname)s] %(message)s"
+            level=logging.DEBUG, format="[%(name)s @ %(levelname)s] %(message)s"
         )
     else:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="[%(name)s] %(message)s"
-        )
+        logging.basicConfig(level=logging.INFO, format="[%(name)s] %(message)s")
 
 
 def create_session(cache):
     if cache:
-        session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
+        session = requests_cache.CachedSession("leech", expire_after=4 * 3600)
     else:
         session = requests.Session()
 
     lwp_cookiejar = http.cookiejar.LWPCookieJar()
     try:
-        lwp_cookiejar.load('leech.cookies', ignore_discard=True)
+        lwp_cookiejar.load("leech.cookies", ignore_discard=True)
     except Exception:
         # This file is very much optional, so this log isn't really necessary
         # logging.exception("Couldn't load cookies from leech.cookies")
         pass
     session.cookies.update(lwp_cookiejar)
-    session.headers.update({
-        'User-agent': USER_AGENT
-    })
+    session.headers.update({"User-agent": USER_AGENT})
     return session
 
 
 def load_on_disk_options(site):
     try:
-        with open('leech.json') as store_file:
+        with open("leech.json") as store_file:
             store = json.load(store_file)
-            login = store.get('logins', {}).get(site.site_key(), False)
-            configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
-            cover_options = store.get('cover', {})
-            output_dir = store.get('output_dir', False)
+            login = store.get("logins", {}).get(site.site_key(), False)
+            configured_site_options = store.get("site_options", {}).get(
+                site.site_key(), {}
+            )
+            cover_options = store.get("cover", {})
+            output_dir = store.get("output_dir", False)
     except FileNotFoundError:
-        logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
+        logger.info(
+            "Unable to locate leech.json. Continuing assuming it does not exist."
+        )
         login = False
         configured_site_options = {}
         cover_options = {}
         output_dir = False
-    if output_dir and 'output_dir' not in configured_site_options:
-        configured_site_options['output_dir'] = output_dir
+    if output_dir and "output_dir" not in configured_site_options:
+        configured_site_options["output_dir"] = output_dir
     return configured_site_options, login, cover_options
 
 
@@ -87,32 +88,13 @@ def create_options(site, site_options, unused_flags):
     # The final options dictionary is computed by layering the default, configured,
     # and overridden, and flag-specified options together in that order.
     options = dict(
-        list(default_site_options.items()) +
-        list(configured_site_options.items()) +
-        list(overridden_site_options.items()) +
-        list(flag_specified_site_options.items()) +
-        list(cover_options.items())
+        list(default_site_options.items())
+        + list(configured_site_options.items())
+        + list(overridden_site_options.items())
+        + list(flag_specified_site_options.items())
+        + list(cover_options.items())
     )
     return options, login
-
-
-def open_story(site, url, session, login, options):
-    handler = site(
-        session,
-        options=options
-    )
-
-    if login:
-        handler.login(login)
-
-    try:
-        story = handler.extract(url)
-    except sites.SiteException as e:
-        logger.error(e.args)
-        return
-    if not story:
-        raise Exception("Couldn't extract story")
-    return story
 
 
 def site_specific_options(f):
@@ -120,21 +102,21 @@ def site_specific_options(f):
     return reduce(lambda cmd, decorator: decorator(cmd), [f] + option_list)
 
 
-@click.group(cls=DefaultGroup, default='download', default_if_no_args=True)
+@click.group(cls=DefaultGroup, default="download", default_if_no_args=True)
 def cli():
     """Top level click group. Uses click-default-group to preserve most behavior from leech v1."""
     pass
 
 
 @cli.command()
-@click.option('--verbose', '-v', is_flag=True, help="verbose output")
+@click.option("--verbose", "-v", is_flag=True, help="verbose output")
 def flush(verbose):
     """Flushes the contents of the cache."""
     configure_logging(verbose)
-    requests_cache.install_cache('leech')
+    requests_cache.install_cache("leech")
     requests_cache.clear()
 
-    conn = sqlite3.connect('leech.sqlite')
+    conn = sqlite3.connect("leech.sqlite")
     conn.execute("VACUUM")
     conn.close()
 
@@ -142,40 +124,56 @@ def flush(verbose):
 
 
 @cli.command()
-@click.argument('urls', nargs=-1, required=True)
+@click.argument("urls", nargs=-1, required=True)
 @click.option(
-    '--site-options',
-    default='{}',
-    help='JSON object encoding any site specific option.'
+    "--site-options",
+    default="{}",
+    help="JSON object encoding any site specific option.",
 )
+@click.option("--output-dir", default=None, help="Directory to save generated ebooks")
+@click.option("--cache/--no-cache", default=True)
 @click.option(
-    '--output-dir',
-    default=None,
-    help='Directory to save generated ebooks'
+    "--normalize/--no-normalize",
+    default=True,
+    help="Whether to normalize strange unicode text",
 )
-@click.option('--cache/--no-cache', default=True)
-@click.option('--normalize/--no-normalize', default=True, help="Whether to normalize strange unicode text")
-@click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose debugging output")
+@click.option(
+    "--update-from", help="The relative path to a preexisting file to update from"
+)
 @site_specific_options  # Includes other click.options specific to sites
-def download(urls, site_options, cache, verbose, normalize, output_dir, **other_flags):
+def download(
+    urls,
+    site_options,
+    cache,
+    verbose,
+    normalize,
+    output_dir,
+    update_from,
+    **other_flags,
+):
     """Downloads a story and saves it on disk as a ebpub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
 
     for url in urls:
-        site, url = sites.get(url)
-        options, login = create_options(site, site_options, other_flags)
-        story = open_story(site, url, session, login, options)
-        if story:
-            filename = ebook.generate_epub(
-                story, options,
-                normalize=normalize,
-                output_dir=output_dir or options.get('output_dir', os.getcwd())
-            )
-            logger.info("File created: " + filename)
-        else:
+        site_cls, url = Site.select(url)
+        options, login = create_options(site_cls, site_options, other_flags)
+
+        site: Site = site_cls.create(url, options)
+        story: Optional[Story] = site.collect(session, login)
+
+        if not story:
             logger.warning("No ebook created")
+            return
+
+        epub = Epub.from_story(story, cover_options=options, normalize=normalize)
+        filename = epub.write(
+            load_from=update_from,
+            output_dir=output_dir or options.get("output_dir", os.getcwd()),
+        )
+        logger.info(f"File created: {filename}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

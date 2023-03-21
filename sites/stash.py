@@ -3,7 +3,9 @@
 import logging
 import datetime
 import re
-from . import register, Site, SiteException, Section, Chapter
+from . import register, Site, SiteException
+from _leech.story import Story
+from _leech.chapter import Chapter
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +15,9 @@ class Stash(Site):
     @staticmethod
     def matches(url):
         # Need a stack page
-        match = re.match(r'^(https?://sta\.sh/2.+)/?.*', url)
+        match = re.match(r"^(https?://sta\.sh/2.+)/?.*", url)
         if match:
-            return match.group(1) + '/'
+            return match.group(1) + "/"
 
     def extract(self, url):
         soup = self._soup(url)
@@ -24,10 +26,12 @@ class Stash(Site):
             return
 
         # metadata = content.find(id='profile_top')
-        story = Section(
+        story = Story(
             title=str(soup.find(class_="stash-folder-name").h2.string),
-            author=str(soup.find('span', class_="oh-stashlogo-name").string).rstrip("'s"),
-            url=url
+            author=str(soup.find("span", class_="oh-stashlogo-name").string).rstrip(
+                "'s"
+            ),
+            url=url,
         )
 
         thumbs = content.select(".stash-folder-stream .thumb")
@@ -35,8 +39,8 @@ class Stash(Site):
             return
         for thumb in thumbs:
             try:
-                if thumb['href'] != '#':
-                    story.add(self._chapter(thumb['href']))
+                if thumb["href"] != "#":
+                    story.add(self._chapter(thumb["href"]))
             except Exception:
                 logger.exception("Couldn't extract chapters from thumbs")
 
@@ -50,7 +54,7 @@ class Stash(Site):
         if not content:
             raise SiteException("No content")
 
-        title = str(content.find(class_="gr-top").find(class_='metadata').h2.a.string)
+        title = str(content.find(class_="gr-top").find(class_="metadata").h2.a.string)
 
         text = content.find(class_="text")
 
@@ -67,5 +71,7 @@ class Stash(Site):
         return Chapter(title=title, contents=text.prettify(), date=self._date(soup))
 
     def _date(self, soup):
-        maybe_date = soup.find('div', class_="dev-metainfo-details").find('span', ts=True)
-        return datetime.datetime.fromtimestamp(int(maybe_date['ts']))
+        maybe_date = soup.find("div", class_="dev-metainfo-details").find(
+            "span", ts=True
+        )
+        return datetime.datetime.fromtimestamp(int(maybe_date["ts"]))

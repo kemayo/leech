@@ -3,7 +3,8 @@
 import logging
 import re
 
-from . import register, Section
+from . import register
+from _leech.story import Story
 from .stash import Stash
 
 logger = logging.getLogger(__name__)
@@ -14,9 +15,11 @@ class DeviantArt(Stash):
     @staticmethod
     def matches(url):
         # Need a collection page
-        match = re.match(r'^https?://[^.]+\.deviantart\.com/(?:gallery|favourites)/\d+/?', url)
+        match = re.match(
+            r"^https?://[^.]+\.deviantart\.com/(?:gallery|favourites)/\d+/?", url
+        )
         if match:
-            return match.group(0) + '/'
+            return match.group(0) + "/"
 
     def extract(self, url):
         soup = self._soup(url)
@@ -25,15 +28,17 @@ class DeviantArt(Stash):
             return
 
         if "gallery" in url:
-            author = str(content.select('h1 a.u')[0].string)
+            author = str(content.select("h1 a.u")[0].string)
         else:
-            authors = set(str(author.string) for author in content.select('.stream .details a.u'))
-            author = ', '.join(authors)
+            authors = set(
+                str(author.string) for author in content.select(".stream .details a.u")
+            )
+            author = ", ".join(authors)
 
-        story = Section(
+        story = Story(
             title=str(content.find(class_="folder-title").string),
             author=author,
-            url=url
+            url=url,
         )
 
         thumbs = content.select(".stream a.thumb")
@@ -41,8 +46,8 @@ class DeviantArt(Stash):
             return
         for thumb in thumbs:
             try:
-                if thumb['href'] != '#':
-                    story.add(self._chapter(thumb['href']))
+                if thumb["href"] != "#":
+                    story.add(self._chapter(thumb["href"]))
             except Exception:
                 logger.exception("Couldn't extract chapters from thumbs")
 

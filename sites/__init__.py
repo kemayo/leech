@@ -1,86 +1,47 @@
-
 import click
+import json
+from dataclasses import dataclass, field, asdict
 import glob
 import os
-import random
-import uuid
 import time
 import logging
 import urllib
 import re
 import attr
 from bs4 import BeautifulSoup
+from _leech.story import Story
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 _sites = []
 
 
-def _default_uuid_string(self):
-    rd = random.Random(x=self.url)
-    return str(uuid.UUID(int=rd.getrandbits(8*16), version=4))
-
-
-@attr.s
-class Chapter:
-    title = attr.ib()
-    contents = attr.ib()
-    date = attr.ib(default=False)
-
-
-@attr.s
-class Section:
-    title = attr.ib()
-    author = attr.ib()
-    url = attr.ib()
-    cover_url = attr.ib(default='')
-    id = attr.ib(default=attr.Factory(_default_uuid_string, takes_self=True), converter=str)
-    contents = attr.ib(default=attr.Factory(list))
-    footnotes = attr.ib(default=attr.Factory(list))
-    tags = attr.ib(default=attr.Factory(list))
-    summary = attr.ib(default='')
-
-    def __iter__(self):
-        return self.contents.__iter__()
-
-    def __getitem__(self, index):
-        return self.contents.__getitem__(index)
-
-    def __setitem__(self, index, value):
-        return self.contents.__setitem__(index, value)
-
-    def __len__(self):
-        return len(self.contents)
-
-    def add(self, value, index=None):
-        if index is not None:
-            self.contents.insert(index, value)
-        else:
-            self.contents.append(value)
-
-    def dates(self):
-        for chapter in self.contents:
-            if hasattr(chapter, '__iter__'):
-                yield from chapter.dates()
-            elif chapter.date:
-                yield chapter.date
-
-
-@attr.s
+@dataclass
 class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    session = attr.ib()
-    footnotes = attr.ib(factory=list, init=False)
-    options = attr.ib(default=attr.Factory(
-        lambda site: site.get_default_options(),
-        True
-    ))
+
+    story: Story
+
+    chapter_count: int = 1
+    context: dict = field(default_factory=dict)
+
+    footnotes: list[str] = field(default_factory=list)
+    options: dict = field(default_factory=lambda: Site.get_default_options())
+
+    @classmethod
+    def select(cls, url):
+        for site_class in _sites:
+            match = site_class.matches(url)
+            if match:
+                logger.info("Handler: %s (%s)", site_class, match)
+                return site_class, match
+        raise NotImplementedError("Could not find a handler for " + url)
 
     @classmethod
     def site_key(cls):
-        if hasattr(cls, '_key'):
+        if hasattr(cls, "_key"):
             return cls._key
         return cls.__name__
 
@@ -96,10 +57,10 @@ class Site:
         """
         return [
             SiteSpecificOption(
-                'strip_colors',
-                '--strip-colors/--no-strip-colors',
+                "strip_colors",
+                "--strip-colors/--no-strip-colors",
                 default=True,
-                help="If true, colors will be stripped from the text."
+                help="If true, colors will be stripped from the text.",
             ),
         ]
 
@@ -128,7 +89,27 @@ class Site:
     def matches(url):
         raise NotImplementedError()
 
-    def extract(self, url):
+    @classmethod
+    def create(cls, options):
+        raise NotImplementedError()
+
+    def collect(self, session, login):
+        if login:
+            self.login(login)
+
+        try:
+            story = self.extract(session)
+        except SiteException as e:
+            logger.error(e.args)
+            return
+
+        if not story:
+            raise Exception("Couldn't extract story")
+
+        self.cache()
+        return story
+
+    def extract(self, session):
         """Download a story from a given URL
 
         Args:
@@ -144,68 +125,83 @@ class Site:
     def login(self, login_details):
         raise NotImplementedError()
 
-    def _soup(self, url, method='html5lib', delay=0, retry=3, retry_delay=10, **kw):
-        page = self.session.get(url, **kw)
+    def _soup(
+        self, session, url, method="html5lib", delay=0, retry=3, retry_delay=10, **kw
+    ):
+        page = session.get(url, **kw)
         if not page:
-            if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
-                raise CloudflareException("Couldn't fetch, probably because of Cloudflare protection", url)
+            if (
+                page.status_code == 403
+                and page.headers.get("Server", False) == "cloudflare"
+                and "captcha-bypass" in page.text
+            ):
+                raise CloudflareException(
+                    "Couldn't fetch, probably because of Cloudflare protection", url
+                )
             if retry and retry > 0:
                 real_delay = retry_delay
-                if 'Retry-After' in page.headers:
-                    real_delay = int(page.headers['Retry-After'])
-                logger.warning("Load failed: waiting %s to retry (%s: %s)", real_delay, page.status_code, page.url)
+                if "Retry-After" in page.headers:
+                    real_delay = int(page.headers["Retry-After"])
+                logger.warning(
+                    "Load failed: waiting %s to retry (%s: %s)",
+                    real_delay,
+                    page.status_code,
+                    page.url,
+                )
                 time.sleep(real_delay)
-                return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
+                return self._soup(
+                    url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw
+                )
             raise SiteException("Couldn't fetch", url)
         if delay and delay > 0 and not page.from_cache:
             time.sleep(delay)
         return BeautifulSoup(page.text, method)
 
     def _form_in_soup(self, soup):
-        if soup.name == 'form':
+        if soup.name == "form":
             return soup
-        return soup.find('form')
+        return soup.find("form")
 
     def _form_data(self, soup):
         data = {}
         form = self._form_in_soup(soup)
         if not form:
-            return data, '', ''
-        for tag in form.find_all('input'):
-            itype = tag.attrs.get('type', 'text')
-            name = tag.attrs.get('name')
+            return data, "", ""
+        for tag in form.find_all("input"):
+            itype = tag.attrs.get("type", "text")
+            name = tag.attrs.get("name")
             if not name:
                 continue
-            value = tag.attrs.get('value', '')
-            if itype in ('checkbox', 'radio') and not tag.attrs.get('checked', False):
+            value = tag.attrs.get("value", "")
+            if itype in ("checkbox", "radio") and not tag.attrs.get("checked", False):
                 continue
             data[name] = value
-        for select in form.find_all('select'):
+        for select in form.find_all("select"):
             # todo: multiple
-            name = select.attrs.get('name')
+            name = select.attrs.get("name")
             if not name:
                 continue
-            data[name] = ''
-            for option in select.find_all('option'):
-                value = option.attrs.get('value', '')
-                if value and option.attrs.get('selected'):
+            data[name] = ""
+            for option in select.find_all("option"):
+                value = option.attrs.get("value", "")
+                if value and option.attrs.get("selected"):
                     data[name] = value
-        for textarea in form.find_all('textarea'):
-            name = textarea.attrs.get('name')
+        for textarea in form.find_all("textarea"):
+            name = textarea.attrs.get("name")
             if not name:
                 continue
-            data[name] = textarea.attrs.get('value', '')
+            data[name] = textarea.attrs.get("value", "")
 
-        return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
+        return data, form.attrs.get("action"), form.attrs.get("method", "get").lower()
 
     def _new_tag(self, *args, **kw):
-        soup = BeautifulSoup("", 'html5lib')
+        soup = BeautifulSoup("", "html5lib")
         return soup.new_tag(*args, **kw)
 
     def _join_url(self, *args, **kwargs):
         return urllib.parse.urljoin(*args, **kwargs)
 
-    def _footnote(self, contents, chapterid):
+    def _footnote(self, contents: BeautifulSoup, chapterid):
         """Register a footnote and return a link to that footnote"""
 
         # TODO: This embeds knowledge of what the generated filenames will be. Work out a better way.
@@ -214,27 +210,27 @@ class Site:
 
         # epub spec footnotes are all about epub:type on the footnote and the link
         # http://www.idpf.org/accessibility/guidelines/content/semantics/epub-type.php
-        contents.name = 'div'
-        contents.attrs['id'] = f'footnote{idx}'
-        contents.attrs['epub:type'] = 'rearnote'
+        contents.name = "div"
+        contents.attrs["id"] = f"footnote{idx}"
+        contents.attrs["epub:type"] = "rearnote"
 
         # a backlink is essential for Kindle to think of this as a footnote
         # otherwise it doesn't get the inline-popup treatment
         # http://kindlegen.s3.amazonaws.com/AmazonKindlePublishingGuidelines.pdf
         # section 3.9.10
-        backlink = self._new_tag('a', href=f'chapter{chapterid}.html#noteback{idx}')
-        backlink.string = '^'
+        backlink = self._new_tag("a", href=f"chapter{chapterid}.html#noteback{idx}")
+        backlink.string = "^"
         contents.insert(0, backlink)
 
         self.footnotes.append(contents.prettify())
 
         # now build the link to the footnote to return, with appropriate
         # epub annotations.
-        spoiler_link = self._new_tag('a')
+        spoiler_link = self._new_tag("a")
         spoiler_link.attrs = {
-            'id': f'noteback{idx}',
-            'href': f'footnotes.html#footnote{idx}',
-            'epub:type': 'noteref',
+            "id": f"noteback{idx}",
+            "href": f"footnotes.html#footnote{idx}",
+            "epub:type": "noteref",
         }
         spoiler_link.string = str(idx)
 
@@ -248,18 +244,52 @@ class Site:
         # Cloudflare is used on many sites, and mangles things that look like email addresses
         # e.g. Point_Me_@_The_Sky becomes
         # <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85d5eaecebf1dac8e0dac5">[email&#160;protected]</a>_The_Sky
-        for a in contents.find_all('a', class_='__cf_email__', href='/cdn-cgi/l/email-protection'):
+        for a in contents.find_all(
+            "a", class_="__cf_email__", href="/cdn-cgi/l/email-protection"
+        ):
             # See: https://usamaejaz.com/cloudflare-email-decoding/
-            enc = bytes.fromhex(a['data-cfemail'])
-            email = bytes([c ^ enc[0] for c in enc[1:]]).decode('utf8')
+            enc = bytes.fromhex(a["data-cfemail"])
+            email = bytes([c ^ enc[0] for c in enc[1:]]).decode("utf8")
             a.insert_before(email)
             a.decompose()
         # strip colors
-        if self.options['strip_colors']:
-            for tag in contents.find_all(style=re.compile(r'(?:color|background)\s*:')):
-                tag['style'] = re.sub(r'(?:color|background)\s*:[^;]+;?', '', tag['style'])
+        if self.options["strip_colors"]:
+            for tag in contents.find_all(style=re.compile(r"(?:color|background)\s*:")):
+                tag["style"] = re.sub(
+                    r"(?:color|background)\s*:[^;]+;?", "", tag["style"]
+                )
 
         return contents
+
+    @classmethod
+    def load_from_cache(cls, url):
+        site_key = cls.site_key()
+        cache_path = os.path.join("cache", site_key, url, "file.json")
+        if os.path.exists(cache_path):
+            with open(cache_path, "rb") as f:
+                cache_data = json.loads(f.read())
+            return cls.from_json(cache_data)
+        return None
+
+    @classmethod
+    def from_json(cls, cache_data):
+        return cls(
+            footnotes=cache_data["footnotes"],
+            options=cache_data["options"],
+            story=Story.from_json(cache_data["story"]),
+            chapter_count=cache_data["chapter_count"],
+            context=cache_data["context"],
+        )
+
+    def cache(self):
+        cache_data = asdict(self)
+
+        site_key = self.site_key()
+        cache_path = os.path.join("cache", site_key, self.story.url)
+        os.makedirs(cache_path, exist_ok=True)
+
+        with open(os.path.join(cache_path, "file.json"), "wb") as f:
+            f.write(json.dumps(cache_data).encode("utf8"))
 
 
 @attr.s(hash=True)
@@ -268,6 +298,7 @@ class SiteSpecificOption:
 
     Will be added to the CLI as a click.option -- many of these
     fields correspond to click.option arguments."""
+
     name = attr.ib()
     flag_pattern = attr.ib()
     type = attr.ib(default=None)
@@ -284,7 +315,7 @@ class SiteSpecificOption:
             # which keeps it from overriding options set in leech.json etc.
             # Instead, default is used in site_cls.get_default_options()
             default=None,
-            help=self.help if self.help is not None else ""
+            help=self.help if self.help is not None else "",
         )
 
 
@@ -299,15 +330,6 @@ class CloudflareException(SiteException):
 def register(site_class):
     _sites.append(site_class)
     return site_class
-
-
-def get(url):
-    for site_class in _sites:
-        match = site_class.matches(url)
-        if match:
-            logger.info("Handler: %s (%s)", site_class, match)
-            return site_class, match
-    raise NotImplementedError("Could not find a handler for " + url)
 
 
 def list_site_specific_options():
