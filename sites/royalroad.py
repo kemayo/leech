@@ -43,11 +43,11 @@ class RoyalRoad(Site):
         http.client._MAXHEADERS = 1000
 
         story = Section(
-            title=soup.find('h1', property='name').string.strip(),
+            title=soup.find('h1').string.strip(),
             author=soup.find('meta', property='books:author').get('content').strip(),
             url=soup.find('meta', property='og:url').get('content').strip(),
             cover_url=self._join_url(base, soup.find('img', class_='thumbnail')['src']),
-            summary=str(soup.find('div', property='description')).strip(),
+            summary=str(soup.find('div', class_='description')).strip(),
             tags=[tag.get_text().strip() for tag in soup.select('span.tags a.fiction-tag')]
         )
 
