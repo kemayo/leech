@@ -45,8 +45,11 @@ def get_image_from_url(url: str):
     Basically the same as make_cover_from_url()
     """
     try:
-        logger.info("Downloading image from " + url)
+        if url.startswith("https://www.filepicker.io/api/"):
+            logger.warning("Filepicker.io image detected, converting to Fiction.live image. This might fail.")
+            url = f"https://cdn3.fiction.live/fp/{url.split('/')[-1]}?&quality=95"
         img = requests.Session().get(url)
+        logger.info("Downloading image from " + url)
         cover = BytesIO(img.content)
 
         img_format = Image.open(cover).format
