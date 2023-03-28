@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 import logging
-import attr
 import datetime
 import json
 import re
@@ -26,12 +25,15 @@ Example JSON:
 """
 
 
+# XXX: og:title, article:published_time, article:modified_time, and og:site_name all seem decently standard
+#      of wordpress based sites. These might make decent default values for `title`, `content_title_selector`,
+#      and the chapter dates.
 @dataclass
 class SiteDefinition:
-    url: str
-    title: str
-    author: str
-    content_selector: str
+    url: str = ""
+    title: str = ""
+    author: str = ""
+    content_selector: str = ""
     # If present, find something within `content` to use a chapter title; if not found, the link text to it will be used
     content_title_selector: Optional[str] = None
     # If present, find a specific element in the `content` to be the chapter text
@@ -46,8 +48,11 @@ class SiteDefinition:
 
 
 @register
+@dataclass
 class Arbitrary(Site):
     """A way to describe an arbitrary side for a one-off fetch"""
+
+    definition: SiteDefinition = field(default_factory=SiteDefinition)
 
     @staticmethod
     def matches(url):
@@ -57,12 +62,12 @@ class Arbitrary(Site):
 
     @classmethod
     def create(cls, url, options):
-        cached_site = cls.load_from_cache(url)
-        if cached_site:
-            return cached_site
-
         with open(url) as definition_file:
             definition = SiteDefinition(**json.load(definition_file))
+
+        cached_site = cls.load_from_cache(url, definition=definition)
+        if cached_site:
+            return cached_site
 
         story = Story(
             url=url,
@@ -71,51 +76,49 @@ class Arbitrary(Site):
             cover_url=definition.cover_url,
         )
 
-        return cls(story=story, options=options)
+        return cls(story=story, options=options, definition=definition)
 
     def extract(self, session):
         url = self.story.url
 
-        with open(url) as definition_file:
-            definition = SiteDefinition(**json.load(definition_file))
-
-        if definition.chapter_selector:
-            soup = self._soup(session, definition.url)
+        if self.definition.chapter_selector:
+            soup = self._soup(session, self.definition.url)
             base = soup.head.base and soup.head.base.get("href") or False
-            for chapter_link in soup.select(definition.chapter_selector):
+            for chapter_link in soup.select(self.definition.chapter_selector):
                 chapter_url = str(chapter_link.get("href"))
                 if base:
                     chapter_url = self._join_url(base, chapter_url)
-                chapter_url = self._join_url(definition.url, chapter_url)
+                chapter_url = self._join_url(chapter_url)
                 for chapter in self._chapter(
                     session,
                     chapter_url,
-                    definition,
                     title=chapter_link.string,
                 ):
                     self.story.add_chapter(chapter)
-        elif definition.next_selector:
+        elif self.definition.next_selector:
             # set of already processed urls. Stored to detect loops.
             found_content_urls = self.context.setdefault("found_content_urls", {})
             content_url: Optional[str] = self.context.setdefault(
-                "content_url", definition.url
+                "content_url", self.definition.url
             )
             while content_url:
                 if content_url not in found_content_urls:
-                    for chapter in self._chapter(session, content_url, definition):
+                    for chapter in self._chapter(session, content_url):
                         self.story.add_chapter(chapter)
 
                 found_content_urls[content_url] = True
 
                 soup = self._soup(session, content_url)
                 base = soup.head.base and soup.head.base.get("href") or False
-                next_link = soup.select(definition.next_selector)
+                next_link = soup.select(self.definition.next_selector)
                 if not next_link:
                     break
 
                 next_link_url = str(next_link[0].get("href"))
                 if base:
-                    next_link_url = self._join_url(base, next_link_url)
+                    next_link_url = self._join_url(
+                        self.definition.url, base, next_link_url
+                    )
 
                 content_url = self._join_url(content_url, next_link_url)
                 self.context["content_url"] = content_url
@@ -124,11 +127,11 @@ class Arbitrary(Site):
 
         return self.story
 
-    def _chapter(self, session, url: str, definition: SiteDefinition, title: str = ""):
+    def _chapter(self, session, url: str, title: str = ""):
         logger.info("Extracting chapter @ %s", url)
         soup = self._soup(session, url)
 
-        if not soup.select(definition.content_selector):
+        if not soup.select(self.definition.content_selector):
             return
 
         # clean up a few things which will definitely break epubs:
@@ -137,19 +140,19 @@ class Arbitrary(Site):
             # Namespaced elements are going to cause validation errors
             namespaced.decompose()
 
-        for content in soup.select(definition.content_selector):
-            if definition.filter_selector:
-                for filtered in content.select(definition.filter_selector):
+        for content in soup.select(self.definition.content_selector):
+            if self.definition.filter_selector:
+                for filtered in content.select(self.definition.filter_selector):
                     filtered.decompose()
 
-            if definition.content_title_selector:
-                title_element = content.select(definition.content_title_selector)
+            if self.definition.content_title_selector:
+                title_element = content.select(self.definition.content_title_selector)
                 if title_element:
                     title = title_element[0].get_text().strip()
 
-            if definition.content_text_selector:
+            if self.definition.content_text_selector:
                 # TODO: multiple text elements?
-                content = content.select(definition.content_text_selector)[0]
+                content = content.select(self.definition.content_text_selector)[0]
 
             # TODO: consider `'\n'.join(map(str, content.contents))`
             content.name = "div"

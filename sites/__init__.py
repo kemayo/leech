@@ -93,7 +93,7 @@ class Site:
     def create(cls, options):
         raise NotImplementedError()
 
-    def collect(self, session, login):
+    def collect(self, session, login=False):
         if login:
             self.login(login)
 
@@ -262,23 +262,24 @@ class Site:
         return contents
 
     @classmethod
-    def load_from_cache(cls, url):
+    def load_from_cache(cls, url, **kwargs):
         site_key = cls.site_key()
         cache_path = os.path.join("cache", site_key, url, "file.json")
         if os.path.exists(cache_path):
             with open(cache_path, "rb") as f:
                 cache_data = json.loads(f.read())
-            return cls.from_json(cache_data)
+            return cls.from_json(cache_data, **kwargs)
         return None
 
     @classmethod
-    def from_json(cls, cache_data):
+    def from_json(cls, cache_data, **kwargs):
         return cls(
             footnotes=cache_data["footnotes"],
             options=cache_data["options"],
             story=Story.from_json(cache_data["story"]),
             chapter_count=cache_data["chapter_count"],
             context=cache_data["context"],
+            **kwargs,
         )
 
     def cache(self):
