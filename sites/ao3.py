@@ -58,7 +58,10 @@ class ArchiveOfOurOwn(Site):
 
         # Fetch the chapter list as well because it contains info that's not in the full work
         nav_soup = self._soup(f'https://archiveofourown.org/works/{workid}/navigate')
-        chapters = soup.find_all(id=re.compile(r"chapter-\d+"))
+        chapters = soup.select('#chapters > div')
+        if len(chapters) == 1:
+            # in a single-chapter story the #chapters div is actually the chapter
+            chapters = [soup.find(id='chapters').parent]
 
         for index, chapter in enumerate(nav_soup.select('#main ol[role="navigation"] li')):
             link = chapter.find('a')
