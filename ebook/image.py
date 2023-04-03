@@ -63,7 +63,12 @@ def PIL_Image_to_bytes(
         return out_io.getvalue()
 
     elif image_format.lower() in ["jpeg", "jpg"]:
-        pil_image = pil_image.convert("RGB")
+        # Create a new image with a white background
+        background_img = Image.new('RGBA', pil_image.size, "white")
+
+        # Paste the image on top of the background
+        background_img.paste(pil_image.convert("RGBA"), (0, 0), pil_image.convert("RGBA"))
+        pil_image = background_img.convert('RGB')
 
     pil_image.save(out_io, format=image_format, optimize=True, quality=95)
     return out_io.getvalue()
