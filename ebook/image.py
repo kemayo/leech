@@ -3,6 +3,7 @@ import PIL
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from base64 import b64decode
+import math
 import textwrap
 import requests
 import logging
@@ -44,6 +45,44 @@ def make_image(
     return output
 
 
+def get_size_format(b, factor=1000, suffix="B"):
+    """
+    Scale bytes to its proper byte format
+    e.g:
+        1253656 => '1.20MB'
+        1253656678 => '1.17GB'
+    """
+    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+        if b < factor:
+            return f"{b:.2f}{unit}{suffix}"
+        b /= factor
+    return f"{b:.2f}Y{suffix}"
+
+
+def compress_image(image: BytesIO, target_size: int, image_format: str) -> PIL.Image.Image:
+    image_size = get_size_format(len(image.getvalue()))
+    logger.info(f"Image size: {image_size}")
+
+    big_photo = Image.open(image).convert("RGBA")
+
+    target_pixel_count = 2.8114 * target_size
+    if len(image.getvalue()) > target_size:
+        logger.info(f"Image is greater than {get_size_format(target_size)}, compressing")
+        scale_factor = target_pixel_count / math.prod(big_photo.size)
+        if scale_factor < 1:
+            x, y = tuple(int(scale_factor * dim) for dim in big_photo.size)
+            logger.info(f"Resizing image dimensions from {big_photo.size} to ({x}, {y})")
+            sml_photo = big_photo.resize((x, y), resample=Image.LANCZOS)
+        else:
+            sml_photo = big_photo
+        compressed_image_size = get_size_format(len(PIL_Image_to_bytes(sml_photo, image_format)))
+        logger.info(f"Compressed image size: {compressed_image_size}")
+        return sml_photo
+    else:
+        logger.info(f"Image is less than {get_size_format(target_size)}, not compressing")
+        return big_photo
+
+
 def PIL_Image_to_bytes(
     pil_image: PIL.Image.Image,
     image_format: str
@@ -74,13 +113,20 @@ def PIL_Image_to_bytes(
     return out_io.getvalue()
 
 
-def get_image_from_url(url: str, image_format: str = "JPEG") -> Tuple[bytes, str, str]:
+def get_image_from_url(
+    url: str,
+    image_format: str = "JPEG",
+    compress_images: bool = False,
+    max_image_size: int = 1_000_000
+) -> Tuple[bytes, str, str]:
     """
     Based on make_cover_from_url(), this function takes in the image url usually gotten from the `src` attribute of
     an image tag and returns the image data, the image format and the image mime type
 
     @param url: The url of the image
     @param image_format: The format to convert the image to if it's not in the supported formats
+    @param compress_images: Whether to compress the image or not
+    @param max_image_size: The maximum size of the image in bytes
     @return: A tuple of the image data, the image format and the image mime type
     """
     try:
@@ -90,8 +136,15 @@ def get_image_from_url(url: str, image_format: str = "JPEG") -> Tuple[bytes, str
         elif url.startswith("data:image") and 'base64' in url:
             logger.info("Base64 image detected")
             head, base64data = url.split(',')
-            file_ext = head.split(';')[0].split('/')[1]
+            file_ext = str(head.split(';')[0].split('/')[1])
             imgdata = b64decode(base64data)
+            if compress_images:
+                if file_ext.lower() == "gif":
+                    logger.info("GIF images should not be compressed, skipping compression")
+                else:
+                    compressed_base64_image = compress_image(BytesIO(imgdata), max_image_size, file_ext)
+                    imgdata = PIL_Image_to_bytes(compressed_base64_image, file_ext)
+
             if file_ext.lower() not in ["jpg", "jpeg", "png", "gif"]:
                 logger.info(f"Image format {file_ext} not supported by EPUB2.0.1, converting to {image_format}")
                 return _convert_to_new_format(imgdata, image_format).read(), image_format.lower(), f"image/{image_format.lower()}"
@@ -103,13 +156,16 @@ def get_image_from_url(url: str, image_format: str = "JPEG") -> Tuple[bytes, str
         image.seek(0)
 
         PIL_image = Image.open(image)
-        img_format = PIL_image.format
+        img_format = str(PIL_image.format)
 
         if img_format.lower() == "gif":
             PIL_image = Image.open(image)
             if PIL_image.info['version'] not in [b"GIF89a", "GIF89a"]:
                 PIL_image.info['version'] = b"GIF89a"
             return PIL_Image_to_bytes(PIL_image, "GIF"), "gif", "image/gif"
+
+        if compress_images:
+            PIL_image = compress_image(image, max_image_size, img_format)
 
         return PIL_Image_to_bytes(PIL_image, image_format), image_format, f"image/{image_format.lower()}"
 
@@ -119,7 +175,7 @@ def get_image_from_url(url: str, image_format: str = "JPEG") -> Tuple[bytes, str
         return cover, "jpeg", "image/jpeg"
 
 
-def _convert_to_new_format(image_bytestream, image_format):
+def _convert_to_new_format(image_bytestream, image_format: str):
     new_image = BytesIO()
     try:
         Image.open(image_bytestream).save(new_image, format=image_format.upper())

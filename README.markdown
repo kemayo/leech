@@ -84,6 +84,8 @@ Example:
     },
     "images": true,
     "image_format": "png",
+    "compress_images": true,
+    "max_image_size": 100000,
     "cover": {
         "fontname": "Comic Sans MS",
         "fontsize": 30,
@@ -105,6 +107,24 @@ Example:
 
 > Note: If the `image_format` key does not exist, Leech will default to `jpeg`.
 > The three image formats are `jpeg`, `png`, and `gif`. The `image_format` key is case-insensitive.
+
+> Note: The `compress_images` key tells Leech to compress images. This is only supported for `jpeg` and `png` images.
+> This also goes hand-in-hand with the `max_image_size` key. If the `compress_images` key is `true` but there's no `max_image_size` key,
+> Leech will compress the image to a size less than 1MB (1000000 bytes). If the `max_image_size` key is present, Leech will compress the image
+> to a size less than the value of the `max_image_size` key. The `max_image_size` key is in bytes.
+> If `compress_images` is `false`, Leech will ignore the `max_image_size` key.
+
+> Warning: Compressing images might make Leech take a lot longer to download images.
+
+> Warning: Compressing images might make the image quality worse.
+
+> Warning: `max_image_size` is not a hard limit. Leech will try to compress the image to the size of the `max_image_size` key, but Leech might
+> not be able to compress the image to the exact size of the `max_image_size` key.
+
+> Warning: `max_image_size` should not be too small. For instance, if you set `max_image_size` to 1000, Leech will probably not be able to
+> compress the image to 1000 bytes. If you set `max_image_size` to 1000000, Leech will probably be able to compress the image to 1000000 bytes.
+
+> Warning: Leech will not compress GIFs, that might damage the animation.
 
 Arbitrary Sites
 ---
