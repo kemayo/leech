@@ -79,7 +79,15 @@ class CoverOptions:
     cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
 
 
-def chapter_html(story, image_bool=False, image_format="JPEG", titleprefix=None, normalize=False):
+def chapter_html(
+    story,
+    image_bool=False,
+    image_format="JPEG",
+    compress_images=False,
+    max_image_size=1_000_000,
+    titleprefix=None,
+    normalize=False
+):
     chapters = []
     for i, chapter in enumerate(story):
         title = chapter.title or f'#{i}'
@@ -99,7 +107,7 @@ def chapter_html(story, image_bool=False, image_format="JPEG", titleprefix=None,
                         print(f"Image {count} has no src attribute, skipping...")
                         continue
                     print(f"[Chapter {i}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
-                    img_contents = get_image_from_url(img['src'], image_format)
+                    img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size)
                     chapter.images.append(Image(
                         path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
                         contents=img_contents[0],
@@ -145,7 +153,12 @@ def chapter_html(story, image_bool=False, image_format="JPEG", titleprefix=None,
 
 def generate_epub(story, cover_options={}, image_options=None,  output_filename=None, output_dir=None, normalize=False):
     if image_options is None:
-        image_options = {'image_bool': False, 'image_format': 'JPEG'}
+        image_options = {
+            'image_bool': False,
+            'image_format': 'JPEG',
+            'compress_images': False,
+            'max_image_size': 1_000_000
+        }
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -192,6 +205,8 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
                 story,
                 image_bool=image_options.get('image_bool'),
                 image_format=image_options.get('image_format'),
+                compress_images=image_options.get('compress_images'),
+                max_image_size=image_options.get('max_image_size'),
                 normalize=normalize
             ),
             EpubFile(
