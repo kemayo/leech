@@ -65,7 +65,7 @@ Leech can not save images in SVG because it is not supported by Pillow.
 Leech uses [Pillow](https://pillow.readthedocs.io/en/stable/index.html) for image manipulation and conversion. If you want to use a different
 image format, you can install the required dependencies for Pillow and you will probably have to tinker with Leech. See the [Pillow documentation](https://pillow.readthedocs.io/en/stable/installation.html#external-libraries) for more information.
 
-By default, Leech will try and save all non-animated images as JPEG because of its small size.
+By default, Leech will try and save all non-animated images as JPEG.
 The only animated images that Leech will save are GIFs.
 
 To configure image support, you will need to create a file called `leech.json`. See the section below for more information.
