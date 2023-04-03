@@ -49,6 +49,27 @@ Supports
  * Sta.sh
  * Completely arbitrary sites, with a bit more work (see below)
 
+Images support
+---
+
+Leech creates EPUB 2.01 files, which means that Leech can only save images in the following
+format:
+- JPEG (JPG/JFIF)
+- PNG
+- GIF
+
+See the [Open Publication Structure (OPS) 2.0.1](https://idpf.org/epub/20/spec/OPS_2.0.1_draft.htm#TOC2.3.4) for more information.
+
+Leech can not save images in SVG because it is not supported by Pillow.
+
+Leech uses [Pillow](https://pillow.readthedocs.io/en/stable/index.html) for image manipulation and conversion. If you want to use a different
+image format, you can install the required dependencies for Pillow and you will probably have to tinker with Leech. See the [Pillow documentation](https://pillow.readthedocs.io/en/stable/installation.html#external-libraries) for more information.
+
+By default, Leech will try and save all non-animated images as JPEG because of its small size.
+The only animated images that Leech will save are GIFs.
+
+To configure image support, you will need to create a file called `leech.json`. See the section below for more information.
+
 Configuration
 ---
 
@@ -61,6 +82,8 @@ Example:
     "logins": {
         "QuestionableQuesting": ["username", "password"]
     },
+    "images": true,
+    "image_format": "png",
     "cover": {
         "fontname": "Comic Sans MS",
         "fontsize": 30,
@@ -76,6 +99,12 @@ Example:
     }
 }
 ```
+> Note: The `images` key is a boolean and can only be `true` or `false`. Booleans in JSON are written in lowercase.
+> If it is `false`, Leech will not download any images.
+> Leech will also ignore the `image_format` key if `images` is `false`.
+
+> Note: If the `image_format` key does not exist, Leech will default to `jpeg`.
+> The three image formats are `jpeg`, `png`, and `gif`. The `image_format` key is case-insensitive.
 
 Arbitrary Sites
 ---
