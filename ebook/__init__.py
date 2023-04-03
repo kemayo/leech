@@ -79,7 +79,7 @@ class CoverOptions:
     cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
 
 
-def chapter_html(story, titleprefix=None, normalize=False):
+def chapter_html(story, image_bool=False, image_format="JPEG", titleprefix=None, normalize=False):
     chapters = []
     for i, chapter in enumerate(story):
         title = chapter.title or f'#{i}'
@@ -89,34 +89,42 @@ def chapter_html(story, titleprefix=None, normalize=False):
                 chapter, titleprefix=title, normalize=normalize))
         else:
             soup = BeautifulSoup(chapter.contents, 'html5lib')
-            all_images = soup.find_all('img')
-            len_of_all_images = len(all_images)
-            print(f"\nFound {len_of_all_images} images in chapter {i}\n")
+            if image_bool:
+                all_images = soup.find_all('img')
+                len_of_all_images = len(all_images)
+                print(f"Found {len_of_all_images} images in chapter {i}")
 
-            for count, img in enumerate(all_images):
-                if not img.has_attr('src'):
-                    print(f"Image {count} has no src attribute, skipping...")
-                    continue
-                print(f"Downloading image {count+1} out of {len_of_all_images} from chapter {i}")
-                img_contents = get_image_from_url(img['src']).read()
-                chapter.images.append(Image(
-                    path=f"images/ch{i}_leechimage_{count}.png",
-                    contents=img_contents,
-                    content_type='image/png'
-                ))
-                img['src'] = f"../images/ch{i}_leechimage_{count}.png"
-                if not img.has_attr('alt'):
-                    img['alt'] = f"Image {count} from chapter {i}"
-            # Add all pictures on this chapter as well.
-            for image in chapter.images:
-                # For/else syntax, check if the image path already exists, if it doesn't add the image.
-                # Duplicates are not allowed in the format.
-                for other_file in chapters:
-                    if other_file.path == image.path:
-                        break
-                else:
-                    chapters.append(EpubFile(
-                        path=image.path, contents=image.contents, filetype=image.content_type))
+                for count, img in enumerate(all_images):
+                    if not img.has_attr('src'):
+                        print(f"Image {count} has no src attribute, skipping...")
+                        continue
+                    print(f"[Chapter {i}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
+                    img_contents = get_image_from_url(img['src'], image_format)
+                    chapter.images.append(Image(
+                        path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
+                        contents=img_contents[0],
+                        content_type=img_contents[2]
+                    ))
+                    img['src'] = f"../images/ch{i}_leechimage_{count}.{img_contents[1]}"
+                    if not img.has_attr('alt'):
+                        img['alt'] = f"Image {count} from chapter {i}"
+                # Add all pictures on this chapter as well.
+                for image in chapter.images:
+                    # For/else syntax, check if the image path already exists, if it doesn't add the image.
+                    # Duplicates are not allowed in the format.
+                    for other_file in chapters:
+                        if other_file.path == image.path:
+                            break
+                    else:
+                        chapters.append(EpubFile(
+                            path=image.path, contents=image.contents, filetype=image.content_type))
+            else:
+                # Remove all images from the chapter so you don't get that annoying grey background.
+                for img in soup.find_all('img'):
+                    if img.parent.name.lower() == "figure":
+                        img.parent.decompose()
+                    else:
+                        img.decompose()
 
             title = titleprefix and f'{titleprefix}: {title}' or title
             contents = str(soup)
@@ -135,7 +143,9 @@ def chapter_html(story, titleprefix=None, normalize=False):
     return chapters
 
 
-def generate_epub(story, cover_options={}, output_filename=None, output_dir=None, normalize=False):
+def generate_epub(story, cover_options={}, image_options=None,  output_filename=None, output_dir=None, normalize=False):
+    if image_options is None:
+        image_options = {'image_bool': False, 'image_format': 'JPEG'}
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -178,7 +188,12 @@ def generate_epub(story, cover_options={}, output_filename=None, output_dir=None
             EpubFile(title='Cover', path='cover.html', contents=cover_template),
             EpubFile(title='Front Matter', path='frontmatter.html', contents=frontmatter_template.format(
                 now=datetime.datetime.now(), **metadata)),
-            *chapter_html(story, normalize=normalize),
+            *chapter_html(
+                story,
+                image_bool=image_options.get('image_bool'),
+                image_format=image_options.get('image_format'),
+                normalize=normalize
+            ),
             EpubFile(
                 path='Styles/base.css',
                 contents=requests.Session().get(
