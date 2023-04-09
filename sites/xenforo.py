@@ -312,19 +312,36 @@ class XenForo(Site):
     def _clean_spoilers(self, post, chapterid):
         # spoilers don't work well, so turn them into epub footnotes
         for spoiler in post.find_all(class_='ToggleTriggerAnchor'):
-            spoiler_title = spoiler.find(class_='SpoilerTitle')
-            if self.options['skip_spoilers']:
-                link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), chapterid)
-                if spoiler_title:
-                    link.string = spoiler_title.get_text()
+            spoilerTarget = spoiler.find(class_='SpoilerTarget')
+
+            # This is a bit of a hack, but it works
+            # This downloads the spoiler image
+            img_exist = list(spoilerTarget.find_all('img'))
+            if len(img_exist) > 0:
+                for i in img_exist:
+                    # For some weird reason, the images are duplicated, so this should skip some
+                    if img_exist.index(i) % 2 == 0:
+                        i.decompose()
+                    else:
+                        if not i.has_attr('src'):
+                            i['src'] = i['data-url']
+                        if i['src'].startswith('proxy.php'):
+                            i['src'] = f"{self.domain}/{i['src']}"
+                spoiler.replace_with(spoiler.find(class_='SpoilerTarget'))
             else:
-                if spoiler_title:
-                    link = f'[SPOILER: {spoiler_title.get_text()}]'
+                spoiler_title = spoiler.find(class_='SpoilerTitle')
+                if self.options['skip_spoilers']:
+                    link = self._footnote(spoiler.find(class_='SpoilerTarget').extract(), chapterid)
+                    if spoiler_title:
+                        link.string = spoiler_title.get_text()
                 else:
-                    link = '[SPOILER]'
-            new_spoiler = self._new_tag('div', class_="leech-spoiler")
-            new_spoiler.append(link)
-            spoiler.replace_with(new_spoiler)
+                    if spoiler_title:
+                        link = f'[SPOILER: {spoiler_title.get_text()}]'
+                    else:
+                        link = '[SPOILER]'
+                new_spoiler = self._new_tag('div', class_="leech-spoiler")
+                new_spoiler.append(link)
+                spoiler.replace_with(new_spoiler)
 
     def _post_date(self, post):
         maybe_date = post.find(class_='DateTime')
