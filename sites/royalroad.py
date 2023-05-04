@@ -22,6 +22,18 @@ class RoyalRoad(Site):
                 default=True,
                 help="If true, do not transcribe any tags that are marked as a spoiler."
             ),
+            SiteSpecificOption(
+                'offset',
+                '--offset',
+                type=int,
+                help="The chapter index to start in the chapter marks."
+            ),
+            SiteSpecificOption(
+                'limit',
+                '--limit',
+                type=int,
+                help="The chapter to end at at in the chapter marks."
+            ),
         ]
 
     """Royal Road: a place where people write novels, mostly seeming to be light-novel in tone."""
@@ -51,7 +63,11 @@ class RoyalRoad(Site):
             tags=[tag.get_text().strip() for tag in soup.select('span.tags a.fiction-tag')]
         )
 
-        for chapter in soup.select('#chapters tbody tr[data-url]'):
+        for index, chapter in enumerate(soup.select('#chapters tbody tr[data-url]')):
+            if self.options['offset'] and index < self.options['offset']:
+                continue
+            if self.options['limit'] and index >= self.options['limit']:
+                continue
             chapter_url = str(self._join_url(story.url, str(chapter.get('data-url'))))
 
             contents, updated = self._chapter(chapter_url, len(story) + 1)
