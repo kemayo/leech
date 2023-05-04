@@ -73,18 +73,18 @@ class RoyalRoad(Site):
         self._clean(content)
         self._clean_spoilers(content, chapterid)
 
-        content = content.prettify()
+        content = str(content)
 
         author_note = soup.find_all('div', class_='author-note-portlet')
 
         if len(author_note) == 1:
             # Find the parent of chapter-content and check if the author's note is the first child div
             if 'author-note-portlet' in soup.find('div', class_='chapter-content').parent.find('div')['class']:
-                content = author_note[0].prettify() + '<hr/>' + content
+                content = str(author_note[0]) + '<hr/>' + content
             else:  # The author note must be after the chapter content
-                content = content + '<hr/>' + author_note[0].prettify()
+                content = content + '<hr/>' + str(author_note[0])
         elif len(author_note) == 2:
-            content = author_note[0].prettify() + '<hr/>' + content + '<hr/>' + author_note[1].prettify()
+            content = str(author_note[0]) + '<hr/>' + content + '<hr/>' + str(author_note[1])
 
         updated = datetime.datetime.fromtimestamp(
             int(soup.find(class_="profile-info").find('time').get('unixtime'))
