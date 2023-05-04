@@ -1,0 +1,11 @@
+{
+    "url": "https://palelights.com/2022/08/17/chapter-1/",
+    "title": "Pale Lights",
+    "author": "erraticerrata",
+    "content_selector": "#main",
+    "content_title_selector": "h1.entry-title",
+    "content_text_selector": ".entry-content",
+    "filter_selector": ".sharedaddy, .wpcnt, style",
+    "next_selector": "a[rel=\"next\"]",
+    "cover_url": "https://www.royalroadcdn.com/public/covers-large/pale-lights-aaaay6-1-bi.jpg"
+}
