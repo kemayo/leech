@@ -14,6 +14,7 @@ class XenForo(Site):
     """XenForo is forum software that powers a number of fiction-related forums."""
 
     domain = False
+    index_urls = False
 
     @staticmethod
     def get_site_specific_option_defs():
@@ -46,12 +47,17 @@ class XenForo(Site):
 
     @classmethod
     def matches(cls, url):
-        match = re.match(r'^(https?://%s/threads/[^/]*\d+/(?:\d+/)?reader)/?.*' % cls.domain, url)
+        match = re.match(r'^(https?://%s/(?:index\.php\?)?threads/[^/]*\d+/(?:\d+/)?reader)/?.*' % cls.domain, url)
         if match:
             return match.group(1)
-        match = re.match(r'^(https?://%s/threads/[^/]*\d+)/?.*' % cls.domain, url)
+        match = re.match(r'^(https?://%s/(?:index\.php\?)?threads/[^/]*\d+)/?.*' % cls.domain, url)
         if match:
             return match.group(1) + '/'
+
+    def siteurl(self, path):
+        if self.index_urls:
+            return f'https://{self.domain}/index.php?{path}'
+        return f'https://{self.domain}/{path}'
 
     def login(self, login_details):
         # Todo: handle non-https?
@@ -59,7 +65,7 @@ class XenForo(Site):
             'login': login_details[0],
             'password': login_details[1],
         }
-        self.session.post('https://%s/login/login' % self.domain, data=post)
+        self.session.post(self.siteurl('login/login'), data=post)
         logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
@@ -191,7 +197,7 @@ class XenForo(Site):
             # Note: the fetched threadmarks can contain more placeholder elements to fetch. Ergo, loop.
             # Good test case: https://forums.sufficientvelocity.com/threads/ignition-mtg-multicross-planeswalker-pc.26099/threadmarks
             # e.g.: <li class="primaryContent threadmarkListItem ThreadmarkFetcher _depth0 filler" data-range-min="0" data-range-max="306" data-thread-id="26099" data-category-id="1" title="305 hidden">
-            response = self.session.post(f'https://{self.domain}/index.php?threads/threadmarks/load-range', data={
+            response = self.session.post(self.siteurl('threads/threadmarks/load-range'), data={
                 # I did try a fetch on min/data-min+data-max, but there seems
                 # to be an absolute limit which the API fetch won't override
                 'min': fetcher.get('data-range-min'),
@@ -242,7 +248,7 @@ class XenForo(Site):
         if postid:
             # create a proper post-url, because threadmarks can sometimes
             # mess up page-wise with anchors
-            url = 'https://%s/posts/%s/' % (self.domain, postid)
+            url = self.siteurl(f'posts/{postid}/')
         soup = self._soup(url, 'html5lib')
 
         if postid:
