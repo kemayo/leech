@@ -62,12 +62,12 @@ class FictionLive(Site):
                         votes = {}
                         for vote in segment['votes']:
                             votechoices = segment['votes'][vote]
-                            if type(votechoices) == str:
+                            if isinstance(votechoices, str):
                                 # This caused issue #30, where for some reason one
                                 # choice on a story was a string rather than an
                                 # index into the choices array.
                                 continue
-                            if type(votechoices) == int:
+                            if isinstance(votechoices, int):
                                 votechoices = (votechoices,)
                             for choice in votechoices:
                                 if int(choice) < len(segment['choices']):
