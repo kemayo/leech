@@ -72,3 +72,9 @@ class SpaceBattlesIndex(SpaceBattles, XenForoIndex):
 @register
 class SufficientVelocity(XenForo2):
     domain = 'forums.sufficientvelocity.com'
+
+
+@register
+class TheSietch(XenForo2):
+    domain = 'www.the-sietch.com'
+    index_urls = True
