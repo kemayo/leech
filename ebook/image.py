@@ -133,6 +133,9 @@ def get_image_from_url(
         if url.startswith("https://www.filepicker.io/api/"):
             logger.warning("Filepicker.io image detected, converting to Fiction.live image. This might fail.")
             url = f"https://cdn3.fiction.live/fp/{url.split('/')[-1]}?&quality=95"
+        elif url.startswith("https://cdn3.fiction.live/images/") or url.startswith("https://ddx5i92cqts4o.cloudfront.net/images/"):
+        	logger.warning("Converting url to cdn6. This might fail.")
+        	url = f"https://cdn6.fiction.live/file/fictionlive/images/{url.split('/images/')[-1]}"
         elif url.startswith("data:image") and 'base64' in url:
             logger.info("Base64 image detected")
             head, base64data = url.split(',')
