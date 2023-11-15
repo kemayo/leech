@@ -16,12 +16,12 @@ def make_cover(title, author, width=600, height=800, fontname="Helvetica", fonts
     author = textwrap.fill(author, wrapat)
 
     font = _safe_font(fontname, size=fontsize)
-    title_size = draw.textsize(title, font=font)
+    title_size = textsize(draw, title, font=font)
     draw_text_outlined(draw, ((width - title_size[0]) / 2, 100), title, textcolor, font=font)
     # draw.text(((width - title_size[0]) / 2, 100), title, textcolor, font=font)
 
     font = _safe_font(fontname, size=fontsize - 2)
-    author_size = draw.textsize(author, font=font)
+    author_size = textsize(draw, author, font=font)
     draw_text_outlined(draw, ((width - author_size[0]) / 2, 100 + title_size[1] + 70), author, textcolor, font=font)
 
     output = BytesIO()
@@ -71,6 +71,12 @@ def _safe_font(preferred, *args, **kwargs):
     # This is pretty terrible, but it'll work regardless of what fonts the
     # system has. Worst issue: can't set the size.
     return ImageFont.load_default()
+
+
+def textsize(draw, text, **kwargs):
+    left, top, right, bottom = draw.multiline_textbbox((0, 0), text, **kwargs)
+    width, height = right - left, bottom - top
+    return width, height
 
 
 def draw_text_outlined(draw, xy, text, fill=None, font=None, anchor=None):
