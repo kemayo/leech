@@ -86,7 +86,7 @@ class RoyalRoad(Site):
         soup = self._soup(url)
         content = soup.find('div', class_='chapter-content')
 
-        self._clean(content)
+        self._clean(content, soup)
         self._clean_spoilers(content, chapterid)
 
         content = str(content)
@@ -107,6 +107,19 @@ class RoyalRoad(Site):
         )
 
         return content, updated
+
+    def _clean(self, contents, full_page):
+        contents = super()._clean(contents)
+
+        # Royalroad has started inserting "this was stolen" notices into its
+        # HTML, and hiding them with CSS. Currently the CSS is very easy to
+        # find, so do so and filter them out.
+        for style in full_page.find_all('style'):
+            if m := re.match(r'\s*\.(\w+)\s*{\s*display:\s*none;\s*}', style.string):
+                for warning in contents.find_all(class_=m.group(1)):
+                    warning.decompose()
+
+        return contents
 
     def _clean_spoilers(self, content, chapterid):
         # Spoilers to footnotes
