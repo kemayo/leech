@@ -248,12 +248,16 @@ class Site:
         # Cloudflare is used on many sites, and mangles things that look like email addresses
         # e.g. Point_Me_@_The_Sky becomes
         # <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85d5eaecebf1dac8e0dac5">[email&#160;protected]</a>_The_Sky
-        for a in contents.find_all('a', class_='__cf_email__', href='/cdn-cgi/l/email-protection'):
+        # or
+        # <a href="/cdn-cgi/l/email-protection#85d5eaecebf1dac8e0dac5"><span class="__cf_email__" data-cfemail="85d5eaecebf1dac8e0dac5">[email&#160;protected]</span></a>_The_Sky
+        for tag in contents.find_all(class_='__cf_email__'):
             # See: https://usamaejaz.com/cloudflare-email-decoding/
-            enc = bytes.fromhex(a['data-cfemail'])
+            enc = bytes.fromhex(tag['data-cfemail'])
             email = bytes([c ^ enc[0] for c in enc[1:]]).decode('utf8')
-            a.insert_before(email)
-            a.decompose()
+            if tag.parent.name == 'a' and tag.parent['href'].startswith('/cdn-cgi/l/email-protection'):
+                tag = tag.parent
+            tag.insert_before(email)
+            tag.decompose()
         # strip colors
         if self.options['strip_colors']:
             for tag in contents.find_all(style=re.compile(r'(?:color|background)\s*:')):
