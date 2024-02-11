@@ -115,7 +115,7 @@ class RoyalRoad(Site):
         # HTML, and hiding them with CSS. Currently the CSS is very easy to
         # find, so do so and filter them out.
         for style in full_page.find_all('style'):
-            if m := re.match(r'\s*\.(\w+)\s*{\s*display:\s*none;\s*}', style.string):
+            if m := re.match(r'\s*\.(\w+)\s*{[^}]*display:\s*none;[^}]*}', style.string):
                 for warning in contents.find_all(class_=m.group(1)):
                     warning.decompose()
 
