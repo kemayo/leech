@@ -58,18 +58,26 @@ def load_on_disk_options(site):
         with open('leech.json') as store_file:
             store = json.load(store_file)
             login = store.get('logins', {}).get(site.site_key(), False)
+            image_bool: bool = store.get('images', False)
+            image_format: str = store.get('image_format', 'jpeg')
+            compress_images: bool = store.get('compress_images', False)
+            max_image_size: int = store.get('max_image_size', 1_000_000)
             configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
             cover_options = store.get('cover', {})
             output_dir = store.get('output_dir', False)
     except FileNotFoundError:
         logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
         login = False
+        image_bool = False
+        image_format = 'jpeg'
+        compress_images = False
+        max_image_size = 1_000_000
         configured_site_options = {}
         cover_options = {}
         output_dir = False
     if output_dir and 'output_dir' not in configured_site_options:
         configured_site_options['output_dir'] = output_dir
-    return configured_site_options, login, cover_options
+    return configured_site_options, login, cover_options, image_bool, image_format, compress_images, max_image_size
 
 
 def create_options(site, site_options, unused_flags):
@@ -80,7 +88,7 @@ def create_options(site, site_options, unused_flags):
 
     flag_specified_site_options = site.interpret_site_specific_options(**unused_flags)
 
-    configured_site_options, login, cover_options = load_on_disk_options(site)
+    configured_site_options, login, cover_options, image_bool, image_format, compress_images, max_image_size = load_on_disk_options(site)
 
     overridden_site_options = json.loads(site_options)
 
@@ -91,7 +99,8 @@ def create_options(site, site_options, unused_flags):
         list(configured_site_options.items()) +
         list(overridden_site_options.items()) +
         list(flag_specified_site_options.items()) +
-        list(cover_options.items())
+        list(cover_options.items()) +
+        list({'image_bool': image_bool, 'image_format': image_format, 'compress_images': compress_images, 'max_image_size': max_image_size }.items())
     )
     return options, login
 
@@ -158,7 +167,7 @@ def flush(verbose):
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
 @site_specific_options  # Includes other click.options specific to sites
 def download(urls, site_options, cache, verbose, normalize, output_dir, **other_flags):
-    """Downloads a story and saves it on disk as a ebpub ebook."""
+    """Downloads a story and saves it on disk as an epub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
 
@@ -169,6 +178,12 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
         if story:
             filename = ebook.generate_epub(
                 story, options,
+                image_options={
+                    'image_bool': options['image_bool'] or False,
+                    'image_format': options['image_format'] or 'jpeg',
+                    'compress_images': options['compress_images'] or False,
+                    'max_image_size': options['max_image_size'] or 1_000_000
+                },
                 normalize=normalize,
                 output_dir=output_dir or options.get('output_dir', os.getcwd())
             )

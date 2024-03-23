@@ -1,0 +1,11 @@
+{
+	"url": "https://twigserial.wordpress.com/2014/12/24/taking-root-1-1/",
+	"title": "Twig",
+	"author": "Wildbow",
+	"content_selector": "#main",
+	"content_title_selector": "h1.entry-title",
+	"content_text_selector": ".entry-content",
+	"filter_selector": ".sharedaddy, style, a[href*='twigserial.wordpress.com']",
+	"next_selector": "a[rel=\"next\"]",
+	"cover_url": "https://twigserial.files.wordpress.com/2015/03/cropped-twig-commission-titled1.png"
+}
