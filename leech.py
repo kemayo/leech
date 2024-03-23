@@ -111,7 +111,7 @@ def open_story(site, url, session, login, options):
         logger.error(e.args)
         return
     if not story:
-        raise Exception("Couldn't extract story")
+        raise Exception("No text found, make sure content-selector is correct")
     return story
 
 
