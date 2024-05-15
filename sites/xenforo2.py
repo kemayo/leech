@@ -78,3 +78,13 @@ class SufficientVelocity(XenForo2):
 class TheSietch(XenForo2):
     domain = 'www.the-sietch.com'
     index_urls = True
+
+
+@register
+class QuestionableQuesting(XenForo2):
+    domain = 'forum.questionablequesting.com'
+
+
+@register
+class QuestionableQuestingIndex(QuestionableQuesting, XenForoIndex):
+    _key = "QuestionableQuesting"

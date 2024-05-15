@@ -336,16 +336,6 @@ class XenForoIndex(XenForo):
 
 
 @register
-class QuestionableQuesting(XenForo):
-    domain = 'forum.questionablequesting.com'
-
-
-@register
-class QuestionableQuestingIndex(QuestionableQuesting, XenForoIndex):
-    _key = "QuestionableQuesting"
-
-
-@register
 class AlternateHistory(XenForo):
     domain = 'www.alternatehistory.com/forum'
 
