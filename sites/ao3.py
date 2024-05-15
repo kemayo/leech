@@ -29,11 +29,14 @@ class ArchiveOfOurOwn(Site):
             post['user[password]'] = login_details[1]
             # I feel the session *should* handle this cookies bit for me. But
             # it doesn't. And I don't know why.
-            self.session.post(
+            result = self.session.post(
                 self._join_url(login.url, action),
                 data=post, cookies=login.cookies
             )
-            logger.info("Logged in as %s", login_details[0])
+            if result.ok:
+                logger.info("Logged in as %s", login_details[0])
+            else:
+                logger.error("Failed to log in as %s", login_details[0])
 
     def extract(self, url):
         workid = re.match(r'^https?://(?:www\.)?archiveofourown\.org/works/(\d+)/?.*', url).group(1)
