@@ -1,0 +1,11 @@
+{
+	"url": "https://pactwebserial.wordpress.com/2013/12/17/bonds-1-1/",
+	"title": "Pact",
+	"author": "Wildbow",
+	"content_selector": "#main",
+	"content_title_selector": "h1.entry-title",
+	"content_text_selector": ".entry-content",
+	"filter_selector": ".sharedaddy, style, a[href*='pactwebserial.wordpress.com']",
+	"next_selector": "a[rel=\"next\"]",
+	"cover_url": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/a456e440-ea22-45c0-8b39-dacf9bbddade/d7dxaz4-64cfabe8-f957-44af-aaea-82346c401b27.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOiIsImlzcyI6InVybjphcHA6Iiwib2JqIjpbW3sicGF0aCI6IlwvZlwvYTQ1NmU0NDAtZWEyMi00NWMwLThiMzktZGFjZjliYmRkYWRlXC9kN2R4YXo0LTY0Y2ZhYmU4LWY5NTctNDRhZi1hYWVhLTgyMzQ2YzQwMWIyNy5qcGcifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6ZmlsZS5kb3dubG9hZCJdfQ.J-Wn8bDrKmoKKZW8mkJdi3uRoDV2FDJQZ_TuTWvQazY"
+}
