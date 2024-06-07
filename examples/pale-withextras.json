@@ -6,5 +6,6 @@
     "content_title_selector": "h1.entry-title",
     "content_text_selector": ".entry-content",
     "filter_selector": ".sharedaddy, style, a[href*='palewebserial.wordpress.com']",
-    "next_selector": "a[rel=\"next\"]"
+    "next_selector": "a[rel=\"next\"]",
+    "image_selector": ".entry-content img"
 }
