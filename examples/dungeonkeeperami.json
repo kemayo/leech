@@ -2,7 +2,7 @@
     "url": "https://forums.sufficientvelocity.com/threads/dungeon-keeper-ami-sailor-moon-dungeon-keeper-story-only-thread.30066/",
     "title": "Dungeon Keeper Ami",
     "author": "Pusakuronu",
-    "content_selector": "li.message article blockquote.messageText",
+    "content_selector": "article.message-body .bbWrapper",
     "filter_selector": ".sharedaddy, .wpcnt, style",
     "next_selector": "link[rel=next]"
 }
