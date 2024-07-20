@@ -6,5 +6,6 @@
     "content_title_selector": ".pjgm-posttitle",
     "content_text_selector": ".pjgm-postcontent",
     "filter_selector": ".sharedaddy", 
-    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])"
+    "next_selector": "a[rel=\"next\"]:not([href*=\"prologue\"])",
+	"cover_url": "https://i.imgur.com/d9LvKMc.png%22"
 }
