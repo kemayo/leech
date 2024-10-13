@@ -19,6 +19,7 @@ html5lib = "^1.1"
 requests = "^2.31.0"
 requests-cache = "^1.1.0"
 Pillow = "^10.1.0"
+mintotp = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

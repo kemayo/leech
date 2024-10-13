@@ -7,6 +7,7 @@ import requests_cache
 from bs4 import BeautifulSoup
 
 from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
+import mintotp
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +74,21 @@ class XenForo(Site):
                 self._join_url(login.url, action),
                 data=post, cookies=login.cookies
             )
-            if result.ok:
-                logger.info("Logged in as %s", login_details[0])
-            else:
-                logger.error("Failed to log in as %s", login_details[0])
+            if not result.ok:
+                return logger.error("Failed to log in as %s", login_details[0])
+            soup = BeautifulSoup(result.text, 'html5lib')
+            if twofactor := soup.find('form', action="/login/two-step"):
+                if len(login_details) < 3:
+                    return logger.error("Failed to log in as %s; login requires 2FA secret", login_details[0])
+                post, action, method = self._form_data(twofactor)
+                post['code'] = mintotp.totp(login_details[2])
+                result = self.session.post(
+                    self._join_url(login.url, action),
+                    data=post, cookies=login.cookies
+                )
+                if not result.ok:
+                    return logger.error("Failed to log in as %s; 2FA failed", login_details[0])
+            logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
         soup = self._soup(url)
