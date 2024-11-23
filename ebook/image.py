@@ -85,7 +85,8 @@ def get_image_from_url(
     url: str,
     image_format: str = "JPEG",
     compress_images: bool = False,
-    max_image_size: int = 1_000_000
+    max_image_size: int = 1_000_000,
+    always_convert: bool = False
 ) -> Tuple[bytes, str, str]:
     """
     Based on make_cover_from_url(), this function takes in the image url usually gotten from the `src` attribute of
@@ -128,16 +129,21 @@ def get_image_from_url(
 
         PIL_image = Image.open(image)
 
-        if str(PIL_image.format).lower() == "gif":
+        current_format = str(PIL_image.format)
+
+        if current_format.lower() == "gif":
             PIL_image = Image.open(image)
             if PIL_image.info['version'] not in [b"GIF89a", "GIF89a"]:
                 PIL_image.info['version'] = b"GIF89a"
             return PIL_Image_to_bytes(PIL_image, "GIF"), "gif", "image/gif"
 
         if compress_images:
-            PIL_image = compress_image(image, max_image_size, str(PIL_image.format))
+            PIL_image = compress_image(image, max_image_size, current_format)
 
-        return PIL_Image_to_bytes(PIL_image, image_format), image_format, f"image/{image_format.lower()}"
+        if always_convert:
+            current_format = image_format
+
+        return PIL_Image_to_bytes(PIL_image, current_format), current_format, f"image/{current_format.lower()}"
 
     except Exception as e:
         logger.info("Encountered an error downloading image: " + str(e))

@@ -176,7 +176,8 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
                     'image_fetch': options.get('image_fetch', False),
                     'image_format': options.get('image_format', 'jpeg'),
                     'compress_images': options.get('compress_images', False),
-                    'max_image_size': options.get('max_image_size', 1_000_000)
+                    'max_image_size': options.get('max_image_size', 1_000_000),
+                    'always_convert_images': options.get('always_convert_images', False)
                 },
                 normalize=normalize,
                 output_dir=output_dir or options.get('output_dir', os.getcwd())

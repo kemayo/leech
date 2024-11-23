@@ -83,6 +83,7 @@ def chapter_html(
     story,
     image_fetch=False,
     image_format="JPEG",
+    always_convert_images=False,
     compress_images=False,
     max_image_size=1_000_000,
     titleprefix=None,
@@ -104,7 +105,7 @@ def chapter_html(
 
                 for count, img in enumerate(all_images):
                     print(f"[{chapter.title}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
-                    img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size)
+                    img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size, always_convert_images)
                     chapter.images.append(Image(
                         path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
                         contents=img_contents[0],
@@ -154,7 +155,8 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
             'image_fetch': False,
             'image_format': 'JPEG',
             'compress_images': False,
-            'max_image_size': 1_000_000
+            'max_image_size': 1_000_000,
+            'always_convert_images': False,
         }
     dates = list(story.dates())
     metadata = {
@@ -204,6 +206,7 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
                 image_format=image_options.get('image_format'),
                 compress_images=image_options.get('compress_images'),
                 max_image_size=image_options.get('max_image_size'),
+                always_convert_images=image_options.get('always_convert_images'),
                 normalize=normalize
             ),
             EpubFile(
