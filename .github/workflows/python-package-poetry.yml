@@ -39,7 +39,7 @@ jobs:
         poetry run leech --help
     - name: Build a cover
       run: |
-        poetry run python ebook/cover.py && file -E output.png && rm output.png
+        poetry run python -m 'ebook.cover' && file -E output.png && rm output.png
     - name: Verify poetry build
       run: |
         poetry build && ls -og dist/*
