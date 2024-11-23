@@ -10,15 +10,15 @@ include = ["ebook/*", "sites/*"]
 leech = "leech:cli"
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
-attrs = "^23.1.0"
-beautifulsoup4 = "^4.12.2"
+python = "^3.9"
+attrs = "^24.2.0"
+beautifulsoup4 = "^4.12.3"
 click-default-group = "^1.2.4"
 click = "^8.1.7"
 html5lib = "^1.1"
-requests = "^2.31.0"
-requests-cache = "^1.1.0"
-Pillow = "^10.1.0"
+requests = "^2.32.3"
+requests-cache = "^1.2.1"
+Pillow = "^11.0.0"
 mintotp = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
