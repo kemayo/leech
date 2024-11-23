@@ -82,10 +82,12 @@ Example:
     "logins": {
         "QuestionableQuesting": ["username", "password"]
     },
-    "images": true,
-    "image_format": "png",
-    "compress_images": true,
-    "max_image_size": 100000,
+    "images": {
+        "image_fetch": true,
+        "image_format": "png",
+        "compress_images": true,
+        "max_image_size": 100000,
+    },
     "cover": {
         "fontname": "Comic Sans MS",
         "fontsize": 30,
@@ -101,7 +103,7 @@ Example:
     }
 }
 ```
-> Note: The `images` key is a boolean and can only be `true` or `false`. Booleans in JSON are written in lowercase.
+> Note: The `image_fetch` key is a boolean and can only be `true` or `false`. Booleans in JSON are written in lowercase.
 > If it is `false`, Leech will not download any images.
 > Leech will also ignore the `image_format` key if `images` is `false`.
 

@@ -81,7 +81,7 @@ class CoverOptions:
 
 def chapter_html(
     story,
-    image_bool=False,
+    image_fetch=False,
     image_format="JPEG",
     compress_images=False,
     max_image_size=1_000_000,
@@ -97,15 +97,12 @@ def chapter_html(
                 chapter, titleprefix=title, normalize=normalize))
         else:
             soup = BeautifulSoup(chapter.contents, 'html5lib')
-            if image_bool:
-                all_images = soup.find_all('img')
+            if image_fetch:
+                all_images = soup.find_all('img', src=True)
                 len_of_all_images = len(all_images)
                 print(f"Found {len_of_all_images} images in chapter {i}")
 
                 for count, img in enumerate(all_images):
-                    if not img.has_attr('src'):
-                        print(f"Image {count} has no src attribute, skipping...")
-                        continue
                     print(f"[Chapter {i}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
                     img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size)
                     chapter.images.append(Image(
@@ -154,7 +151,7 @@ def chapter_html(
 def generate_epub(story, cover_options={}, image_options=None,  output_filename=None, output_dir=None, normalize=False):
     if image_options is None:
         image_options = {
-            'image_bool': False,
+            'image_fetch': False,
             'image_format': 'JPEG',
             'compress_images': False,
             'max_image_size': 1_000_000
@@ -203,7 +200,7 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
                 now=datetime.datetime.now(), **metadata)),
             *chapter_html(
                 story,
-                image_bool=image_options.get('image_bool'),
+                image_fetch=image_options.get('image_fetch'),
                 image_format=image_options.get('image_format'),
                 compress_images=image_options.get('compress_images'),
                 max_image_size=image_options.get('max_image_size'),
