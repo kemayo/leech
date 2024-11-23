@@ -167,7 +167,8 @@ class Site:
             raise SiteException("Couldn't fetch", url)
         if delay and delay > 0 and not page.from_cache:
             time.sleep(delay)
-        return BeautifulSoup(page.text, method)
+        soup = BeautifulSoup(page.text, method)
+        return soup, soup.head.base and soup.head.base.get('href') or url
 
     def _form_in_soup(self, soup):
         if soup.name == 'form':

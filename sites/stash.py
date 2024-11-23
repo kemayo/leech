@@ -18,7 +18,7 @@ class Stash(Site):
             return match.group(1) + '/'
 
     def extract(self, url):
-        soup = self._soup(url)
+        soup, base = self._soup(url)
         content = soup.find(id="stash-body")
         if not content:
             return
@@ -44,7 +44,7 @@ class Stash(Site):
 
     def _chapter(self, url):
         logger.info("Fetching chapter @ %s", url)
-        soup = self._soup(url)
+        soup, base = self._soup(url)
 
         content = soup.find(class_="journal-wrapper")
         if not content:

@@ -23,7 +23,7 @@ class FanFictionNet(Site):
             return 'https://www.fanfiction.net/s/' + match.group(1) + '/'
 
     def extract(self, url):
-        soup = self._soup(url)
+        soup, base = self._soup(url)
 
         content = soup.find(id="content_wrapper_inner")
         if not content:
@@ -73,7 +73,7 @@ class FanFictionNet(Site):
 
     def _chapter(self, url):
         logger.info("Fetching chapter @ %s", url)
-        soup = self._soup(url)
+        soup, base = self._soup(url)
 
         content = soup.find(id="content_wrapper_inner")
         if not content:

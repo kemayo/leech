@@ -46,7 +46,7 @@ class ArchiveOfOurOwn(Site):
         # Fetch the full work
         url = f'http://archiveofourown.org/works/{workid}?view_adult=true&view_full_work=true'
         logger.info("Extracting full work @ %s", url)
-        soup = self._soup(url)
+        soup, base = self._soup(url)
 
         if not soup.find(id='workskin'):
             raise SiteException("Can't find the story text; you may need to log in or flush the cache")
@@ -121,7 +121,7 @@ class ArchiveOfOurOwnSeries(ArchiveOfOurOwn):
     def extract(self, url):
         seriesid = re.match(r'^https?://archiveofourown\.org/series/(\d+)/?.*', url).group(1)
 
-        soup = self._soup(f'http://archiveofourown.org/series/{seriesid}?view_adult=true')
+        soup, base = self._soup(f'http://archiveofourown.org/series/{seriesid}?view_adult=true')
 
         story = Section(
             title=soup.select('#main h2.heading')[0].text.strip(),

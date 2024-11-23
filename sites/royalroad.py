@@ -46,10 +46,8 @@ class RoyalRoad(Site):
 
     def extract(self, url):
         workid = re.match(r'^https?://(?:www\.)?%s\.com/fiction/(\d+)/?.*' % self.domain, url).group(1)
-        soup = self._soup(f'https://www.{self.domain}.com/fiction/{workid}')
+        soup, base = self._soup(f'https://www.{self.domain}.com/fiction/{workid}')
         # should have gotten redirected, for a valid title
-
-        base = soup.head.base and soup.head.base.get('href') or url
 
         original_maxheaders = http.client._MAXHEADERS
         http.client._MAXHEADERS = 1000
@@ -83,7 +81,7 @@ class RoyalRoad(Site):
 
     def _chapter(self, url, chapterid):
         logger.info("Extracting chapter @ %s", url)
-        soup = self._soup(url)
+        soup, base = self._soup(url)
         content = soup.find('div', class_='chapter-content')
 
         self._clean(content, soup)

@@ -69,8 +69,7 @@ class Arbitrary(Site):
         )
 
         if definition.chapter_selector:
-            soup = self._soup(definition.url)
-            base = soup.head.base and soup.head.base.get('href') or False
+            soup, base = self._soup(definition.url)
             for chapter_link in soup.select(definition.chapter_selector):
                 chapter_url = str(chapter_link.get('href'))
                 if base:
@@ -87,8 +86,7 @@ class Arbitrary(Site):
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
                 if definition.next_selector:
-                    soup = self._soup(content_url)
-                    base = soup.head.base and soup.head.base.get('href') or False
+                    soup, base = self._soup(content_url)
                     next_link = soup.select(definition.next_selector)
                     if next_link:
                         next_link_url = str(next_link[0].get('href'))
@@ -104,7 +102,7 @@ class Arbitrary(Site):
 
     def _chapter(self, url, definition, title=False):
         logger.info("Extracting chapter @ %s", url)
-        soup = self._soup(url)
+        soup, base = self._soup(url)
 
         chapters = []
 

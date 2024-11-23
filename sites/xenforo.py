@@ -91,9 +91,7 @@ class XenForo(Site):
             logger.info("Logged in as %s", login_details[0])
 
     def extract(self, url):
-        soup = self._soup(url)
-
-        base = soup.head.base and soup.head.base.get('href') or url
+        soup, base = self._soup(url)
 
         story = self._base_story(soup)
 
@@ -123,7 +121,7 @@ class XenForo(Site):
             while reader_url:
                 reader_url = self._join_url(base, reader_url)
                 logger.info("Fetching chapters @ %s", reader_url)
-                reader_soup = self._soup(reader_url)
+                reader_soup, reader_base = self._soup(reader_url)
                 posts = self._posts_from_page(reader_soup)
 
                 for post in posts:
@@ -197,7 +195,7 @@ class XenForo(Site):
             return self._chapter_list_index(url)
 
     def _chapter_list_threadmarks(self, url):
-        soup = self._soup(url)
+        soup, base = self._soup(url)
 
         threadmarks_link = soup.find(class_="threadmarksTrigger", href=True)
         if not threadmarks_link:
@@ -210,8 +208,7 @@ class XenForo(Site):
             raise SiteException("No threadmarks")
 
         href = threadmarks_link.get('href')
-        base = soup.head.base.get('href')
-        soup = self._soup(base + href)
+        soup, base = self._soup(self._join_url(base, href))
 
         fetcher = soup.find(class_='ThreadmarkFetcher')
         while fetcher:
@@ -255,7 +252,7 @@ class XenForo(Site):
         return links
 
     def _chapter(self, url, chapterid):
-        post = self._post_from_url(url)
+        post, base = self._post_from_url(url)
 
         return self._clean_chapter(post, chapterid), self._post_date(post)
 
@@ -271,7 +268,7 @@ class XenForo(Site):
             # create a proper post-url, because threadmarks can sometimes
             # mess up page-wise with anchors
             url = self.siteurl(f'posts/{postid}/')
-        soup = self._soup(url, 'html5lib')
+        soup, base = self._soup(url, 'html5lib')
 
         if postid:
             return self._posts_from_page(soup, postid)
