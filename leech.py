@@ -100,7 +100,7 @@ def create_options(site, site_options, unused_flags):
         list(overridden_site_options.items()) +
         list(flag_specified_site_options.items()) +
         list(cover_options.items()) +
-        list({'image_bool': image_bool, 'image_format': image_format, 'compress_images': compress_images, 'max_image_size': max_image_size }.items())
+        list({'image_bool': image_bool, 'image_format': image_format, 'compress_images': compress_images, 'max_image_size': max_image_size}.items())
     )
     return options, login
 

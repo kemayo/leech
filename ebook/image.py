@@ -13,38 +13,6 @@ from typing import Tuple
 logger = logging.getLogger(__name__)
 
 
-def make_image(
-    message: str,
-    width=600,
-    height=300,
-    fontname="Helvetica",
-    font_size=40,
-    bg_color=(0, 0, 0),
-    textcolor=(255, 255, 255),
-    wrap_at=30
-):
-    """
-    This function should only be called if get_image_from_url() fails
-    """
-    img = Image.new("RGB", (width, height), bg_color)
-    draw = ImageDraw.Draw(img)
-
-    message = textwrap.fill(message, wrap_at)
-
-    font = _safe_font(fontname, size=font_size)
-    message_size = draw.textsize(message, font=font)
-    draw_text_outlined(
-        draw, ((width - message_size[0]) / 2, 100), message, textcolor, font=font)
-    # draw.text(((width - title_size[0]) / 2, 100), title, textcolor, font=font)
-
-    output = BytesIO()
-    img.save(output, "JPEG")
-    output.name = 'cover.jpeg'
-    # writing left the cursor at the end of the file, so reset it
-    output.seek(0)
-    return output
-
-
 def get_size_format(b, factor=1000, suffix="B"):
     """
     Scale bytes to its proper byte format
@@ -134,8 +102,8 @@ def get_image_from_url(
             logger.warning("Filepicker.io image detected, converting to Fiction.live image. This might fail.")
             url = f"https://cdn3.fiction.live/fp/{url.split('/')[-1]}?&quality=95"
         elif url.startswith("https://cdn3.fiction.live/images/") or url.startswith("https://ddx5i92cqts4o.cloudfront.net/images/"):
-        	logger.warning("Converting url to cdn6. This might fail.")
-        	url = f"https://cdn6.fiction.live/file/fictionlive/images/{url.split('/images/')[-1]}"
+            logger.warning("Converting url to cdn6. This might fail.")
+            url = f"https://cdn6.fiction.live/file/fictionlive/images/{url.split('/images/')[-1]}"
         elif url.startswith("data:image") and 'base64' in url:
             logger.info("Base64 image detected")
             head, base64data = url.split(',')
@@ -159,34 +127,63 @@ def get_image_from_url(
         image.seek(0)
 
         PIL_image = Image.open(image)
-        img_format = str(PIL_image.format)
 
-        if img_format.lower() == "gif":
+        if str(PIL_image.format).lower() == "gif":
             PIL_image = Image.open(image)
             if PIL_image.info['version'] not in [b"GIF89a", "GIF89a"]:
                 PIL_image.info['version'] = b"GIF89a"
             return PIL_Image_to_bytes(PIL_image, "GIF"), "gif", "image/gif"
 
         if compress_images:
-            PIL_image = compress_image(image, max_image_size, img_format)
+            PIL_image = compress_image(image, max_image_size, str(PIL_image.format))
 
         return PIL_Image_to_bytes(PIL_image, image_format), image_format, f"image/{image_format.lower()}"
 
     except Exception as e:
         logger.info("Encountered an error downloading image: " + str(e))
-        cover = make_image("There was a problem downloading this image.").read()
-        return cover, "jpeg", "image/jpeg"
+        image = make_fallback_image("There was a problem downloading this image.").read()
+        return image, "jpeg", "image/jpeg"
+
+
+def make_fallback_image(
+    message: str,
+    width=600,
+    height=300,
+    fontname="Helvetica",
+    font_size=40,
+    bg_color=(0, 0, 0),
+    textcolor=(255, 255, 255),
+    wrap_at=30
+):
+    """
+    This function should only be called if get_image_from_url() fails
+    """
+    img = Image.new("RGB", (width, height), bg_color)
+    draw = ImageDraw.Draw(img)
+
+    message = textwrap.fill(message, wrap_at)
+
+    font = _safe_font(fontname, size=font_size)
+    message_size = textsize(draw, message, font=font)
+    draw_text_outlined(
+        draw, ((width - message_size[0]) / 2, 100), message, textcolor, font=font)
+    # draw.text(((width - title_size[0]) / 2, 100), title, textcolor, font=font)
+
+    output = BytesIO()
+    img.save(output, "JPEG")
+    # writing left the cursor at the end of the file, so reset it
+    output.seek(0)
+    return output
 
 
 def _convert_to_new_format(image_bytestream, image_format: str):
     new_image = BytesIO()
     try:
         Image.open(image_bytestream).save(new_image, format=image_format.upper())
-        new_image.name = f'cover.{image_format.lower()}'
         new_image.seek(0)
     except Exception as e:
         logger.info(f"Encountered an error converting image to {image_format}\nError: {e}")
-        new_image = make_image("There was a problem converting this image.")
+        new_image = make_fallback_image("There was a problem converting this image.")
     return new_image
 
 
@@ -200,6 +197,12 @@ def _safe_font(preferred, *args, **kwargs):
     # This is pretty terrible, but it'll work regardless of what fonts the
     # system has. Worst issue: can't set the size.
     return ImageFont.load_default()
+
+
+def textsize(draw, text, **kwargs):
+    left, top, right, bottom = draw.multiline_textbbox((0, 0), text, **kwargs)
+    width, height = right - left, bottom - top
+    return width, height
 
 
 def draw_text_outlined(draw, xy, text, fill=None, font=None, anchor=None):
@@ -216,7 +219,9 @@ def draw_text_outlined(draw, xy, text, fill=None, font=None, anchor=None):
 
 
 if __name__ == '__main__':
-    f = make_image(
-        'Test of a Title which is quite long and will require multiple lines')
+    f = make_fallback_image(
+        'Test of a Title which is quite long and will require multiple lines',
+        'output.png'
+    )
     with open('output.png', 'wb') as out:
         out.write(f.read())
