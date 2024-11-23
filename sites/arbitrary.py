@@ -6,8 +6,7 @@ import datetime
 import json
 import re
 import os.path
-import urllib
-from . import register, Site, Section, Chapter, Image
+from . import register, Site, Section, Chapter
 
 logger = logging.getLogger(__name__)
 
@@ -134,42 +133,11 @@ class Arbitrary(Site):
 
             self._clean(content, base)
 
-            images = []
-            if definition.image_selector:
-                images = self.load_images(content, definition.image_selector)
-
             chapters.append(Chapter(
                 title=title,
                 contents=content.prettify(),
                 # TODO: better date detection
-                date=datetime.datetime.now(),
-                images=images
+                date=datetime.datetime.now()
             ))
 
         return chapters
-
-    def load_images(self, content, selector):
-        images = []
-        for image in content.select(selector):
-            if not image.has_attr('src'):
-                continue
-
-            image_url = image['src']
-            url = urllib.parse.urlparse(image_url)
-            local_path = 'chapter_images/' + url.path.strip('/')
-
-            image_res = self.session.get(image_url)
-            content_type = image_res.headers['Content-Type']
-            image_data = image_res.content
-
-            images.append(Image(
-                path=local_path,
-                contents=image_data,
-                content_type=content_type
-            ))
-            # Replace 'src'.
-            image['src'] = '../' + local_path
-            if image.has_attr('srcset'):
-                del image['srcset']
-
-        return images
