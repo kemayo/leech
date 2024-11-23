@@ -100,10 +100,10 @@ def chapter_html(
             if image_fetch:
                 all_images = soup.find_all('img', src=True)
                 len_of_all_images = len(all_images)
-                print(f"Found {len_of_all_images} images in chapter {i}")
+                # print(f"Found {len_of_all_images} images in chapter {i}")
 
                 for count, img in enumerate(all_images):
-                    print(f"[Chapter {i}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
+                    print(f"[{chapter.title}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
                     img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size)
                     chapter.images.append(Image(
                         path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
