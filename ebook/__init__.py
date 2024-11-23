@@ -132,9 +132,10 @@ def chapter_html(
                 # Remove all images from the chapter so you don't get that annoying grey background.
                 for img in soup.find_all('img'):
                     if img.parent.name.lower() == "figure":
-                        img.parent.decompose()
+                        # TODO: figcaption?
+                        img.parent.replace_with(img.get('alt', '🖼'))
                     else:
-                        img.decompose()
+                        img.replace_with(img.get('alt', '🖼'))
 
             title = titleprefix and f'{titleprefix}: {title}' or title
             contents = str(soup)
