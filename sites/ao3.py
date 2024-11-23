@@ -83,13 +83,13 @@ class ArchiveOfOurOwn(Site):
             story.add(Chapter(
                 title=link.string,
                 # the `or soup` fallback covers single-chapter works
-                contents=self._chapter(chapter_soup),
+                contents=self._chapter(chapter_soup, base),
                 date=updated
             ))
 
         return story
 
-    def _chapter(self, soup):
+    def _chapter(self, soup, base):
         content = soup.find('div', role='article')
 
         for landmark in content.find_all(class_='landmark'):
@@ -102,7 +102,7 @@ class ArchiveOfOurOwn(Site):
             for landmark in notes.find_all(class_='landmark'):
                 landmark.decompose()
 
-        self._clean(content)
+        self._clean(content, base)
 
         return content.prettify() + (notes and notes.prettify() or '')
 

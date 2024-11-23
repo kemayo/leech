@@ -132,7 +132,7 @@ class Arbitrary(Site):
             # TODO: consider `'\n'.join(map(str, content.contents))`
             content.name = 'div'
 
-            self._clean(content)
+            self._clean(content, base)
 
             images = []
             if definition.image_selector:

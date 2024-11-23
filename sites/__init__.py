@@ -249,7 +249,7 @@ class Site:
 
         return spoiler_link
 
-    def _clean(self, contents):
+    def _clean(self, contents, base=False):
         """Clean up story content to be more ebook-friendly
 
         TODO: this expects a soup as its argument, so the couple of API-driven sites can't use it as-is
@@ -271,6 +271,13 @@ class Site:
         if self.options['strip_colors']:
             for tag in contents.find_all(style=re.compile(r'(?:color|background)\s*:')):
                 tag['style'] = re.sub(r'(?:color|background)\s*:[^;]+;?', '', tag['style'])
+
+        if base:
+            for img in contents.find_all('img', src=lambda src: not src.startswith('http')):
+                # Later epub processing needs absolute image URLs
+                # print("fixing img src", img['src'], self._join_url(base, img['src']))
+                img['src'] = self._join_url(base, img['src'])
+                del img['srcset']
 
         return contents
 

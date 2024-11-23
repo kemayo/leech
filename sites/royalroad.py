@@ -84,7 +84,7 @@ class RoyalRoad(Site):
         soup, base = self._soup(url)
         content = soup.find('div', class_='chapter-content')
 
-        self._clean(content, soup)
+        self._clean(content, soup, base)
         self._clean_spoilers(content, chapterid)
 
         content = str(content)

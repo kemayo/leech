@@ -135,7 +135,7 @@ class XenForo(Site):
 
                     story.add(Chapter(
                         title=title,
-                        contents=self._clean_chapter(post, len(story) + 1),
+                        contents=self._clean_chapter(post, len(story) + 1, base),
                         date=self._post_date(post)
                     ))
 
@@ -254,7 +254,7 @@ class XenForo(Site):
     def _chapter(self, url, chapterid):
         post, base = self._post_from_url(url)
 
-        return self._clean_chapter(post, chapterid), self._post_date(post)
+        return self._clean_chapter(post, chapterid, base), self._post_date(post)
 
     def _post_from_url(self, url):
         # URLs refer to specific posts, so get just that one
@@ -271,15 +271,15 @@ class XenForo(Site):
         soup, base = self._soup(url, 'html5lib')
 
         if postid:
-            return self._posts_from_page(soup, postid)
+            return self._posts_from_page(soup, postid), base
 
         # just the first one in the thread, then
-        return soup.find('li', class_='message')
+        return soup.find('li', class_='message'), base
 
     def _chapter_contents(self, post):
         return post.find('blockquote', class_='messageText')
 
-    def _clean_chapter(self, post, chapterid):
+    def _clean_chapter(self, post, chapterid, base):
         post = self._chapter_contents(post)
         post.name = 'div'
         # mostly, we want to remove colors because the Kindle is terrible at them
@@ -302,7 +302,7 @@ class XenForo(Site):
                 del tag['style']
         for tag in post.select('.quoteExpand, .bbCodeBlock-expandLink, .bbCodeBlock-shrinkLink'):
             tag.decompose()
-        self._clean(post)
+        self._clean(post, base)
         self._clean_spoilers(post, chapterid)
         return post.prettify()
 
