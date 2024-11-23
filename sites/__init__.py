@@ -109,6 +109,12 @@ class Site:
                 default=True,
                 help="If true, colors will be stripped from the text."
             ),
+            SiteSpecificOption(
+                'image_fetch',
+                '--fetch-images/--no-fetch-images',
+                # default=True,
+                help="If true, images embedded in the story will be downloaded"
+            ),
         ]
 
     @classmethod
