@@ -89,6 +89,7 @@ def chapter_html(
     titleprefix=None,
     normalize=False
 ):
+    already_fetched_images = {}
     chapters = []
     for i, chapter in enumerate(story):
         title = chapter.title or f'#{i}'
@@ -105,13 +106,16 @@ def chapter_html(
 
                 for count, img in enumerate(all_images):
                     print(f"[{chapter.title}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
-                    img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size, always_convert_images)
-                    chapter.images.append(Image(
-                        path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
-                        contents=img_contents[0],
-                        content_type=img_contents[2]
-                    ))
-                    img['src'] = f"../images/ch{i}_leechimage_{count}.{img_contents[1]}"
+                    if img['src'] not in already_fetched_images:
+                        img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size, always_convert_images)
+                        chapter.images.append(Image(
+                            path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
+                            contents=img_contents[0],
+                            content_type=img_contents[2]
+                        ))
+                        already_fetched_images[img['src']] = f"../images/ch{i}_leechimage_{count}.{img_contents[1]}"
+
+                    img['src'] = already_fetched_images.get(img['src'])
                     if not img.has_attr('alt'):
                         img['alt'] = f"Image {count} from chapter {i}"
                 # Add all pictures on this chapter as well.
