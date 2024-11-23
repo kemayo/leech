@@ -173,7 +173,7 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
             filename = ebook.generate_epub(
                 story, options,
                 image_options={
-                    'image_fetch': options.get('image_fetch', False),
+                    'image_fetch': options.get('image_fetch', True),
                     'image_format': options.get('image_format', 'jpeg'),
                     'compress_images': options.get('compress_images', False),
                     'max_image_size': options.get('max_image_size', 1_000_000),
