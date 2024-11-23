@@ -90,11 +90,11 @@ def create_options(site, site_options, unused_flags):
     # and overridden, and flag-specified options together in that order.
     options = dict(
         list(default_site_options.items()) +
+        list(cover_options.items()) +
+        list(image_options.items()) +
         list(configured_site_options.items()) +
         list(overridden_site_options.items()) +
-        list(flag_specified_site_options.items()) +
-        list(cover_options.items()) +
-        list(image_options.items())
+        list(flag_specified_site_options.items())
     )
     return options, login
 
