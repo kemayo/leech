@@ -8,7 +8,7 @@ import html
 import unicodedata
 import datetime
 import requests
-import attr
+from attrs import define, asdict
 
 html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -66,17 +66,16 @@ frontmatter_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 '''
 
 
-@attr.s
+@define
 class CoverOptions:
-    fontname = attr.ib(default=None, converter=attr.converters.optional(str))
-    fontsize = attr.ib(default=None, converter=attr.converters.optional(int))
-    width = attr.ib(default=None, converter=attr.converters.optional(int))
-    height = attr.ib(default=None, converter=attr.converters.optional(int))
-    wrapat = attr.ib(default=None, converter=attr.converters.optional(int))
-    bgcolor = attr.ib(default=None, converter=attr.converters.optional(tuple))
-    textcolor = attr.ib(
-        default=None, converter=attr.converters.optional(tuple))
-    cover_url = attr.ib(default=None, converter=attr.converters.optional(str))
+    fontname: str = None
+    fontsize: int = None
+    width: int = None
+    height: int = None
+    wrapat: int = None
+    bgcolor: tuple = None
+    textcolor: tuple = None
+    cover_url: str = None
 
 
 def chapter_html(
@@ -187,8 +186,7 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
                            'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
     cover_options = CoverOptions(
         **{k: v for k, v in cover_options.items() if k in valid_cover_options})
-    cover_options = attr.asdict(
-        cover_options, filter=lambda k, v: v is not None, retain_collection_types=True)
+    cover_options = asdict(cover_options, filter=lambda k, v: v is not None)
 
     if cover_options and "cover_url" in cover_options:
         image = make_cover_from_url(

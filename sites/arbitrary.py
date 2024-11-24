@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import logging
-import attr
+from attrs import define
 import datetime
 import json
 import re
@@ -24,26 +24,23 @@ Example JSON:
 """
 
 
-@attr.s
+@define
 class SiteDefinition:
-    url = attr.ib()
-    title = attr.ib()
-    author = attr.ib()
-    content_selector = attr.ib()
+    url: str
+    title: str
+    author: str
+    content_selector: str
     # If present, find something within `content` to use a chapter title; if not found, the link text to it will be used
-    content_title_selector = attr.ib(default=False)
+    content_title_selector: str = False
     # If present, find a specific element in the `content` to be the chapter text
-    content_text_selector = attr.ib(default=False)
+    content_text_selector: str = False
     # If present, it looks for chapters linked from `url`. If not, it assumes `url` points to a chapter.
-    chapter_selector = attr.ib(default=False)
+    chapter_selector: str = False
     # If present, use to find a link to the next content page (only used if not using chapter_selector)
-    next_selector = attr.ib(default=False)
+    next_selector: str = False
     # If present, use to filter out content that matches the selector
-    filter_selector = attr.ib(default=False)
-    cover_url = attr.ib(default='')
-
-    # If present, use to also download the images and embed them into the epub.
-    image_selector = attr.ib(default=False)
+    filter_selector: str = False
+    cover_url: str = ''
 
 
 @register

@@ -4,11 +4,12 @@ import glob
 import os
 import random
 import uuid
+import datetime
 import time
 import logging
 import urllib
 import re
-import attr
+from attrs import define, field, Factory
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -21,32 +22,32 @@ def _default_uuid_string(self):
     return str(uuid.UUID(int=rd.getrandbits(8*16), version=4))
 
 
-@attr.s
+@define
 class Image:
-    path = attr.ib()
-    contents = attr.ib()
-    content_type = attr.ib()
+    path: str
+    contents: str
+    content_type: str
 
 
-@attr.s
+@define
 class Chapter:
-    title = attr.ib()
-    contents = attr.ib()
-    date = attr.ib(default=False)
-    images = attr.ib(default=attr.Factory(list))
+    title: str
+    contents: str
+    date: datetime.datetime = False
+    images: list = Factory(list)
 
 
-@attr.s
+@define
 class Section:
-    title = attr.ib()
-    author = attr.ib()
-    url = attr.ib()
-    cover_url = attr.ib(default='')
-    id = attr.ib(default=attr.Factory(_default_uuid_string, takes_self=True), converter=str)
-    contents = attr.ib(default=attr.Factory(list))
-    footnotes = attr.ib(default=attr.Factory(list))
-    tags = attr.ib(default=attr.Factory(list))
-    summary = attr.ib(default='')
+    title: str
+    author: str
+    url: str
+    cover_url: str = ''
+    id: str = Factory(_default_uuid_string, takes_self=True)
+    contents: list = Factory(list)
+    footnotes: list = Factory(list)
+    tags: list = Factory(list)
+    summary: str = ''
 
     def __iter__(self):
         return self.contents.__iter__()
@@ -74,17 +75,17 @@ class Section:
                 yield chapter.date
 
 
-@attr.s
+@define
 class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    session = attr.ib()
-    footnotes = attr.ib(factory=list, init=False)
-    options = attr.ib(default=attr.Factory(
+    session: object = field()
+    footnotes: list = field(factory=list, init=False)
+    options: dict = Factory(
         lambda site: site.get_default_options(),
-        True
-    ))
+        takes_self=True
+    )
 
     @classmethod
     def site_key(cls):
@@ -288,17 +289,17 @@ class Site:
         return contents
 
 
-@attr.s(hash=True)
+@define(unsafe_hash=True, frozen=True)
 class SiteSpecificOption:
     """Represents a site-specific option that can be configured.
 
     Will be added to the CLI as a click.option -- many of these
     fields correspond to click.option arguments."""
-    name = attr.ib()
-    flag_pattern = attr.ib()
-    type = attr.ib(default=None)
-    help = attr.ib(default=None)
-    default = attr.ib(default=None)
+    name: str
+    flag_pattern: str
+    type: object = None
+    default: bool = False
+    help: str = None
 
     def as_click_option(self):
         return click.option(
