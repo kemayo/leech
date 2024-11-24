@@ -353,13 +353,3 @@ class XenForoIndex(XenForo):
 
     def _chapter_list(self, url):
         return self._chapter_list_index(url)
-
-
-@register
-class AlternateHistory(XenForo):
-    domain = 'www.alternatehistory.com/forum'
-
-
-@register
-class AlternateHistoryIndex(AlternateHistory, XenForoIndex):
-    _key = "AlternateHistory"

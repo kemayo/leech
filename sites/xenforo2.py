@@ -90,3 +90,13 @@ class QuestionableQuesting(XenForo2):
 @register
 class QuestionableQuestingIndex(QuestionableQuesting, XenForoIndex):
     _key = "QuestionableQuesting"
+
+
+@register
+class AlternateHistory(XenForo2):
+    domain = 'www.alternatehistory.com/forum'
+
+
+@register
+class AlternateHistoryIndex(AlternateHistory, XenForoIndex):
+    _key = "AlternateHistory"
