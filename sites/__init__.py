@@ -297,11 +297,12 @@ class Site:
                 tag['style'] = re.sub(r'(?:color|background)\s*:[^;]+;?', '', tag['style'])
 
         if base:
-            for img in contents.find_all('img', src=lambda src: not src.startswith('http')):
+            for img in contents.find_all('img', src=True):
                 # Later epub processing needs absolute image URLs
                 # print("fixing img src", img['src'], self._join_url(base, img['src']))
                 img['src'] = self._join_url(base, img['src'])
                 del img['srcset']
+                del img['sizes']
 
         return contents
 
