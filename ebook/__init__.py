@@ -113,6 +113,8 @@ def chapter_html(
                             content_type=img_contents[2]
                         ))
                         already_fetched_images[img['src']] = f"../images/ch{i}_leechimage_{count}.{img_contents[1]}"
+                    else:
+                        print(img['src'], "(already", already_fetched_images.get(img['src']), ")")
 
                     img['src'] = already_fetched_images.get(img['src'])
                     if not img.has_attr('alt'):
