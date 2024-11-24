@@ -111,10 +111,10 @@ def open_story(site, url, session, login, options):
     try:
         story = handler.extract(url)
     except sites.SiteException as e:
-        logger.error(e.args)
+        logger.error(e)
         return
     if not story:
-        raise Exception("Couldn't extract story")
+        logger.error("Couldn't extract story")
     return story
 
 

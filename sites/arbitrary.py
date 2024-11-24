@@ -6,7 +6,7 @@ import datetime
 import json
 import re
 import os.path
-from . import register, Site, Section, Chapter
+from . import register, Site, Section, Chapter, SiteException
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +93,9 @@ class Arbitrary(Site):
                         content_url = False
                 else:
                     content_url = False
+
+        if not story:
+            raise SiteException("No story content found; check the content selectors")
 
         return story
 
