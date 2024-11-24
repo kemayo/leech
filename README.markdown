@@ -33,7 +33,11 @@ Flushing the cache
 
     $ python3 leech.py flush
 
-If you want to put it on a Kindle you'll have to convert it. I'd recommend [Calibre](http://calibre-ebook.com/), though you could also try using [kindlegen](http://www.amazon.com/gp/feature.html?docId=1000765211) directly.
+Learn about other options
+
+    $ python3 leech.py --help
+
+If you want to put an ePub on a Kindle you'll have to either use Amazon's send-to-kindle tools or convert it. For the latter I'd recommend [Calibre](http://calibre-ebook.com/), though you could also try using [kindlegen](http://www.amazon.com/gp/feature.html?docId=1000765211) directly.
 
 Supports
 ---
@@ -48,24 +52,6 @@ Supports
  * DeviantArt galleries/collections
  * Sta.sh
  * Completely arbitrary sites, with a bit more work (see below)
-
-Images support
----
-
-Leech creates EPUB 2.01 files, which means that Leech can only save images in the following
-format:
-- JPEG (JPG/JFIF)
-- PNG
-- GIF
-
-See the [Open Publication Structure (OPS) 2.0.1](https://idpf.org/epub/20/spec/OPS_2.0.1_draft.htm#TOC2.3.4) for more information.
-
-Leech can not save images in SVG because it is not supported by Pillow.
-
-Leech uses [Pillow](https://pillow.readthedocs.io/en/stable/index.html) for image manipulation and conversion. If you want to use a different
-image format, you can install the required dependencies for Pillow and you will probably have to tinker with Leech. See the [Pillow documentation](https://pillow.readthedocs.io/en/stable/installation.html#external-libraries) for more information.
-
-To configure image support, you will need to create a file called `leech.json`. See the section below for more information.
 
 Configuration
 ---
@@ -96,7 +82,8 @@ Example:
     "output_dir": "/tmp/ebooks",
     "site_options": {
         "RoyalRoad": {
-            "output_dir": "/tmp/litrpg_isekai_trash"
+            "output_dir": "/tmp/litrpg_isekai_trash",
+            "image_fetch": false
         }
     }
 }
@@ -179,10 +166,28 @@ If multiple matches for `content_selector` are found, leech will assume multiple
 
 If you need more advanced behavior, consider looking at...
 
-Adding new site handers
+Adding new site handlers
 ---
 
 To add support for a new site, create a file in the `sites` directory that implements the `Site` interface. Take a look at `ao3.py` for a minimal example of what you have to do.
+
+Images support
+---
+
+Leech creates EPUB 2.01 files, which means that Leech can only save images in the following
+format:
+- JPEG (JPG/JFIF)
+- PNG
+- GIF
+
+See the [Open Publication Structure (OPS) 2.0.1](https://idpf.org/epub/20/spec/OPS_2.0.1_draft.htm#TOC2.3.4) for more information.
+
+Leech can not save images in SVG because it is not supported by Pillow.
+
+Leech uses [Pillow](https://pillow.readthedocs.io/en/stable/index.html) for image manipulation and conversion. If you want to use a different
+image format, you can install the required dependencies for Pillow and you will probably have to tinker with Leech. See the [Pillow documentation](https://pillow.readthedocs.io/en/stable/installation.html#external-libraries) for more information.
+
+To configure image support, you will need to create a file called `leech.json`. See the section below for more information.
 
 Docker
 ---
