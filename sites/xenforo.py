@@ -6,7 +6,7 @@ import logging
 import requests_cache
 from bs4 import BeautifulSoup
 
-from . import register, Site, SiteException, SiteSpecificOption, Section, Chapter
+from . import Site, SiteException, SiteSpecificOption, Section, Chapter
 import mintotp
 
 logger = logging.getLogger(__name__)
