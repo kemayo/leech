@@ -113,7 +113,7 @@ class Site:
             SiteSpecificOption(
                 'image_fetch',
                 '--fetch-images/--no-fetch-images',
-                # default=True,
+                default=True,
                 help="If true, images embedded in the story will be downloaded"
             ),
             SiteSpecificOption(
