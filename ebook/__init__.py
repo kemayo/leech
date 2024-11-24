@@ -132,6 +132,7 @@ def chapter_html(
             else:
                 # Remove all images from the chapter so you don't get that annoying grey background.
                 for img in soup.find_all('img'):
+                    # Note: alt="" will be completely removed here, which is consitent with the semantics
                     if img.parent.name.lower() == "figure":
                         # TODO: figcaption?
                         img.parent.replace_with(img.get('alt', '🖼'))
