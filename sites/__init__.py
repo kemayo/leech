@@ -116,13 +116,30 @@ class Site:
                 # default=True,
                 help="If true, images embedded in the story will be downloaded"
             ),
+            SiteSpecificOption(
+                'spoilers',
+                '--spoilers',
+                choices=('include', 'inline', 'skip'),
+                default='include',
+                help="Whether to include spoilers"
+            ),
+            SiteSpecificOption(
+                'deprecated_skip_spoilers',
+                '--skip-spoilers/--include-spoilers',
+                help="If true, do not transcribe any tags that are marked as a spoiler. (DEPRECATED)",
+                exposed=False,
+                click_kwargs={
+                    "callback": lambda ctx, param, value: ctx.params.update({"spoilers": value and "skip" or "include"}),
+                },
+            ),
         ]
 
     @classmethod
     def get_default_options(cls):
         options = {}
         for option in cls.get_site_specific_option_defs():
-            options[option.name] = option.default
+            if option.exposed:
+                options[option.name] = option.default
         return options
 
     @classmethod
@@ -134,8 +151,8 @@ class Site:
         """
         options = {}
         for option in cls.get_site_specific_option_defs():
-            option_value = kwargs[option.name]
-            if option_value is not None:
+            option_value = kwargs.get(option.name)
+            if option.exposed and option_value is not None:
                 options[option.name] = option_value
         return options
 
@@ -289,7 +306,7 @@ class Site:
         return contents
 
 
-@define(unsafe_hash=True, frozen=True)
+@define
 class SiteSpecificOption:
     """Represents a site-specific option that can be configured.
 
@@ -300,18 +317,29 @@ class SiteSpecificOption:
     type: object = None
     default: bool = False
     help: str = None
+    choices: tuple = None
+    exposed: bool = True
+    click_kwargs: frozenset = field(converter=lambda kwargs: frozenset(kwargs.items()), default={})
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
 
     def as_click_option(self):
         return click.option(
             str(self.name),
             str(self.flag_pattern),
-            type=self.type,
+            type=self.choices and click.Choice(self.choices) or self.type,
             # Note: This default not matching self.default is intentional.
             # It ensures that we know if a flag was explicitly provided,
             # which keeps it from overriding options set in leech.json etc.
             # Instead, default is used in site_cls.get_default_options()
             default=None,
-            help=self.help if self.help is not None else ""
+            help=self.help if self.help is not None else "",
+            expose_value=self.exposed,
+            **dict(self.click_kwargs)
         )
 
 

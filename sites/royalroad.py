@@ -17,12 +17,6 @@ class RoyalRoad(Site):
     def get_site_specific_option_defs():
         return Site.get_site_specific_option_defs() + [
             SiteSpecificOption(
-                'skip_spoilers',
-                '--skip-spoilers/--include-spoilers',
-                default=True,
-                help="If true, do not transcribe any tags that are marked as a spoiler."
-            ),
-            SiteSpecificOption(
                 'offset',
                 '--offset',
                 type=int,
@@ -123,14 +117,18 @@ class RoyalRoad(Site):
         # Spoilers to footnotes
         for spoiler in content.find_all(class_=('spoiler-new')):
             spoiler_title = spoiler.get('data-caption')
-            if self.options['skip_spoilers']:
+            new_spoiler = self._new_tag('div', class_="leech-spoiler")
+            if self.options['spoilers'] == 'skip':
+                new_spoiler.append(spoiler_title and f'[SPOILER: {spoiler_title}]' or '[SPOILER]')
+            elif self.options['spoilers'] == 'inline':
+                if spoiler_title:
+                    new_spoiler.append(f"{spoiler_title}: ")
+                new_spoiler.append(spoiler)
+            else:
                 link = self._footnote(spoiler, chapterid)
                 if spoiler_title:
                     link.string = spoiler_title
-            else:
-                link = spoiler_title and f'[SPOILER: {spoiler_title}]' or '[SPOILER]'
-            new_spoiler = self._new_tag('div', class_="leech-spoiler")
-            new_spoiler.append(link)
+                new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
 
 

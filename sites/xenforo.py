@@ -28,12 +28,6 @@ class XenForo(Site):
                 help="If true, the post marked as an index will be included as a chapter."
             ),
             SiteSpecificOption(
-                'skip_spoilers',
-                '--skip-spoilers/--include-spoilers',
-                default=True,
-                help="If true, do not transcribe any tags that are marked as a spoiler."
-            ),
-            SiteSpecificOption(
                 'offset',
                 '--offset',
                 type=int,

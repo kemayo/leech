@@ -40,17 +40,19 @@ class XenForo2(XenForo):
         # spoilers don't work well, so turn them into epub footnotes
         for spoiler in post.find_all(class_='bbCodeSpoiler'):
             spoiler_title = spoiler.find(class_='bbCodeSpoiler-button-title')
-            if self.options['skip_spoilers']:
-                link = self._footnote(spoiler.find(class_='bbCodeBlock-content').extract(), chapterid)
+            spoiler_contents = spoiler.find(class_='bbCodeBlock-content').extract()
+            new_spoiler = self._new_tag('div', class_="leech-spoiler")
+            if self.options['spoilers'] == 'skip':
+                new_spoiler.append(spoiler_title and f'[SPOILER: {spoiler_title.get_text()}]' or '[SPOILER]')
+            elif self.options['spoilers'] == 'inline':
+                if spoiler_title:
+                    new_spoiler.append(f"{spoiler_title.get_text()}: ")
+                new_spoiler.append(spoiler_contents)
+            else:
+                link = self._footnote(spoiler_contents, chapterid)
                 if spoiler_title:
                     link.string = spoiler_title.get_text()
-            else:
-                if spoiler_title:
-                    link = f'[SPOILER: {spoiler_title.get_text()}]'
-                else:
-                    link = '[SPOILER]'
-            new_spoiler = self._new_tag('div', class_="leech-spoiler")
-            new_spoiler.append(link)
+                new_spoiler.append(link)
             spoiler.replace_with(new_spoiler)
 
     def _post_date(self, post):
