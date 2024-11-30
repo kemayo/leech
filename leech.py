@@ -58,20 +58,19 @@ def load_on_disk_options(site):
         with open('leech.json') as store_file:
             store = json.load(store_file)
             login = store.get('logins', {}).get(site.site_key(), False)
-            configured_site_options = store.get('site_options', {}).get(site.site_key(), {})
             cover_options = store.get('cover', {})
             image_options = store.get('images', {})
-            output_dir = store.get('output_dir', False)
+            consolidated_options = {
+                **{k: v for k, v in store.items() if k not in ('cover', 'images', 'logins')},
+                **store.get('site_options', {}).get(site.site_key(), {})
+            }
     except FileNotFoundError:
         logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
         login = False
-        configured_site_options = {}
         image_options = {}
         cover_options = {}
-        output_dir = False
-    if output_dir and 'output_dir' not in configured_site_options:
-        configured_site_options['output_dir'] = output_dir
-    return configured_site_options, login, cover_options, image_options
+        consolidated_options = {}
+    return consolidated_options, login, cover_options, image_options
 
 
 def create_options(site, site_options, unused_flags):
