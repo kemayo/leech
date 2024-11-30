@@ -180,7 +180,8 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
                     'always_convert_images': options.get('always_convert_images', False)
                 },
                 normalize=normalize,
-                output_dir=output_dir or options.get('output_dir', os.getcwd())
+                output_dir=output_dir or options.get('output_dir', os.getcwd()),
+                allow_spaces=options.get('allow_spaces', False)
             )
             logger.info("File created: " + filename)
         else:

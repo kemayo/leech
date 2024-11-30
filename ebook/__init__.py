@@ -156,7 +156,7 @@ def chapter_html(
     return chapters
 
 
-def generate_epub(story, cover_options={}, image_options=None,  output_filename=None, output_dir=None, normalize=False):
+def generate_epub(story, cover_options={}, image_options=None,  output_filename=None, output_dir=None, normalize=False, allow_spaces=False):
     if image_options is None:
         image_options = {
             'image_fetch': False,
@@ -225,5 +225,6 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
                      contents=image.read(), filetype='image/png'),
         ],
         metadata,
-        output_dir=output_dir
+        output_dir=output_dir,
+        allow_spaces=allow_spaces
     )

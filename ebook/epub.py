@@ -18,7 +18,7 @@ This totally started from http://www.manuel-strehl.de/dev/simple_epub_ebooks_wit
 EpubFile = namedtuple('EbookFile', 'path, contents, title, filetype', defaults=(False, False, "application/xhtml+xml"))
 
 
-def sanitize_filename(s):
+def sanitize_filename(s, allow_spaces=False):
     """Take a string and return a valid filename constructed from the string.
     Uses a whitelist approach: any characters not present in valid_chars are
     removed. Also spaces are replaced with underscores.
@@ -31,16 +31,17 @@ def sanitize_filename(s):
     """
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     filename = ''.join(c for c in s if c in valid_chars)
-    filename = filename.replace(' ', '_')  # I don't like spaces in filenames.
+    if not allow_spaces:
+        filename = filename.replace(' ', '_')  # I don't like spaces in filenames.
     return filename
 
 
-def make_epub(filename, files, meta, compress=True, output_dir=False):
+def make_epub(filename, files, meta, compress=True, output_dir=False, allow_spaces=False):
     unique_id = meta.get('unique_id', False)
     if not unique_id:
         unique_id = 'leech_book_' + str(uuid.uuid4())
 
-    filename = sanitize_filename(filename)
+    filename = sanitize_filename(filename, allow_spaces)
     if output_dir:
         filename = os.path.join(output_dir, filename)
     epub = zipfile.ZipFile(filename, 'w', compression=compress and zipfile.ZIP_DEFLATED or zipfile.ZIP_STORED)
