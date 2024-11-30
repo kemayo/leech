@@ -115,6 +115,7 @@ def open_story(site, url, session, login, options):
         return
     if not story:
         logger.error("Couldn't extract story")
+        return
     return story
 
 
