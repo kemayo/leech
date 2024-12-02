@@ -78,7 +78,7 @@ class RoyalRoad(Site):
         soup, base = self._soup(url)
         content = soup.find('div', class_='chapter-content')
 
-        self._clean(content, soup, base)
+        self._clean(content, full_page=soup, base=base)
         self._clean_spoilers(content, chapterid)
 
         content = str(content)
@@ -100,7 +100,7 @@ class RoyalRoad(Site):
 
         return content, updated
 
-    def _clean(self, contents, full_page):
+    def _clean(self, contents, full_page, base=False):
         contents = super()._clean(contents)
 
         # Royalroad has started inserting "this was stolen" notices into its
