@@ -101,7 +101,7 @@ class RoyalRoad(Site):
         return content, updated
 
     def _clean(self, contents, full_page, base=False):
-        contents = super()._clean(contents)
+        contents = super()._clean(contents, base=base)
 
         # Royalroad has started inserting "this was stolen" notices into its
         # HTML, and hiding them with CSS. Currently the CSS is very easy to
