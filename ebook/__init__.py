@@ -114,11 +114,11 @@ def chapter_html(
                     if img['src'] not in already_fetched_images:
                         img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size, always_convert_images)
                         chapter.images.append(Image(
-                            path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
+                            path=f"{story.id}/images/ch{i}_leechimage_{count}.{img_contents[1]}",
                             contents=img_contents[0],
                             content_type=img_contents[2]
                         ))
-                        already_fetched_images[img['src']] = f"../images/ch{i}_leechimage_{count}.{img_contents[1]}"
+                        already_fetched_images[img['src']] = f"images/ch{i}_leechimage_{count}.{img_contents[1]}"
                     else:
                         print(img['src'], "(already", already_fetched_images.get(img['src']), ")")
 
