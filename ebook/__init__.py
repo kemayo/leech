@@ -121,7 +121,7 @@ def chapter_html(
                             always_convert=image_options.get('always_convert_images')
                         )
                         chapter.images.append(Image(
-                            path=f"{story.id}/images/ch{i}_leechimage_{count}.{img_contents[1]}",
+                            path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
                             contents=img_contents[0],
                             content_type=img_contents[2]
                         ))
@@ -162,7 +162,7 @@ def chapter_html(
                         break
                 else:
                     chapters.append(EpubFile(
-                        path=image.path, contents=image.contents, filetype=image.content_type))
+                        path=f'{story.id}/{image.path}', contents=image.contents, filetype=image.content_type))
     if story.footnotes:
         chapters.append(EpubFile(title="Footnotes", path=f'{story.id}/footnotes.html', contents=html_template.format(
             title="Footnotes", text='\n\n'.join(story.footnotes))))
