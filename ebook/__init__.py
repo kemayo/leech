@@ -78,13 +78,18 @@ class CoverOptions:
     cover_url: str = None
 
 
+@define
+class ImageOptions:
+    image_fetch: bool = False
+    image_format: str = "JPEG"
+    always_convert_images: bool = False
+    compress_images: bool = False
+    max_image_size: int = 1_000_000
+
+
 def chapter_html(
     story,
-    image_fetch=False,
-    image_format="JPEG",
-    always_convert_images=False,
-    compress_images=False,
-    max_image_size=1_000_000,
+    image_options,
     titleprefix=None,
     normalize=False
 ):
@@ -95,16 +100,12 @@ def chapter_html(
         if hasattr(chapter, '__iter__'):
             # This is a Section
             chapters.extend(chapter_html(
-                chapter, titleprefix=title, normalize=normalize,
-                image_fetch=image_fetch,
-                image_format=image_format,
-                always_convert_images=always_convert_images,
-                compress_images=compress_images,
-                max_image_size=max_image_size
+                chapter, image_options=image_options, titleprefix=title, normalize=normalize
             ))
         else:
             soup = BeautifulSoup(chapter.contents, 'html5lib')
-            if image_fetch:
+
+            if image_options.get('image_fetch'):
                 all_images = soup.find_all('img', src=True)
                 len_of_all_images = len(all_images)
                 # print(f"Found {len_of_all_images} images in chapter {i}")
@@ -112,7 +113,13 @@ def chapter_html(
                 for count, img in enumerate(all_images):
                     print(f"[{chapter.title}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
                     if img['src'] not in already_fetched_images:
-                        img_contents = get_image_from_url(img['src'], image_format, compress_images, max_image_size, always_convert_images)
+                        img_contents = get_image_from_url(
+                            img['src'],
+                            image_format=image_options.get('image_format'),
+                            compress_images=image_options.get('compress_images'),
+                            max_image_size=image_options.get('max_image_size'),
+                            always_convert=image_options.get('always_convert_images')
+                        )
                         chapter.images.append(Image(
                             path=f"{story.id}/images/ch{i}_leechimage_{count}.{img_contents[1]}",
                             contents=img_contents[0],
@@ -162,15 +169,7 @@ def chapter_html(
     return chapters
 
 
-def generate_epub(story, cover_options={}, image_options=None,  output_filename=None, output_dir=None, normalize=False, allow_spaces=False):
-    if image_options is None:
-        image_options = {
-            'image_fetch': False,
-            'image_format': 'JPEG',
-            'compress_images': False,
-            'max_image_size': 1_000_000,
-            'always_convert_images': False,
-        }
+def generate_epub(story, cover_options={}, image_options={}, output_filename=None, output_dir=None, normalize=False, allow_spaces=False):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -190,6 +189,12 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
     if extra_metadata:
         metadata['extra'] = '\n        '.join(
             f'<dt>{k}</dt><dd>{v}</dd>' for k, v in extra_metadata.items())
+
+    valid_image_options = ('image_fetch', 'image_format', 'compress_images',
+                           'max_image_size', 'always_convert_images')
+    image_options = ImageOptions(
+        **{k: v for k, v in image_options.items() if k in valid_image_options})
+    image_options = asdict(image_options, filter=lambda k, v: v is not None)
 
     valid_cover_options = ('fontname', 'fontsize', 'width',
                            'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
@@ -214,11 +219,7 @@ def generate_epub(story, cover_options={}, image_options=None,  output_filename=
                 now=datetime.datetime.now(), **metadata)),
             *chapter_html(
                 story,
-                image_fetch=image_options.get('image_fetch'),
-                image_format=image_options.get('image_format'),
-                compress_images=image_options.get('compress_images'),
-                max_image_size=image_options.get('max_image_size'),
-                always_convert_images=image_options.get('always_convert_images'),
+                image_options=image_options,
                 normalize=normalize
             ),
             EpubFile(
