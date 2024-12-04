@@ -95,7 +95,13 @@ def chapter_html(
         if hasattr(chapter, '__iter__'):
             # This is a Section
             chapters.extend(chapter_html(
-                chapter, titleprefix=title, normalize=normalize))
+                chapter, titleprefix=title, normalize=normalize,
+                image_fetch=image_fetch,
+                image_format=image_format,
+                always_convert_images=always_convert_images,
+                compress_images=compress_images,
+                max_image_size=max_image_size
+            ))
         else:
             soup = BeautifulSoup(chapter.contents, 'html5lib')
             if image_fetch:
