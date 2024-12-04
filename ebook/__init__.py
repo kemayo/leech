@@ -132,16 +132,6 @@ def chapter_html(
                     img['src'] = already_fetched_images.get(img['src'])
                     if not img.has_attr('alt'):
                         img['alt'] = f"Image {count} from chapter {i}"
-                # Add all pictures on this chapter as well.
-                for image in chapter.images:
-                    # For/else syntax, check if the image path already exists, if it doesn't add the image.
-                    # Duplicates are not allowed in the format.
-                    for other_file in chapters:
-                        if other_file.path == image.path:
-                            break
-                    else:
-                        chapters.append(EpubFile(
-                            path=image.path, contents=image.contents, filetype=image.content_type))
             else:
                 # Remove all images from the chapter so you don't get that annoying grey background.
                 for img in soup.find_all('img'):
@@ -163,6 +153,16 @@ def chapter_html(
                 contents=html_template.format(
                     title=html.escape(title), text=contents)
             ))
+            # Add all pictures on this chapter as well.
+            for image in chapter.images:
+                # For/else syntax, check if the image path already exists, if it doesn't add the image.
+                # Duplicates are not allowed in the format.
+                for other_file in chapters:
+                    if other_file.path == image.path:
+                        break
+                else:
+                    chapters.append(EpubFile(
+                        path=image.path, contents=image.contents, filetype=image.content_type))
     if story.footnotes:
         chapters.append(EpubFile(title="Footnotes", path=f'{story.id}/footnotes.html', contents=html_template.format(
             title="Footnotes", text='\n\n'.join(story.footnotes))))
