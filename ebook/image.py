@@ -86,7 +86,8 @@ def get_image_from_url(
     image_format: str = "JPEG",
     compress_images: bool = False,
     max_image_size: int = 1_000_000,
-    always_convert: bool = False
+    always_convert: bool = False,
+    session: requests.Session = None
 ) -> Tuple[bytes, str, str]:
     """
     Based on make_cover_from_url(), this function takes in the image url usually gotten from the `src` attribute of
@@ -98,6 +99,8 @@ def get_image_from_url(
     @param max_image_size: The maximum size of the image in bytes
     @return: A tuple of the image data, the image format and the image mime type
     """
+
+    session = session or requests.Session()
     try:
         if url.startswith("https://www.filepicker.io/api/"):
             logger.warning("Filepicker.io image detected, converting to Fiction.live image. This might fail.")
@@ -123,7 +126,7 @@ def get_image_from_url(
             return imgdata, file_ext, f"image/{file_ext}"
 
         print(url)
-        img = requests.Session().get(url)
+        img = session.get(url)
         image = BytesIO(img.content)
         image.seek(0)
 

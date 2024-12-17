@@ -48,7 +48,10 @@ def create_session(cache):
         pass
     session.cookies.update(lwp_cookiejar)
     session.headers.update({
-        'User-agent': USER_AGENT
+        'User-Agent': USER_AGENT,
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept': '*/*',  # this is essential for imgur
     })
     return session
 
@@ -181,7 +184,8 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
                 },
                 normalize=normalize,
                 output_dir=output_dir or options.get('output_dir', os.getcwd()),
-                allow_spaces=options.get('allow_spaces', False)
+                allow_spaces=options.get('allow_spaces', False),
+                session=session
             )
             logger.info("File created: " + filename)
         else:

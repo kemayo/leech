@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 import html
 import unicodedata
 import datetime
-import requests
 from attrs import define, asdict
 
 html_template = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -91,7 +90,8 @@ def chapter_html(
     story,
     image_options,
     titleprefix=None,
-    normalize=False
+    normalize=False,
+    session=None
 ):
     already_fetched_images = {}
     chapters = []
@@ -100,7 +100,7 @@ def chapter_html(
         if hasattr(chapter, '__iter__'):
             # This is a Section
             chapters.extend(chapter_html(
-                chapter, image_options=image_options, titleprefix=title, normalize=normalize
+                chapter, image_options=image_options, titleprefix=title, normalize=normalize, session=session
             ))
         else:
             soup = BeautifulSoup(chapter.contents, 'html5lib')
@@ -118,7 +118,8 @@ def chapter_html(
                             image_format=image_options.get('image_format'),
                             compress_images=image_options.get('compress_images'),
                             max_image_size=image_options.get('max_image_size'),
-                            always_convert=image_options.get('always_convert_images')
+                            always_convert=image_options.get('always_convert_images'),
+                            session=session
                         )
                         chapter.images.append(Image(
                             path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
@@ -169,7 +170,7 @@ def chapter_html(
     return chapters
 
 
-def generate_epub(story, cover_options={}, image_options={}, output_filename=None, output_dir=None, normalize=False, allow_spaces=False):
+def generate_epub(story, cover_options={}, image_options={}, output_filename=None, output_dir=None, normalize=False, allow_spaces=False, session=None):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -180,6 +181,14 @@ def generate_epub(story, cover_options={}, image_options={}, output_filename=Non
         'extra': '',
     }
     extra_metadata = {}
+
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    })
+    if story.url:
+        session.headers.update({
+            'Referer': story.url,
+        })
 
     if story.summary:
         extra_metadata['Summary'] = story.summary
@@ -220,11 +229,12 @@ def generate_epub(story, cover_options={}, image_options={}, output_filename=Non
             *chapter_html(
                 story,
                 image_options=image_options,
-                normalize=normalize
+                normalize=normalize,
+                session=session
             ),
             EpubFile(
                 path='Styles/base.css',
-                contents=requests.Session().get(
+                contents=session.get(
                     'https://raw.githubusercontent.com/mattharrison/epub-css-starter-kit/master/css/base.css').text,
                 filetype='text/css'
             ),
