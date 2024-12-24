@@ -107,7 +107,7 @@ class FanFictionNet(Site):
                 self.session.cache.delete_url(fallback)
                 raise CloudflareException("Couldn't fetch, presumably because of Cloudflare protection, and falling back to archive.org failed; if some chapters were succeeding, try again?", url, fallback)
         try:
-            super()._soup(self, url, *args, **kwargs)
+            return super()._soup(self, url, *args, **kwargs)
         except CloudflareException:
             self._cloudflared = True
             return self._soup(url, *args, **kwargs)

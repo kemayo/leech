@@ -60,7 +60,7 @@ class ArchiveOfOurOwn(Site):
         )
 
         # Fetch the chapter list as well because it contains info that's not in the full work
-        nav_soup = self._soup(f'https://archiveofourown.org/works/{workid}/navigate')
+        nav_soup, nav_base = self._soup(f'https://archiveofourown.org/works/{workid}/navigate')
         chapters = soup.select('#chapters > div')
         if len(chapters) == 1:
             # in a single-chapter story the #chapters div is actually the chapter
