@@ -176,7 +176,7 @@ class Site:
     def login(self, login_details):
         raise NotImplementedError()
 
-    def _soup(self, url, method='html5lib', delay=0, retry=3, retry_delay=10, **kw):
+    def _soup(self, url, method='lxml', delay=0, retry=3, retry_delay=10, **kw):
         page = self.session.get(url, **kw)
         if not page:
             if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
@@ -232,7 +232,7 @@ class Site:
         return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
 
     def _new_tag(self, *args, **kw):
-        soup = BeautifulSoup("", 'html5lib')
+        soup = BeautifulSoup("", 'lxml')
         return soup.new_tag(*args, **kw)
 
     def _join_url(self, *args, **kwargs):

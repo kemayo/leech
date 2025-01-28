@@ -58,7 +58,7 @@ class XenForo(Site):
     def login(self, login_details):
         with requests_cache.disabled():
             login = self.session.get(self.siteurl('login/'))
-            soup = BeautifulSoup(login.text, 'html5lib')
+            soup = BeautifulSoup(login.text, 'lxml')
             post, action, method = self._form_data(soup.find(class_='p-body-content'))
             post['login'] = login_details[0]
             post['password'] = login_details[1]
@@ -70,7 +70,7 @@ class XenForo(Site):
             )
             if not result.ok:
                 return logger.error("Failed to log in as %s", login_details[0])
-            soup = BeautifulSoup(result.text, 'html5lib')
+            soup = BeautifulSoup(result.text, 'lxml')
             if twofactor := soup.find('form', action="/login/two-step"):
                 if len(login_details) < 3:
                     return logger.error("Failed to log in as %s; login requires 2FA secret", login_details[0])
@@ -219,7 +219,7 @@ class XenForo(Site):
                 'category_id': fetcher.get('data-category-id'),
                 '_xfResponseType': 'json',
             }).json()
-            responseSoup = BeautifulSoup(response['templateHtml'], 'html5lib')
+            responseSoup = BeautifulSoup(response['templateHtml'], 'lxml')
             fetcher.replace_with(responseSoup)
             fetcher = soup.find(class_='ThreadmarkFetcher')
 
@@ -262,7 +262,7 @@ class XenForo(Site):
             # create a proper post-url, because threadmarks can sometimes
             # mess up page-wise with anchors
             url = self.siteurl(f'posts/{postid}/')
-        soup, base = self._soup(url, 'html5lib')
+        soup, base = self._soup(url, 'lxml')
 
         if postid:
             return self._posts_from_page(soup, postid), base
