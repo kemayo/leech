@@ -103,7 +103,7 @@ def chapter_html(
                 chapter, image_options=image_options, titleprefix=title, normalize=normalize, session=session
             ))
         else:
-            soup = BeautifulSoup(chapter.contents, 'html5lib')
+            soup = BeautifulSoup(chapter.contents, 'lxml')
 
             if image_options.get('image_fetch'):
                 all_images = soup.find_all('img', src=True)

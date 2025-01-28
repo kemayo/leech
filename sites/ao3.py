@@ -23,7 +23,7 @@ class ArchiveOfOurOwn(Site):
     def login(self, login_details):
         with requests_cache.disabled():
             login = self.session.get('https://archiveofourown.org/users/login')
-            soup = BeautifulSoup(login.text, 'html5lib')
+            soup = BeautifulSoup(login.text, 'lxml')
             post, action, method = self._form_data(soup.find(id='new_user'))
             post['user[login]'] = login_details[0]
             post['user[password]'] = login_details[1]
