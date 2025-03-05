@@ -177,22 +177,28 @@ class Site:
         raise NotImplementedError()
 
     def _soup(self, url, method='lxml', delay=0, retry=3, retry_delay=10, **kw):
-        page = self.session.get(url, **kw)
-        if not page:
-            if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
-                raise CloudflareException("Couldn't fetch, probably because of Cloudflare protection", url)
-            if retry and retry > 0:
-                real_delay = retry_delay
-                if 'Retry-After' in page.headers:
-                    real_delay = int(page.headers['Retry-After'])
-                logger.warning("Load failed: waiting %s to retry (%s: %s)", real_delay, page.status_code, page.url)
-                time.sleep(real_delay)
-                return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
-            raise SiteException("Couldn't fetch", url)
-        if delay and delay > 0 and not page.from_cache:
-            time.sleep(delay)
-        soup = BeautifulSoup(page.text, method)
-        return soup, soup.head.base and soup.head.base.get('href') or url
+        if url.startswith('http://') or url.startswith('https://'):
+            page = self.session.get(url, **kw)
+            if not page:
+                if page.status_code == 403 and page.headers.get('Server', False) == 'cloudflare' and "captcha-bypass" in page.text:
+                    raise CloudflareException("Couldn't fetch, probably because of Cloudflare protection", url)
+                if retry and retry > 0:
+                    real_delay = retry_delay
+                    if 'Retry-After' in page.headers:
+                        real_delay = int(page.headers['Retry-After'])
+                    logger.warning("Load failed: waiting %s to retry (%s: %s)", real_delay, page.status_code, page.url)
+                    time.sleep(real_delay)
+                    return self._soup(url, method=method, retry=retry - 1, retry_delay=retry_delay, **kw)
+                raise SiteException("Couldn't fetch", url)
+            if delay and delay > 0 and not page.from_cache:
+                time.sleep(delay)
+            text = page.text
+            fallback_base = url
+        else:
+            text = url
+            fallback_base = ''
+        soup = BeautifulSoup(text, method)
+        return soup, soup.head.base and soup.head.base.get('href') or fallback_base
 
     def _form_in_soup(self, soup):
         if soup.name == 'form':
@@ -232,7 +238,7 @@ class Site:
         return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
 
     def _new_tag(self, *args, **kw):
-        soup = BeautifulSoup("", 'lxml')
+        soup, nobase = self._soup('')
         return soup.new_tag(*args, **kw)
 
     def _join_url(self, *args, **kwargs):

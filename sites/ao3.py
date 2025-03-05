@@ -4,7 +4,6 @@ import logging
 import datetime
 import re
 import requests_cache
-from bs4 import BeautifulSoup
 from . import register, Site, Section, Chapter, SiteException
 
 logger = logging.getLogger(__name__)
@@ -22,8 +21,9 @@ class ArchiveOfOurOwn(Site):
 
     def login(self, login_details):
         with requests_cache.disabled():
+            # Can't just pass this url to _soup because I need the cookies later
             login = self.session.get('https://archiveofourown.org/users/login')
-            soup = BeautifulSoup(login.text, 'lxml')
+            soup, nobase = self._soup(login.text)
             post, action, method = self._form_data(soup.find(id='new_user'))
             post['user[login]'] = login_details[0]
             post['user[password]'] = login_details[1]

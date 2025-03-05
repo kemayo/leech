@@ -4,7 +4,6 @@ import datetime
 import re
 import logging
 import requests_cache
-from bs4 import BeautifulSoup
 
 from . import Site, SiteException, SiteSpecificOption, Section, Chapter
 import mintotp
@@ -57,8 +56,9 @@ class XenForo(Site):
 
     def login(self, login_details):
         with requests_cache.disabled():
+            # Can't just pass this url to _soup because I need the cookies later
             login = self.session.get(self.siteurl('login/'))
-            soup = BeautifulSoup(login.text, 'lxml')
+            soup, nobase = self._soup(login.text)
             post, action, method = self._form_data(soup.find(class_='p-body-content'))
             post['login'] = login_details[0]
             post['password'] = login_details[1]
@@ -70,7 +70,7 @@ class XenForo(Site):
             )
             if not result.ok:
                 return logger.error("Failed to log in as %s", login_details[0])
-            soup = BeautifulSoup(result.text, 'lxml')
+            soup, nobase = self._soup(result.text)
             if twofactor := soup.find('form', action="/login/two-step"):
                 if len(login_details) < 3:
                     return logger.error("Failed to log in as %s; login requires 2FA secret", login_details[0])
@@ -219,7 +219,7 @@ class XenForo(Site):
                 'category_id': fetcher.get('data-category-id'),
                 '_xfResponseType': 'json',
             }).json()
-            responseSoup = BeautifulSoup(response['templateHtml'], 'lxml')
+            responseSoup, nobase = self._soup(response['templateHtml'])
             fetcher.replace_with(responseSoup)
             fetcher = soup.find(class_='ThreadmarkFetcher')
 
