@@ -91,7 +91,8 @@ def chapter_html(
     image_options,
     titleprefix=None,
     normalize=False,
-    session=None
+    session=None,
+    parser='lxml'
 ):
     already_fetched_images = {}
     chapters = []
@@ -170,7 +171,7 @@ def chapter_html(
     return chapters
 
 
-def generate_epub(story, cover_options={}, image_options={}, output_filename=None, output_dir=None, normalize=False, allow_spaces=False, session=None):
+def generate_epub(story, cover_options={}, image_options={}, output_filename=None, output_dir=None, normalize=False, allow_spaces=False, session=None, parser='lxml'):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -230,7 +231,8 @@ def generate_epub(story, cover_options={}, image_options={}, output_filename=Non
                 story,
                 image_options=image_options,
                 normalize=normalize,
-                session=session
+                session=session,
+                parser=parser
             ),
             EpubFile(
                 path='Styles/base.css',

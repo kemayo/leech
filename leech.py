@@ -185,7 +185,8 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
                 normalize=normalize,
                 output_dir=output_dir or options.get('output_dir', os.getcwd()),
                 allow_spaces=options.get('allow_spaces', False),
-                session=session
+                session=session,
+                parser=options.get('parser', 'lxml')
             )
             logger.info("File created: " + filename)
         else:

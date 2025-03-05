@@ -132,6 +132,13 @@ class Site:
                     "callback": lambda ctx, param, value: ctx.params.update({"spoilers": value and "skip" or "include"}),
                 },
             ),
+            SiteSpecificOption(
+                'parser',
+                '--parser',
+                help="Which HTML parser to use",
+                choices=('lxml', 'html5lib', 'html.parser', 'lxml-xml'),
+                default='lxml',
+            ),
         ]
 
     @classmethod
@@ -176,7 +183,9 @@ class Site:
     def login(self, login_details):
         raise NotImplementedError()
 
-    def _soup(self, url, method='lxml', delay=0, retry=3, retry_delay=10, **kw):
+    def _soup(self, url, method=False, delay=0, retry=3, retry_delay=10, **kw):
+        if not method:
+            method = self.options.get('parser', 'lxml')
         if url.startswith('http://') or url.startswith('https://'):
             page = self.session.get(url, **kw)
             if not page:
