@@ -77,7 +77,9 @@ class Arbitrary(Site):
             # set of already processed urls. Stored to detect loops.
             found_content_urls = set()
             content_url = definition.url
-            while content_url and content_url not in found_content_urls:
+            def process_content_url(content_url):
+                if content_url in found_content_urls:
+                    return
                 found_content_urls.add(content_url)
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
@@ -85,14 +87,13 @@ class Arbitrary(Site):
                     soup, base = self._soup(content_url)
                     next_link = soup.select(definition.next_selector)
                     if next_link:
-                        next_link_url = str(next_link[0].get('href'))
-                        if base:
-                            next_link_url = self._join_url(base, next_link_url)
-                        content_url = self._join_url(content_url, next_link_url)
-                    else:
-                        content_url = False
-                else:
-                    content_url = False
+                        for next_link_item in next_link:
+                            next_link_url = str(next_link_item.get('href'))
+                            if base:
+                                next_link_url = self._join_url(base, next_link_url)
+                            content_url = self._join_url(content_url, next_link_url)
+                            process_content_url(content_url)
+            process_content_url(content_url)
 
         if not story:
             raise SiteException("No story content found; check the content selectors")
