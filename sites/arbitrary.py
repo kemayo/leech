@@ -77,6 +77,7 @@ class Arbitrary(Site):
             # set of already processed urls. Stored to detect loops.
             found_content_urls = set()
             content_url = definition.url
+
             def process_content_url(content_url):
                 if content_url in found_content_urls:
                     return False
@@ -97,6 +98,7 @@ class Arbitrary(Site):
                             if status:
                                 break
                 return True
+
             process_content_url(content_url)
 
         if not story:
