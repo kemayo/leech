@@ -79,7 +79,7 @@ class Arbitrary(Site):
             content_url = definition.url
             def process_content_url(content_url):
                 if content_url in found_content_urls:
-                    return
+                    return False
                 found_content_urls.add(content_url)
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
@@ -92,7 +92,11 @@ class Arbitrary(Site):
                             if base:
                                 next_link_url = self._join_url(base, next_link_url)
                             content_url = self._join_url(content_url, next_link_url)
-                            process_content_url(content_url)
+                            # stop loop once a new link is found
+                            status = process_content_url(content_url)
+                            if status:
+                                break
+                return True
             process_content_url(content_url)
 
         if not story:
