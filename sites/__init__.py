@@ -207,7 +207,7 @@ class Site:
             text = url
             fallback_base = ''
         soup = BeautifulSoup(text, method)
-        return soup, soup.head.base and soup.head.base.get('href') or fallback_base
+        return soup, (soup.head and soup.head.base) and soup.head.base.get('href') or fallback_base
 
     def _form_in_soup(self, soup):
         if soup.name == 'form':
@@ -247,7 +247,7 @@ class Site:
         return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
 
     def _new_tag(self, *args, **kw):
-        soup, nobase = self._soup('')
+        soup = BeautifulSoup("", self.options.get('parser'))
         return soup.new_tag(*args, **kw)
 
     def _join_url(self, *args, **kwargs):
