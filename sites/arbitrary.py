@@ -76,7 +76,7 @@ class Arbitrary(Site):
         else:
             # set of already processed urls. Stored to detect loops.
             found_content_urls = set()
-            content_url = definition.url
+            content_urls = [definition.url]
 
             def process_content_url(content_url):
                 if content_url in found_content_urls:
@@ -84,6 +84,20 @@ class Arbitrary(Site):
                 found_content_urls.add(content_url)
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
+                return True
+
+            while content_urls:
+                status = False
+                for content_url in content_urls:
+                    # stop inner loop once a new link is found
+                    status = process_content_url(content_url)
+                    if status:
+                        break
+                # stop outer loop if no new links found
+                if not status:
+                    break
+                # reset url list
+                content_urls = []
                 if definition.next_selector:
                     soup, base = self._soup(content_url)
                     next_link = soup.select(definition.next_selector)
@@ -92,12 +106,7 @@ class Arbitrary(Site):
                             next_link_url = str(next_link_item.get('href'))
                             if base:
                                 next_link_url = self._join_url(base, next_link_url)
-                            content_url = self._join_url(content_url, next_link_url)
-                            # stop loop once a new link is found
-                            status = process_content_url(content_url)
-                            if status:
-                                break
-                return True
+                            content_urls.append(self._join_url(content_url, next_link_url))
 
             process_content_url(content_url)
 
