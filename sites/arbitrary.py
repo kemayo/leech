@@ -80,25 +80,20 @@ class Arbitrary(Site):
 
             def process_content_url(content_url):
                 if content_url in found_content_urls:
-                    return False
+                    return None
                 found_content_urls.add(content_url)
                 for chapter in self._chapter(content_url, definition):
                     story.add(chapter)
-                return True
+                return content_url
 
             while content_urls:
-                status = False
-                for content_url in content_urls:
+                for temp_url in content_urls:
                     # stop inner loop once a new link is found
-                    status = process_content_url(content_url)
-                    if status:
+                    if content_url := process_content_url(temp_url):
                         break
-                # stop outer loop if no new links found
-                if not status:
-                    break
                 # reset url list
                 content_urls = []
-                if definition.next_selector:
+                if content_url and definition.next_selector:
                     soup, base = self._soup(content_url)
                     next_link = soup.select(definition.next_selector)
                     if next_link:
@@ -107,8 +102,6 @@ class Arbitrary(Site):
                             if base:
                                 next_link_url = self._join_url(base, next_link_url)
                             content_urls.append(self._join_url(content_url, next_link_url))
-
-            process_content_url(content_url)
 
         if not story:
             raise SiteException("No story content found; check the content selectors")
