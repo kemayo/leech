@@ -39,6 +39,8 @@ class Wattpad(Site):
                 date=datetime.datetime.fromisoformat(chapter['createDate'].rstrip('Z'))  # modifyDate also?
             ))
 
+        self._finalize(story)
+
         return story
 
     def _chapter(self, chapterid):

@@ -99,7 +99,7 @@ def get_image_from_url(
     @param max_image_size: The maximum size of the image in bytes
     @return: A tuple of the image data, the image format and the image mime type
     """
-
+    logger.info("Downloading image: %s", url)
     session = session or requests.Session()
     try:
         if url.startswith("https://www.filepicker.io/api/"):
@@ -125,7 +125,7 @@ def get_image_from_url(
                 return _convert_to_new_format(imgdata, image_format).read(), image_format.lower(), f"image/{image_format.lower()}"
             return imgdata, file_ext, f"image/{file_ext}"
 
-        print(url)
+        # print(url)
         img = session.get(url)
         image = BytesIO(img.content)
         image.seek(0)

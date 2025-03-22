@@ -87,6 +87,8 @@ class ArchiveOfOurOwn(Site):
                 date=updated
             ))
 
+        self._finalize(story)
+
         return story
 
     def _chapter(self, soup, base):

@@ -93,6 +93,8 @@ class FictionLive(Site):
                 date=datetime.datetime.fromtimestamp(updated / 1000.0)
             ))
 
+        self._finalize(story)
+
         return story
 
 

@@ -68,8 +68,7 @@ class RoyalRoad(Site):
 
         http.client._MAXHEADERS = original_maxheaders
 
-        story.footnotes = self.footnotes
-        self.footnotes = []
+        self._finalize(story)
 
         return story
 

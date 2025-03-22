@@ -46,4 +46,6 @@ class DeviantArt(Stash):
             except Exception:
                 logger.exception("Couldn't extract chapters from thumbs")
 
+        self._finalize(story)
+
         return story

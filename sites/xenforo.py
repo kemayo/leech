@@ -153,8 +153,7 @@ class XenForo(Site):
                 chapter = Chapter(title=title, contents=contents, date=post_date)
                 story.add(chapter)
 
-        story.footnotes = self.footnotes
-        self.footnotes = []
+        self._finalize(story)
 
         return story
 

@@ -1,8 +1,6 @@
 from .epub import make_epub, EpubFile
 from .cover import make_cover, make_cover_from_url
 from .image import get_image_from_url
-from sites import Image
-from bs4 import BeautifulSoup
 
 import html
 import unicodedata
@@ -91,10 +89,9 @@ def chapter_html(
     image_options,
     titleprefix=None,
     normalize=False,
-    session=None,
-    parser='lxml'
+    session=None
 ):
-    already_fetched_images = {}
+    images = {}
     chapters = []
     for i, chapter in enumerate(story):
         title = chapter.title or f'#{i}'
@@ -104,48 +101,10 @@ def chapter_html(
                 chapter, image_options=image_options, titleprefix=title, normalize=normalize, session=session
             ))
         else:
-            soup = BeautifulSoup(chapter.contents, 'lxml')
-
-            if image_options.get('image_fetch'):
-                all_images = soup.find_all('img', src=True)
-                len_of_all_images = len(all_images)
-                # print(f"Found {len_of_all_images} images in chapter {i}")
-
-                for count, img in enumerate(all_images):
-                    print(f"[{chapter.title}] Image ({count+1} out of {len_of_all_images}). Source: ", end="")
-                    if img['src'] not in already_fetched_images:
-                        img_contents = get_image_from_url(
-                            img['src'],
-                            image_format=image_options.get('image_format'),
-                            compress_images=image_options.get('compress_images'),
-                            max_image_size=image_options.get('max_image_size'),
-                            always_convert=image_options.get('always_convert_images'),
-                            session=session
-                        )
-                        chapter.images.append(Image(
-                            path=f"images/ch{i}_leechimage_{count}.{img_contents[1]}",
-                            contents=img_contents[0],
-                            content_type=img_contents[2]
-                        ))
-                        already_fetched_images[img['src']] = f"images/ch{i}_leechimage_{count}.{img_contents[1]}"
-                    else:
-                        print(img['src'], "(already", already_fetched_images.get(img['src']), ")")
-
-                    img['src'] = already_fetched_images.get(img['src'])
-                    if not img.has_attr('alt'):
-                        img['alt'] = f"Image {count} from chapter {i}"
-            else:
-                # Remove all images from the chapter so you don't get that annoying grey background.
-                for img in soup.find_all('img'):
-                    # Note: alt="" will be completely removed here, which is consitent with the semantics
-                    if img.parent.name.lower() == "figure":
-                        # TODO: figcaption?
-                        img.parent.replace_with(img.get('alt', '🖼'))
-                    else:
-                        img.replace_with(img.get('alt', '🖼'))
+            contents = chapter.contents
+            images.update(chapter.images)
 
             title = titleprefix and f'{titleprefix}: {title}' or title
-            contents = str(soup)
             if normalize:
                 title = unicodedata.normalize('NFKC', title)
                 contents = unicodedata.normalize('NFKC', contents)
@@ -155,19 +114,30 @@ def chapter_html(
                 contents=html_template.format(
                     title=html.escape(title), text=contents)
             ))
-            # Add all pictures on this chapter as well.
-            for image in chapter.images:
-                # For/else syntax, check if the image path already exists, if it doesn't add the image.
-                # Duplicates are not allowed in the format.
-                for other_file in chapters:
-                    if other_file.path == image.path:
-                        break
-                else:
-                    chapters.append(EpubFile(
-                        path=f'{story.id}/{image.path}', contents=image.contents, filetype=image.content_type))
+
     if story.footnotes:
         chapters.append(EpubFile(title="Footnotes", path=f'{story.id}/footnotes.html', contents=html_template.format(
-            title="Footnotes", text='\n\n'.join(story.footnotes))))
+            title="Footnotes", text=story.footnotes.contents)))
+        images.update(story.footnotes.images)
+
+    for image in images.values():
+        img_contents = get_image_from_url(
+            image.url,
+            image_format=image_options.get('image_format'),
+            compress_images=image_options.get('compress_images'),
+            max_image_size=image_options.get('max_image_size'),
+            always_convert=image_options.get('always_convert_images'),
+            session=session
+        )
+        path = f'{story.id}/{image.path()}'
+        for chapterfile in chapters:
+            if chapterfile.path == path:
+                break
+        else:
+            chapters.append(
+                EpubFile(path=path, contents=img_contents[0], filetype=img_contents[2])
+            )
+
     return chapters
 
 
@@ -231,8 +201,7 @@ def generate_epub(story, cover_options={}, image_options={}, output_filename=Non
                 story,
                 image_options=image_options,
                 normalize=normalize,
-                session=session,
-                parser=parser
+                session=session
             ),
             EpubFile(
                 path='Styles/base.css',

@@ -69,6 +69,8 @@ class FanFictionNet(Site):
         else:
             story.add(Chapter(title=story.title, contents=self._chapter(url), date=published))
 
+        self._finalize(story)
+
         return story
 
     def _chapter(self, url):

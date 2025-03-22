@@ -40,6 +40,8 @@ class Stash(Site):
             except Exception:
                 logger.exception("Couldn't extract chapters from thumbs")
 
+        self._finalize(story)
+
         return story
 
     def _chapter(self, url):

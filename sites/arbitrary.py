@@ -106,6 +106,8 @@ class Arbitrary(Site):
         if not story:
             raise SiteException("No story content found; check the content selectors")
 
+        self._finalize(story)
+
         return story
 
     def _chapter(self, url, definition, title=False):

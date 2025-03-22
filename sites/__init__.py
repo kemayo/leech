@@ -9,6 +9,7 @@ import time
 import logging
 import urllib
 import re
+import hashlib
 from attrs import define, field, Factory
 from bs4 import BeautifulSoup
 
@@ -24,9 +25,17 @@ def _default_uuid_string(self):
 
 @define
 class Image:
-    path: str
-    contents: str
-    content_type: str
+    url: str
+
+    def path(self):
+        return f"images/{hashlib.sha1(self.url.encode()).hexdigest()}.{self.ext()}"
+
+    def ext(self):
+        if self.url.startswith("data:image") and 'base64' in self.url:
+            head, base64data = self.url.split(',')
+            return str(head.split(';')[0].split('/')[1])
+        path = urllib.parse.urlparse(self.url).path
+        return os.path.splitext(path)[1]
 
 
 @define
@@ -34,7 +43,7 @@ class Chapter:
     title: str
     contents: str
     date: datetime.datetime = False
-    images: list = Factory(list)
+    images: dict = Factory(dict)
 
 
 @define
@@ -61,6 +70,13 @@ class Section:
     def __len__(self):
         return len(self.contents)
 
+    def everychapter(self):
+        for chapter in self.contents:
+            if hasattr(chapter, '__iter__'):
+                yield from chapter
+            else:
+                yield chapter
+
     def add(self, value, index=None):
         if index is not None:
             self.contents.insert(index, value)
@@ -68,11 +84,8 @@ class Section:
             self.contents.append(value)
 
     def dates(self):
-        for chapter in self.contents:
-            if hasattr(chapter, '__iter__'):
-                yield from chapter.dates()
-            elif chapter.date:
-                yield chapter.date
+        for chapter in self.everychapter():
+            yield chapter.date
 
 
 @define
@@ -320,6 +333,41 @@ class Site:
                 del img['sizes']
 
         return contents
+
+    def _finalize(self, story):
+        # Call this on a story after it's fully extracted to clean up things
+        for chapter in story:
+            if hasattr(chapter, '__iter__'):
+                self._finalize(chapter, story)
+            else:
+                self._process_images(chapter)
+
+        if self.footnotes:
+            story.footnotes = Chapter('Footnotes', '\n\n'.join(self.footnotes))
+            self.footnotes = []
+            self._process_images(story.footnotes)
+
+    def _process_images(self, chapter):
+        soup, base = self._soup(chapter.contents)
+
+        if self.options.get('image_fetch'):
+            for count, img in enumerate(soup.find_all('img', src=True)):
+                # logger.info(f"Image in {chapter.title}: {img['src']}")
+                if img['src'] not in chapter.images:
+                    chapter.images[img['src']] = Image(img['src'])
+
+                img['src'] = chapter.images.get(img['src']).path()
+        else:
+            # Remove all images from the chapter so you don't get that annoying grey background.
+            for img in soup.find_all('img'):
+                # Note: alt="" will be completely removed here, which is consitent with the semantics
+                if img.parent.name.lower() == "figure":
+                    # TODO: figcaption?
+                    img.parent.replace_with(img.get('alt', '🖼'))
+                else:
+                    img.replace_with(img.get('alt', '🖼'))
+
+        chapter.contents = str(soup)
 
 
 @define
