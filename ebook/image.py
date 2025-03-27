@@ -125,8 +125,7 @@ def get_image_from_url(
                 return _convert_to_new_format(imgdata, image_format).read(), image_format.lower(), f"image/{image_format.lower()}"
             return imgdata, file_ext, f"image/{file_ext}"
 
-        # print(url)
-        img = session.get(url)
+        img = session.get(url, timeout=(6.01, 30))
         image = BytesIO(img.content)
         image.seek(0)
 
