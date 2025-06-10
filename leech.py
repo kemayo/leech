@@ -108,6 +108,7 @@ def open_story(site, url, session, login, options):
     )
 
     if login:
+        logger.info("Attempting to log in as %s", login[0])
         handler.login(login)
 
     try:

@@ -21,22 +21,25 @@ class ArchiveOfOurOwn(Site):
 
     def login(self, login_details):
         with requests_cache.disabled():
-            # Can't just pass this url to _soup because I need the cookies later
-            login = self.session.get('https://archiveofourown.org/users/login')
-            soup, nobase = self._soup(login.text)
-            post, action, method = self._form_data(soup.find(id='new_user'))
-            post['user[login]'] = login_details[0]
-            post['user[password]'] = login_details[1]
-            # I feel the session *should* handle this cookies bit for me. But
-            # it doesn't. And I don't know why.
-            result = self.session.post(
-                self._join_url(login.url, action),
-                data=post, cookies=login.cookies
-            )
-            if result.ok:
-                logger.info("Logged in as %s", login_details[0])
-            else:
-                logger.error("Failed to log in as %s", login_details[0])
+            try:
+                # Can't just pass this url to _soup because I need the cookies later
+                login = self.session.get('https://archiveofourown.org/users/login')
+                soup, nobase = self._soup(login.text)
+                post, action, method = self._form_data(soup.find(id='new_user'))
+                post['user[login]'] = login_details[0]
+                post['user[password]'] = login_details[1]
+                # I feel the session *should* handle this cookies bit for me. But
+                # it doesn't. And I don't know why.
+                result = self.session.post(
+                    self._join_url(login.url, action),
+                    data=post, cookies=login.cookies
+                )
+                if result.ok:
+                    logger.info("Logged in as %s", login_details[0])
+                else:
+                    logger.error("Failed to log in as %s", login_details[0])
+            except Exception as e:
+                logger.error("Failed to log in as %s, but so hard that it threw an exception %s", login_details[0], e)
 
     def extract(self, url):
         workid = re.match(r'^https?://(?:www\.)?archiveofourown\.org/works/(\d+)/?.*', url).group(1)
