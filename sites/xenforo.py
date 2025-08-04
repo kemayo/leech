@@ -288,11 +288,13 @@ class XenForo(Site):
                 # TODO: more robust CSS parsing? This is very whitespace dependent, if nothing else.
                 if "font-family: 'Courier New'" in tag['style']:
                     tag.wrap(self._new_tag('code'))
+                    tag['style'] = tag['style'].replace("", '')
+                    tag['style'] = re.sub(r"font-family: 'Courier New';?", '', tag['style'])
                 if "text-decoration: strikethrough" in tag['style']:
                     tag.wrap(self._new_tag('strike'))
+                    tag['style'] = re.sub(r'text-decoration: strikethrough;?', '', tag['style'])
                 if "margin-left" in tag['style']:
                     continue
-                del tag['style']
         for tag in post.select('.quoteExpand, .bbCodeBlock-expandLink, .bbCodeBlock-shrinkLink'):
             tag.decompose()
         for tag in post.find_all('noscript'):
