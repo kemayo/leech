@@ -12,7 +12,6 @@ My recommended setup process is:
 
     $ pip install poetry
     $ poetry install
-    $ poetry shell
 
 ...adjust as needed. Just make sure the dependencies from `pyproject.toml` get installed somehow.
 
@@ -21,21 +20,21 @@ Usage
 
 Basic
 
-    $ python3 leech.py [[URL]]
+    $ poetry run leech [[URL]]
 
 A new file will appear named `Title of the Story.epub`.
 
 This is equivalent to the slightly longer
 
-    $ python3 leech.py download [[URL]]
+    $ poetry run leech download [[URL]]
 
 Flushing the cache
 
-    $ python3 leech.py flush
+    $ poetry run leech flush
 
 Learn about other options
 
-    $ python3 leech.py --help
+    $ poetry run leech --help
 
 If you want to put an ePub on a Kindle you'll have to either use Amazon's send-to-kindle tools or convert it. For the latter I'd recommend [Calibre](http://calibre-ebook.com/), though you could also try using [kindlegen](http://www.amazon.com/gp/feature.html?docId=1000765211) directly.
 
