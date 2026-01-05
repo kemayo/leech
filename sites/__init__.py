@@ -315,7 +315,7 @@ class Site:
             # See: https://usamaejaz.com/cloudflare-email-decoding/
             enc = bytes.fromhex(tag['data-cfemail'])
             email = bytes([c ^ enc[0] for c in enc[1:]]).decode('utf8')
-            if tag.parent.name == 'a' and tag.parent['href'].startswith('/cdn-cgi/l/email-protection'):
+            if tag.parent.name == 'a' and 'href' in tag.parent and tag.parent['href'].startswith('/cdn-cgi/l/email-protection'):
                 tag = tag.parent
             tag.insert_before(email)
             tag.decompose()
