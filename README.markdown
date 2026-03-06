@@ -6,35 +6,35 @@ Let's say you want to read some sort of fiction. You're a fan of it, perhaps. Bu
 Setup
 ---
 
-You need Python 3.9+ and poetry.
+You need Python 3.10+.
 
-My recommended setup process is:
+Make sure the dependencies from `pyproject.toml` get installed somehow.
 
-    $ pip install poetry
-    $ poetry install
+The `pyproject.toml` exposes a `script` called `leech`, so all subsequent commands can be run through a dependency manager's local environment. E.g.
 
-...adjust as needed. Just make sure the dependencies from `pyproject.toml` get installed somehow.
+    $ uv run leech [[URL]]
+    $ poetry run leech [[URL]]
 
 Usage
 ---
 
 Basic
 
-    $ poetry run leech [[URL]]
+    $ ./leech.py [[URL]]
 
 A new file will appear named `Title of the Story.epub`.
 
 This is equivalent to the slightly longer
 
-    $ poetry run leech download [[URL]]
+    $ ./leech.py download [[URL]]
 
 Flushing the cache
 
-    $ poetry run leech flush
+    $ ./leech.py flush
 
 Learn about other options
 
-    $ poetry run leech --help
+    $ ./leech.py --help
 
 If you want to put an ePub on a Kindle you'll have to either use Amazon's send-to-kindle tools or convert it. For the latter I'd recommend [Calibre](http://calibre-ebook.com/), though you could also try using [kindlegen](http://www.amazon.com/gp/feature.html?docId=1000765211) directly.
 
@@ -48,6 +48,8 @@ Supports
  * Various XenForo-based sites: SpaceBattles and SufficientVelocity, most notably
  * RoyalRoad
  * Fiction.live (Anonkun)
+ * WattPad
+ * Patreon
  * DeviantArt galleries/collections
  * Sta.sh
  * Completely arbitrary sites, with a bit more work (see below)
@@ -207,5 +209,9 @@ Contributing
 ---
 
 If you submit a pull request to add support for another reasonably-general-purpose site, I will nigh-certainly accept it.
+
+Lint your changes with `ruff`:
+
+    $ uv run ruff check .
 
 Run [EpubCheck](https://github.com/IDPF/epubcheck) on epubs you generate to make sure they're not breaking.
