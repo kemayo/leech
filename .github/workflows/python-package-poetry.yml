@@ -11,39 +11,41 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install tooling
-      run: |
-        python -m ensurepip
-        python -m pip install --upgrade pip
-        python -m pip install flake8 poetry
     - name: Install dependencies
-      run: |
-        poetry install
-    - name: Lint with flake8
-      run: |
-        flake8 .
+      run: uv sync
+    - name: Lint with ruff
+      run: uv run ruff check .
     - name: Make sure help runs
-      run: |
-        poetry run leech --help
+      run: uv run leech --help
     - name: Build a cover
-      run: |
-        poetry run python -m 'ebook.cover' && file -E output.png && rm output.png
-    - name: Verify poetry build
-      run: |
-        poetry build && ls -og dist/*
+      run: uv run python -m 'ebook.cover' && file -E output.png && rm output.png
+    - name: Verify build
+      run: uv build && ls -og dist/*
     - name: eclint
       uses: snow-actions/eclint@v1.0.1
       with:
         args: 'check *.py sites/*.py'
+
+  poetry-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+    - name: Install dependencies
+      run: poetry install
+    - name: Make sure help runs
+      run: poetry run leech --help
+    - name: Verify poetry build
+      run: poetry build && ls -og dist/*
