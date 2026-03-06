@@ -24,8 +24,11 @@ leech = "leech:cli"
 
 [dependency-groups]
 dev = [
-    "flake8<7.0.0,>=6.1.0",
+    "ruff>=0.15.5",
 ]
+
+[tool.ruff.lint]
+extend-ignore = ["E501"]
 
 [tool.pdm.build]
 includes = [
