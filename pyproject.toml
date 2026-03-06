@@ -1,29 +1,38 @@
-[tool.poetry]
+[project]
+authors = [
+    {name = "David Lynch", email = "kemayo@gmail.com"},
+]
+license = {text = "MIT"}
+requires-python = "<4.0,>=3.9"
+dependencies = [
+    "attrs<26.0.0,>=25.1.0",
+    "beautifulsoup4<5.0.0,>=4.13.3",
+    "click-default-group<2.0.0,>=1.2.4",
+    "click<9.0.0,>=8.1.8",
+    "requests<3.0.0,>=2.32.4",
+    "requests-cache<2.0.0,>=1.2.1",
+    "Pillow<12.0.0,>=11.1.0",
+    "mintotp<1.0.0,>=0.3.0",
+    "lxml<6.0.0,>=5.3.1",
+]
 name = "leech"
 version = "1.0.0"
 description = "Turn a story on certain websites into an ebook for convenient reading"
-authors = ["David Lynch <kemayo@gmail.com>"]
-license = "MIT License"
-include = ["ebook/*", "sites/*"]
 
-[tool.poetry.scripts]
+[project.scripts]
 leech = "leech:cli"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-attrs = "^25.1.0"
-beautifulsoup4 = "^4.13.3"
-click-default-group = "^1.2.4"
-click = "^8.1.8"
-requests = "^2.32.4"
-requests-cache = "^1.2.1"
-Pillow = "^11.1.0"
-mintotp = "^0.3.0"
-lxml = "^5.3.1"
+[dependency-groups]
+dev = [
+    "flake8<7.0.0,>=6.1.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-flake8 = "^6.1.0"
+[tool.pdm.build]
+includes = [
+    "ebook",
+    "sites",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
