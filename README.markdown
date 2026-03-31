@@ -81,6 +81,7 @@ Example:
         "cover_url": "https://website.com/image.png"
     },
     "output_dir": "/tmp/ebooks",
+    "user_agent": "Something Completely Custom/1.0",
     "site_options": {
         "RoyalRoad": {
             "output_dir": "/tmp/litrpg_isekai_trash",

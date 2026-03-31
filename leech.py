@@ -160,11 +160,16 @@ def flush(verbose):
     default=None,
     help='Directory to save generated ebooks'
 )
+@click.option(
+    '--user-agent',
+    default=None,
+    help='Custom user-agent header'
+)
 @click.option('--cache/--no-cache', default=True)
 @click.option('--normalize/--no-normalize', default=True, help="Whether to normalize strange unicode text")
 @click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
 @site_specific_options  # Includes other click.options specific to sites
-def download(urls, site_options, cache, verbose, normalize, output_dir, **other_flags):
+def download(urls, site_options, cache, verbose, normalize, output_dir, user_agent, **other_flags):
     """Downloads a story and saves it on disk as an epub ebook."""
     configure_logging(verbose)
     session = create_session(cache)
@@ -172,6 +177,9 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, **other_
     for url in urls:
         site, url = sites.get(url)
         options, login = create_options(site, site_options, other_flags)
+        if UA := user_agent or options.get('user_agent'):
+            logger.debug('USER_AGENT overridden to "%s"', UA)
+            session.headers.update( {'USER_AGENT': UA})
         story = open_story(site, url, session, login, options)
         if story:
             filename = ebook.generate_epub(
