@@ -14,6 +14,7 @@ dependencies = [
     "pillow>=12.1.0,<13.0.0",
     "mintotp<1.0.0,>=0.3.0",
     "lxml<6.0.0,>=5.3.1",
+    "platformdirs>=4.9.4",
 ]
 name = "leech"
 version = "1.0.0"

@@ -9,6 +9,8 @@ import requests
 import requests_cache
 from click_default_group import DefaultGroup
 from functools import reduce
+from pathlib import Path
+from platformdirs import PlatformDirs
 
 import sites
 import ebook
@@ -17,6 +19,17 @@ __version__ = 2
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
 
 logger = logging.getLogger(__name__)
+
+dirs = PlatformDirs('Leech', 'davidlynch.org', ensure_exists=True)
+
+
+def likely_paths(*paths):
+    yield Path('.')
+    modpath = Path(__file__).resolve().parent
+    if modpath.resolve() != Path('.').resolve():
+        yield modpath
+    for path in paths:
+        yield path
 
 
 def configure_logging(verbose):
@@ -41,12 +54,16 @@ def create_session(cache):
         logger.debug("Uncached session")
 
     lwp_cookiejar = http.cookiejar.LWPCookieJar()
-    try:
-        lwp_cookiejar.load('leech.cookies', ignore_discard=True)
-    except Exception:
-        # This file is very much optional, so this log isn't really necessary
-        # logging.exception("Couldn't load cookies from leech.cookies")
-        pass
+    for directory in likely_paths(dirs.user_data_path):
+        if not os.path.exists(directory / 'leech.cookies'):
+            logger.debug("No leech.cookies present in %s", directory)
+            continue
+        try:
+            lwp_cookiejar.load(directory / 'leech.cookies', ignore_discard=True)
+        except Exception:
+            # This file is very much optional, so this log isn't really necessary
+            logger.exception("Couldn't load cookies from leech.cookies in %s", dirs.user_data_path)
+        break
     session.cookies.update(lwp_cookiejar)
     session.headers.update({
         'User-Agent': USER_AGENT,
@@ -58,8 +75,13 @@ def create_session(cache):
 
 
 def load_on_disk_options(site):
-    try:
-        with open('leech.json') as store_file:
+    loaded = False
+    for directory in likely_paths(dirs.user_config_path):
+        if not os.path.exists(directory / 'leech.json'):
+            logger.debug("No leech.json present in %s", directory)
+            continue
+        logger.debug("Loading leech.json from %s", directory)
+        with open(directory / 'leech.json') as store_file:
             store = json.load(store_file)
             login = store.get('logins', {}).get(site.site_key(), False)
             cover_options = store.get('cover', {})
@@ -68,7 +90,9 @@ def load_on_disk_options(site):
                 **{k: v for k, v in store.items() if k not in ('cover', 'images', 'logins')},
                 **store.get('site_options', {}).get(site.site_key(), {})
             }
-    except FileNotFoundError:
+        loaded = True
+        break
+    if not loaded:
         logger.info("Unable to locate leech.json. Continuing assuming it does not exist.")
         login = False
         image_options = {}
