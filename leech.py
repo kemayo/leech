@@ -34,9 +34,11 @@ def configure_logging(verbose):
 
 def create_session(cache):
     if cache:
-        session = requests_cache.CachedSession('leech', expire_after=4 * 3600)
+        session = requests_cache.CachedSession('leech', expire_after=4 * 3600, use_temp=True)
+        logger.debug("CachedSession at %s", session.cache.db_path)
     else:
         session = requests.Session()
+        logger.debug("Uncached session")
 
     lwp_cookiejar = http.cookiejar.LWPCookieJar()
     try:

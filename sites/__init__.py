@@ -214,6 +214,7 @@ class Site:
                 raise SiteException("Couldn't fetch", url)
             if delay and delay > 0 and not page.from_cache:
                 time.sleep(delay)
+            logger.debug('Fetched %s, %s', url, page.from_cache and 'cached' or 'uncached')
             text = page.text
             fallback_base = url
         else:
