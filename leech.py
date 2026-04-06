@@ -201,6 +201,10 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, user_age
         if UA := user_agent or options.get('user_agent'):
             logger.debug('USER_AGENT overridden to "%s"', UA)
             session.headers.update( {'USER_AGENT': UA})
+        site_output_dir = Path(output_dir or options.get('output_dir', os.getcwd())).expanduser().resolve()
+        if not os.path.exists(site_output_dir):
+            logger.warning("output directory doesn't exist: %s", site_output_dir)
+            return
         story = open_story(site, url, session, login, options)
         if story:
             filename = ebook.generate_epub(
@@ -213,7 +217,7 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, user_age
                     'always_convert_images': options.get('always_convert_images', False)
                 },
                 normalize=normalize,
-                output_dir=output_dir or options.get('output_dir', os.getcwd()),
+                output_dir=site_output_dir,
                 allow_spaces=options.get('allow_spaces', False),
                 session=session,
                 parser=options.get('parser', 'lxml')
