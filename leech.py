@@ -7,7 +7,6 @@ import logging
 import os
 import requests
 import requests_cache
-import sqlite3
 from click_default_group import DefaultGroup
 from functools import reduce
 
@@ -138,12 +137,8 @@ def cli():
 def flush(verbose):
     """Flushes the contents of the cache."""
     configure_logging(verbose)
-    requests_cache.install_cache('leech')
-    requests_cache.clear()
-
-    conn = sqlite3.connect('leech.sqlite')
-    conn.execute("VACUUM")
-    conn.close()
+    session = create_session(True)
+    session.cache.clear()
 
     logger.info("Flushed cache")
 
