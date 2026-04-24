@@ -5,7 +5,7 @@ authors = [
 license = {text = "MIT"}
 requires-python = "<4.0,>=3.10"
 dependencies = [
-    "attrs<26.0.0,>=25.1.0",
+    "attrs<27.0.0,>=26.1.0",
     "beautifulsoup4<5.0.0,>=4.13.3",
     "click-default-group<2.0.0,>=1.2.4",
     "click<9.0.0,>=8.1.8",
