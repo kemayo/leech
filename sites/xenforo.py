@@ -261,7 +261,7 @@ class XenForo(Site):
             # create a proper post-url, because threadmarks can sometimes
             # mess up page-wise with anchors
             url = self.siteurl(f'posts/{postid}/')
-        soup, base = self._soup(url, 'lxml')
+        soup, base = self._soup(url)
 
         if postid:
             return self._posts_from_page(soup, postid), base
