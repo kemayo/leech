@@ -95,7 +95,7 @@ class FanFictionNet(Site):
 
         self._clean(text, base)
 
-        return text.prettify()
+        return self._soup_contents(text)
 
     def _soup(self, url, *args, **kwargs):
         if self._cloudflared:

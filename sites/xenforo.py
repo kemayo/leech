@@ -307,7 +307,7 @@ class XenForo(Site):
                 tag['src'] = f"{self.domain}/{tag['src']}"
         self._clean(post, base)
         self._clean_spoilers(post, chapterid)
-        return post.prettify()
+        return self._soup_contents(post)
 
     def _clean_spoilers(self, post, chapterid):
         # spoilers don't work well, so turn them into epub footnotes

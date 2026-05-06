@@ -66,7 +66,7 @@ class Stash(Site):
 
         self._clean(text, base)
 
-        return Chapter(title=title, contents=text.prettify(), date=self._date(soup))
+        return Chapter(title=title, contents=self._soup_contents(text), date=self._date(soup))
 
     def _date(self, soup):
         maybe_date = soup.find('div', class_="dev-metainfo-details").find('span', ts=True)

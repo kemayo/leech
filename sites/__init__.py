@@ -222,6 +222,18 @@ class Site:
         soup = BeautifulSoup(text, method)
         return soup, str((soup.head and soup.head.base) and soup.head.base.get('href') or fallback_base)
 
+    def _soup_contents(self, soup, prettify=True):
+        if soup.body:
+            soup = soup.body
+        if prettify:
+            # prettify includes the top-level tag, and stripping it is sort of
+            # a pain; joining the prettified children should be enough.
+            return ''.join(
+                child.prettify() if hasattr(child, 'prettify') else str(child)
+                for child in soup.children
+            )
+        return soup.decode_contents()
+
     def _form_in_soup(self, soup):
         if soup.name == 'form':
             return soup
@@ -287,7 +299,7 @@ class Site:
         backlink.string = '^'
         contents.insert(0, backlink)
 
-        self.footnotes.append(contents.prettify())
+        self.footnotes.append(self._soup_contents(contents))
 
         # now build the link to the footnote to return, with appropriate
         # epub annotations.
@@ -367,7 +379,7 @@ class Site:
                 else:
                     img.replace_with(img.get('alt', '🖼'))
 
-        chapter.contents = str(soup)
+        chapter.contents = self._soup_contents(soup)
 
 
 @define

@@ -109,7 +109,7 @@ class ArchiveOfOurOwn(Site):
 
         self._clean(content, base)
 
-        return content.prettify() + (notes and notes.prettify() or '')
+        return self._soup_contents(content) + (notes and self._soup_contents(notes) or '')
 
 
 @register

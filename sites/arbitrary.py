@@ -146,7 +146,7 @@ class Arbitrary(Site):
 
             chapters.append(Chapter(
                 title=title,
-                contents=content.prettify(),
+                contents=self._soup_contents(content),
                 # TODO: better date detection
                 date=datetime.datetime.now()
             ))
