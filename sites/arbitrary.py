@@ -31,15 +31,15 @@ class SiteDefinition:
     author: str
     content_selector: str
     # If present, find something within `content` to use a chapter title; if not found, the link text to it will be used
-    content_title_selector: str = False
+    content_title_selector: str|None = None
     # If present, find a specific element in the `content` to be the chapter text
-    content_text_selector: str = False
+    content_text_selector: str|None = None
     # If present, it looks for chapters linked from `url`. If not, it assumes `url` points to a chapter.
-    chapter_selector: str = False
+    chapter_selector: str|None = None
     # If present, use to find a link to the next content page (only used if not using chapter_selector)
-    next_selector: str = False
+    next_selector: str|None = None
     # If present, use to filter out content that matches the selector
-    filter_selector: str = False
+    filter_selector: str|None = None
     cover_url: str = ''
 
 
@@ -110,7 +110,7 @@ class Arbitrary(Site):
 
         return story
 
-    def _chapter(self, url, definition, title=False):
+    def _chapter(self, url, definition, title=None):
         logger.info("Extracting chapter @ %s", url)
         soup, base = self._soup(url)
 

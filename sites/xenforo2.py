@@ -24,7 +24,7 @@ class XenForo2(XenForo):
             tags=tags
         )
 
-    def _posts_from_page(self, soup, postid=False):
+    def _posts_from_page(self, soup, postid=None):
         if postid:
             return soup.find('article', id='js-post-' + postid)
         return soup.select('article.message--post')

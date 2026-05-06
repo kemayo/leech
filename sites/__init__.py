@@ -7,9 +7,10 @@ import uuid
 import datetime
 import time
 import logging
-import urllib
 import re
 import hashlib
+import requests
+from urllib import parse as urlparse
 from attrs import define, field, Factory
 from bs4 import BeautifulSoup
 
@@ -34,7 +35,7 @@ class Image:
         if self.url.startswith("data:image") and 'base64' in self.url:
             head, base64data = self.url.split(',')
             return str(head.split(';')[0].split('/')[1])
-        path = urllib.parse.urlparse(self.url).path
+        path = urlparse.urlparse(self.url).path
         return os.path.splitext(path)[1]
 
 
@@ -42,7 +43,7 @@ class Image:
 class Chapter:
     title: str
     contents: str
-    date: datetime.datetime = False
+    date: datetime.datetime | None = None
     images: dict = Factory(dict)
 
 
@@ -93,7 +94,7 @@ class Site:
     """A Site handles checking whether a URL might represent a site, and then
     extracting the content of a story from said site.
     """
-    session: object = field()
+    session: requests.Session = field()
     footnotes: list = field(factory=list, init=False)
     options: dict = Factory(
         lambda site: site.get_default_options(),
@@ -102,9 +103,7 @@ class Site:
 
     @classmethod
     def site_key(cls):
-        if hasattr(cls, '_key'):
-            return cls._key
-        return cls.__name__
+        return getattr(cls, '_key', cls.__name__)
 
     @staticmethod
     def get_site_specific_option_defs():
@@ -176,8 +175,8 @@ class Site:
                 options[option.name] = option_value
         return options
 
-    @staticmethod
-    def matches(url):
+    @classmethod
+    def matches(cls, url):
         raise NotImplementedError()
 
     def extract(self, url):
@@ -196,7 +195,7 @@ class Site:
     def login(self, login_details):
         raise NotImplementedError()
 
-    def _soup(self, url, method=False, delay=0, retry=3, retry_delay=10, **kw):
+    def _soup(self, url, method=None, delay=0, retry=3, retry_delay=10, **kw) -> tuple[BeautifulSoup, str]:
         if not method:
             method = self.options.get('parser', 'lxml')
         if url.startswith('http://') or url.startswith('https://'):
@@ -221,7 +220,7 @@ class Site:
             text = url
             fallback_base = ''
         soup = BeautifulSoup(text, method)
-        return soup, (soup.head and soup.head.base) and soup.head.base.get('href') or fallback_base
+        return soup, str((soup.head and soup.head.base) and soup.head.base.get('href') or fallback_base)
 
     def _form_in_soup(self, soup):
         if soup.name == 'form':
@@ -265,7 +264,7 @@ class Site:
         return soup.new_tag(*args, **kw)
 
     def _join_url(self, *args, **kwargs):
-        return urllib.parse.urljoin(*args, **kwargs)
+        return urlparse.urljoin(*args, **kwargs)
 
     def _footnote(self, contents, chapterid):
         """Register a footnote and return a link to that footnote"""
@@ -302,7 +301,7 @@ class Site:
 
         return spoiler_link
 
-    def _clean(self, contents, base=False):
+    def _clean(self, contents, base:str|None=None):
         """Clean up story content to be more ebook-friendly
 
         TODO: this expects a soup as its argument, so the couple of API-driven sites can't use it as-is
@@ -339,7 +338,7 @@ class Site:
         # Call this on a story after it's fully extracted to clean up things
         for chapter in story:
             if hasattr(chapter, '__iter__'):
-                self._finalize(chapter, story)
+                self._finalize(chapter)
             else:
                 self._process_images(chapter)
 
@@ -380,9 +379,9 @@ class SiteSpecificOption:
     name: str
     flag_pattern: str
     type: object = None
-    default: bool = False
-    help: str = None
-    choices: tuple = None
+    default: object = False
+    help: str|None = None
+    choices: tuple|None = None
     exposed: bool = True
     click_kwargs: frozenset = field(converter=lambda kwargs: frozenset(kwargs.items()), default={})
 

@@ -45,9 +45,9 @@ def configure_logging(verbose):
         )
 
 
-def create_session(cache):
+def create_session(cache) -> requests_cache.CachedSession | requests.Session:
     if cache:
-        session = requests_cache.CachedSession('leech', expire_after=4 * 3600, use_temp=True)
+        session = requests_cache.CachedSession('leech', expire_after=4 * 3600, use_temp=True, backend='sqlite')
         logger.debug("CachedSession at %s", session.cache.db_path)
     else:
         session = requests.Session()
@@ -59,7 +59,7 @@ def create_session(cache):
             logger.debug("No leech.cookies present in %s", directory)
             continue
         try:
-            lwp_cookiejar.load(directory / 'leech.cookies', ignore_discard=True)
+            lwp_cookiejar.load(str(directory / 'leech.cookies'), ignore_discard=True)
         except Exception:
             # This file is very much optional, so this log isn't really necessary
             logger.exception("Couldn't load cookies from leech.cookies in %s", dirs.user_data_path)
@@ -200,7 +200,7 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, user_age
         options, login = create_options(site, site_options, other_flags)
         if UA := user_agent or options.get('user_agent'):
             logger.debug('USER_AGENT overridden to "%s"', UA)
-            session.headers.update( {'USER_AGENT': UA})
+            session.headers.update({'USER_AGENT': UA})
         site_output_dir = Path(output_dir or options.get('output_dir', os.getcwd())).expanduser().resolve()
         if not os.path.exists(site_output_dir):
             logger.warning("output directory doesn't exist: %s", site_output_dir)
