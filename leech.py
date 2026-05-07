@@ -14,6 +14,7 @@ from platformdirs import PlatformDirs
 
 import sites
 import ebook
+import reader
 
 __version__ = 2
 USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
@@ -225,6 +226,28 @@ def download(urls, site_options, cache, verbose, normalize, output_dir, user_age
             logger.info("File created: " + filename)
         else:
             logger.warning("No ebook created")
+
+
+@cli.command()
+@click.argument('url')
+@click.option(
+    '--site-options',
+    default='{}',
+    help='JSON object encoding any site specific option.'
+)
+@click.option('--cache/--no-cache', default=True)
+@click.option('--verbose', '-v', is_flag=True, help="Verbose debugging output")
+@site_specific_options  # Includes other click.options specific to sites
+def read(url, site_options, cache, verbose, **other_flags):
+    """Launches an in terminal reader to preview or read a story."""
+    configure_logging(verbose)
+    session = create_session(cache)
+
+    site, url = sites.get(url)
+    options, login = create_options(site, site_options, other_flags)
+    story = open_story(site, url, session, login, options)
+
+    reader.launch_reader(story)
 
 
 if __name__ == '__main__':
