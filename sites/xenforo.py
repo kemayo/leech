@@ -27,6 +27,12 @@ class XenForo(Site):
                 help="If true, the post marked as an index will be included as a chapter."
             ),
             SiteSpecificOption(
+                'include_tallies',
+                '--include-tallies/--no-include-tallies',
+                default=True,
+                help="If false, embedded vote tallies will be stripped"
+            ),
+            SiteSpecificOption(
                 'offset',
                 '--offset',
                 type=int,
@@ -305,6 +311,9 @@ class XenForo(Site):
             tag['src'] = tag['data-url']
             if tag['src'].startswith('proxy.php'):
                 tag['src'] = f"{self.domain}/{tag['src']}"
+        if not self.options['include_tallies']:
+            for tag in post.select('div.tally-block'):
+                tag.decompose()
         self._clean(post, base)
         self._clean_spoilers(post, chapterid)
         return self._soup_contents(post)
