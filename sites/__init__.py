@@ -272,6 +272,10 @@ class Site:
         return data, form.attrs.get('action'), form.attrs.get('method', 'get').lower()
 
     def _new_tag(self, *args, **kw):
+        if 'class_' in kw:
+            # compatibility shim equalizing new_tag and find behaviors
+            kw['class'] = kw['class_']
+            del kw['class_']
         soup = BeautifulSoup("", self.options.get('parser'))
         return soup.new_tag(*args, **kw)
 
