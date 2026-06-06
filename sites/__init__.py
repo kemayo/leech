@@ -136,15 +136,6 @@ class Site:
                 help="Whether to include spoilers"
             ),
             SiteSpecificOption(
-                'deprecated_skip_spoilers',
-                '--skip-spoilers/--include-spoilers',
-                help="If true, do not transcribe any tags that are marked as a spoiler. (DEPRECATED)",
-                exposed=False,
-                click_kwargs={
-                    "callback": lambda ctx, param, value: ctx.params.update({"spoilers": value and "skip" or "include"}),
-                },
-            ),
-            SiteSpecificOption(
                 'parser',
                 '--parser',
                 help="Which HTML parser to use",
