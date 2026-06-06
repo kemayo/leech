@@ -291,9 +291,14 @@ class Site:
 
         # epub spec footnotes are all about epub:type on the footnote and the link
         # http://www.idpf.org/accessibility/guidelines/content/semantics/epub-type.php
-        contents.name = 'div'
+        contents.name = 'aside'
+        # The note body must be an <aside>: a <div> here renders inline in
+        # lenient readers but isn't guaranteed to survive send-to-kindle
+        # conversion.
+        # epub:type "footnote" has the most reliable Kindle popup
+        # support (vs "rearnote").
         contents.attrs['id'] = f'footnote{idx}'
-        contents.attrs['epub:type'] = 'rearnote'
+        contents.attrs['epub:type'] = 'footnote'
 
         # a backlink is essential for Kindle to think of this as a footnote
         # otherwise it doesn't get the inline-popup treatment
