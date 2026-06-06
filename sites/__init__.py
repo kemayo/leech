@@ -303,7 +303,8 @@ class Site:
         backlink.string = '^'
         contents.insert(0, backlink)
 
-        self.footnotes.append(self._soup_contents(contents))
+        # Keep the whole element via str(), not _soup_contents()
+        self.footnotes.append(str(contents))
 
         # now build the link to the footnote to return, with appropriate
         # epub annotations.
