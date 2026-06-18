@@ -44,6 +44,13 @@ class XenForo(Site):
                 type=int,
                 help="The chapter to end at at in the chapter marks."
             ),
+            SiteSpecificOption(
+                'filter',
+                '--filter',
+                type=str,
+                default=False,
+                help="If provided, a pattern to match in chapter titles."
+            ),
         ]
 
     @classmethod
@@ -131,6 +138,8 @@ class XenForo(Site):
                     if self.options['limit'] and idx >= self.options['limit']:
                         continue
                     title = self._threadmark_title(post)
+                    if not self._chapter_title_allowed(title):
+                        continue
                     logger.info("Extracting chapter \"%s\"", title)
 
                     story.add(Chapter(
@@ -154,6 +163,8 @@ class XenForo(Site):
             for idx, mark in enumerate(marks, 1):
                 href = self._join_url(base, mark.get('href'))
                 title = str(mark.string).strip()
+                if not self._chapter_title_allowed(title):
+                    continue
                 logger.info("Fetching chapter \"%s\" @ %s", title, href)
                 contents, post_date = self._chapter(href, idx)
                 chapter = Chapter(title=title, contents=contents, date=post_date)
@@ -343,6 +354,11 @@ class XenForo(Site):
             # title="Feb 24, 2015 at 1:17 PM"
             return datetime.datetime.strptime(maybe_date['title'], "%b %d, %Y at %I:%M %p")
         raise SiteException("No date", maybe_date)
+
+    def _chapter_title_allowed(self, title):
+        if filter := self.options['filter']:
+            return re.search(filter, title, re.IGNORECASE)
+        return True
 
 
 class XenForoIndex(XenForo):
