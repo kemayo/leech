@@ -57,7 +57,7 @@ class XenForo2(XenForo):
 
     def _post_date(self, post):
         if post.find('time'):
-            return datetime.datetime.fromtimestamp(int(post.find('time').get('data-time')))
+            return datetime.datetime.fromisoformat(post.find('time').get('datetime'))
         raise SiteException("No date")
 
 
