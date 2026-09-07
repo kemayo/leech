@@ -29,12 +29,12 @@ class Image:
     url: str
 
     def path(self):
-        return f"images/{hashlib.sha1(self.url.encode()).hexdigest()}.{self.ext()}"
+        return f"images/{hashlib.sha1(self.url.encode()).hexdigest()}{self.ext()}"
 
     def ext(self):
         if self.url.startswith("data:image") and 'base64' in self.url:
             head, base64data = self.url.split(',')
-            return str(head.split(';')[0].split('/')[1])
+            return '.' + str(head.split(';')[0].split('/')[1])
         path = urlparse.urlparse(self.url).path
         return os.path.splitext(path)[1]
 
