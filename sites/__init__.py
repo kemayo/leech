@@ -29,14 +29,11 @@ class Image:
     url: str
 
     def path(self):
-        return f"images/{hashlib.sha1(self.url.encode()).hexdigest()}{self.ext()}"
-
-    def ext(self):
-        if self.url.startswith("data:image") and 'base64' in self.url:
-            head, base64data = self.url.split(',')
-            return '.' + str(head.split(';')[0].split('/')[1])
-        path = urlparse.urlparse(self.url).path
-        return os.path.splitext(path)[1]
+        # This is deliberately not leaving an extension, because the
+        # image-type isn't actually known here, and Amazon treats the
+        # extension as important when converting files via send-to-kindle,
+        # which messes with later format-conversion.
+        return f"images/{hashlib.sha1(self.url.encode()).hexdigest()}"
 
 
 @define
