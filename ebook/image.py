@@ -128,7 +128,6 @@ def get_image_from_url(
             if PIL_image.info['version'] not in [b"GIF89a", "GIF89a"]:
                 PIL_image.info['version'] = b"GIF89a"
             imgdata = PIL_Image_to_bytes(PIL_image, "GIF")
-            mimetype = "image/gif"
         elif compress_images:
             PIL_image = compress_image(image, max_image_size, current_format)
 
