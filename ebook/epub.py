@@ -29,7 +29,7 @@ def sanitize_filename(s, allow_spaces=False):
     an invalid filename.
 
     """
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+    valid_chars = f"-_.() {string.ascii_letters}{string.digits}"
     filename = ''.join(c for c in s if c in valid_chars)
     if not allow_spaces:
         filename = filename.replace(' ', '_')  # I don't like spaces in filenames.
@@ -98,7 +98,7 @@ def make_epub(filename, files, meta, compress=True, output_dir=False, allow_spac
 
     # Write each HTML file to the ebook, collect information for the index
     for i, file in enumerate(files):
-        file_id = 'file_%d' % (i + 1)
+        file_id = f'file_{i + 1}'
         etree.SubElement(manifest, 'item', {
             'id': file_id,
             'href': file.path,

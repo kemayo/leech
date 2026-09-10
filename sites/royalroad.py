@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import http.client
 import logging
 import datetime
@@ -37,12 +35,12 @@ class RoyalRoad(Site):
         # Note: urls like https://www.royalroad.com/fiction/chapter/2330878 also exist, which it
         # might be nice to support, but I need to look into an API call to get the work ID from
         # a chapter ID.
-        match = re.match(r'^(https?://(?:www\.)?%s\.com/fiction/\d+)/?.*' % cls.domain, url)
+        match = re.match(rf'^(https?://(?:www\.)?{cls.domain}\.com/fiction/\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
 
     def extract(self, url):
-        workid = re.match(r'^https?://(?:www\.)?%s\.com/fiction/(\d+)/?.*' % self.domain, url).group(1)
+        workid = re.match(rf'^https?://(?:www\.)?{self.domain}\.com/fiction/(\d+)/?.*', url).group(1)
         soup, base = self._soup(f'https://www.{self.domain}.com/fiction/{workid}')
         # should have gotten redirected, for a valid title
 

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import datetime
 import re
 import logging
@@ -55,10 +53,10 @@ class XenForo(Site):
 
     @classmethod
     def matches(cls, url):
-        match = re.match(r'^(https?://%s/(?:index\.php\?)?threads/[^/]*\d+/(?:\d+/)?reader)/?.*' % cls.domain, url)
+        match = re.match(rf'^(https?://{cls.domain}/(?:index\.php\?)?threads/[^/]*\d+/(?:\d+/)?reader)/?.*', url)
         if match:
             return match.group(1)
-        match = re.match(r'^(https?://%s/(?:index\.php\?)?threads/[^/]*\d+)/?.*' % cls.domain, url)
+        match = re.match(rf'^(https?://{cls.domain}/(?:index\.php\?)?threads/[^/]*\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
 
@@ -364,7 +362,7 @@ class XenForo(Site):
 class XenForoIndex(XenForo):
     @classmethod
     def matches(cls, url):
-        match = re.match(r'^(https?://%s/posts/\d+)/?.*' % cls.domain, url)
+        match = re.match(rf'^(https?://{cls.domain}/posts/\d+)/?.*', url)
         if match:
             return match.group(1) + '/'
 

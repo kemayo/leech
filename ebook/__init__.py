@@ -141,7 +141,7 @@ def chapter_html(
     return chapters
 
 
-def generate_epub(story, cover_options={}, image_options={}, output_filename=None, output_dir=None, normalize=False, allow_spaces=False, session=None, parser='lxml'):
+def generate_epub(story, cover_options=None, image_options=None, output_filename=None, output_dir=None, normalize=False, allow_spaces=False, session=None, parser='lxml'):
     dates = list(story.dates())
     metadata = {
         'title': story.title,
@@ -173,13 +173,13 @@ def generate_epub(story, cover_options={}, image_options={}, output_filename=Non
     valid_image_options = ('image_fetch', 'image_format', 'compress_images',
                            'max_image_size', 'always_convert_images')
     image_options = ImageOptions(
-        **{k: v for k, v in image_options.items() if k in valid_image_options})
+        **{k: v for k, v in (image_options or {}).items() if k in valid_image_options})
     image_options = asdict(image_options, filter=lambda k, v: v is not None)
 
     valid_cover_options = ('fontname', 'fontsize', 'width',
                            'height', 'wrapat', 'bgcolor', 'textcolor', 'cover_url')
     cover_options = CoverOptions(
-        **{k: v for k, v in cover_options.items() if k in valid_cover_options})
+        **{k: v for k, v in (cover_options or {}).items() if k in valid_cover_options})
     cover_options = asdict(cover_options, filter=lambda k, v: v is not None)
 
     if cover_options and "cover_url" in cover_options:

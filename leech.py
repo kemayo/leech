@@ -16,7 +16,7 @@ import sites
 import ebook
 
 __version__ = 2
-USER_AGENT = 'Leech/%s +http://davidlynch.org' % __version__
+USER_AGENT = f'Leech/{__version__} +http://davidlynch.org'
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +26,9 @@ dirs = PlatformDirs('Leech', 'davidlynch.org', ensure_exists=True)
 def likely_paths(*paths):
     yield Path('.')
     modpath = Path(__file__).resolve().parent
-    if modpath.resolve() != Path('.').resolve():
+    if modpath.resolve() != Path.cwd():
         yield modpath
-    for path in paths:
-        yield path
+    yield from paths
 
 
 def configure_logging(verbose):
@@ -155,7 +154,6 @@ def site_specific_options(f):
 @click.group(cls=DefaultGroup, default='download', default_if_no_args=True)
 def cli():
     """Top level click group. Uses click-default-group to preserve most behavior from leech v1."""
-    pass
 
 
 @cli.command()

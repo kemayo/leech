@@ -8,7 +8,6 @@ import textwrap
 import requests
 import logging
 
-from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +87,7 @@ def get_image_from_url(
     max_image_size: int = 1_000_000,
     always_convert: bool = False,
     session: requests.Session = None
-) -> Tuple[bytes, str, str]:
+) -> tuple[bytes, str, str]:
     """
     Based on make_cover_from_url(), this function takes in the image url usually gotten from the `src` attribute of
     an image tag and returns the image data, the image format and the image mime type
@@ -106,7 +105,7 @@ def get_image_from_url(
         if url.startswith("https://www.filepicker.io/api/"):
             logger.warning("Filepicker.io image detected, converting to Fiction.live image. This might fail.")
             url = f"https://cdn3.fiction.live/fp/{url.split('/')[-1]}?&quality=95"
-        elif url.startswith("https://cdn3.fiction.live/images/") or url.startswith("https://ddx5i92cqts4o.cloudfront.net/images/"):
+        elif url.startswith(("https://cdn3.fiction.live/images/", "https://ddx5i92cqts4o.cloudfront.net/images/")):
             logger.warning("Converting url to cdn6. This might fail.")
             url = f"https://cdn6.fiction.live/file/fictionlive/images/{url.split('/images/')[-1]}"
 
@@ -191,7 +190,7 @@ def _safe_font(preferred, *args, **kwargs):
     for font in (preferred, "Helvetica", "FreeSans", "Arial"):
         try:
             return ImageFont.truetype(*args, font=font, **kwargs)
-        except IOError:
+        except OSError:
             pass
 
     # This is pretty terrible, but it'll work regardless of what fonts the

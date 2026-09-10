@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import datetime
 import logging
 

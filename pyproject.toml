@@ -29,8 +29,8 @@ dev = [
 ]
 
 [tool.ruff.lint]
+ignore = ["E501", "W505", "DTZ", "BLE001", "RUF059", "I001"]
 extend-select = ["W"]
-extend-ignore = ["E501", "W505"]
 
 [tool.pdm.build]
 includes = [

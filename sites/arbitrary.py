@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import logging
 from attrs import define
 import datetime

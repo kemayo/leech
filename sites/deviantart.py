@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import logging
 import re
 
@@ -27,7 +25,7 @@ class DeviantArt(Stash):
         if "gallery" in url:
             author = str(content.select('h1 a.u')[0].string)
         else:
-            authors = set(str(author.string) for author in content.select('.stream .details a.u'))
+            authors = {str(author.string) for author in content.select('.stream .details a.u')}
             author = ', '.join(authors)
 
         story = Section(
