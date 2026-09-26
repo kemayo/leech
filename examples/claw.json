@@ -1,0 +1,8 @@
+{
+    "url": "https://clawwebserial.blog/table-of-contents/",
+    "title": "Claw",
+    "author": "Wildbow",
+    "chapter_selector": "#main .entry-content a",
+    "content_selector": "#main .entry-content",
+    "filter_selector": ".sharedaddy, style, a[href*='https://clawwebserial.blog/'], p:first-of-type, p:last-of-type"
+}
