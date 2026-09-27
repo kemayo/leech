@@ -4,6 +4,6 @@
     "author": "pirate aba",
     "cover_url": "https://i0.wp.com/wanderinginn.com/wp-content/uploads/2023/03/Wandering_Inn-Vol1-eCover.jpg?ssl=1",
     "chapter_selector": "#table-of-contents .chapter-entry .body-web > a",
-    "content_selector": ".entry-content",
+    "content_selector": "main > article",
     "filter_selector": "hr:last-of-type, hr:last-of-type ~ *"
 }
