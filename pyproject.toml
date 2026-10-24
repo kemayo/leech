@@ -3,7 +3,7 @@ authors = [
     {name = "David Lynch", email = "kemayo@gmail.com"},
 ]
 license = {text = "MIT"}
-requires-python = "<4.0,>=3.10"
+requires-python = "<4.0,>=3.11"
 dependencies = [
     "attrs<27.0.0,>=26.1.0",
     "beautifulsoup4<5.0.0,>=4.13.3",
@@ -11,7 +11,7 @@ dependencies = [
     "click<9.0.0,>=8.1.8",
     "requests<3.0.0,>=2.32.4",
     "requests-cache<2.0.0,>=1.2.1",
-    "pillow>=12.3.0,<13.0.0",
+    "pillow>=13.0.0,<13.1.0",
     "mintotp<1.0.0,>=0.3.0",
     "lxml<7.0.0,>=6.1.0",
     "platformdirs>=4.9.4",
